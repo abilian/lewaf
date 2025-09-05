@@ -1,4 +1,5 @@
-from coraza_poc.primitives.collections import MatchData
+from coraza_poc.primitives.collections import MatchData, MapCollection, SingleValueCollection
+from coraza_poc.primitives.transformations import TRANSFORMATIONS
 
 class Rule:
     def __init__(self, variables, operator, transformations, actions, metadata):

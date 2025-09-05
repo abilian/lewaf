@@ -1,3 +1,12 @@
+class MatchData:
+    def __init__(self, variable, key, value):
+        self.variable = variable
+        self.key = key
+        self.value = value
+
+    def __repr__(self):
+        return f"MatchData(variable='{self.variable}', key='{self.key}', value='{self.value}')"
+
 class Collection:
     def __init__(self, name):
         self._name = name

@@ -1,6 +1,7 @@
 from coraza_poc.primitives import OPERATORS, ACTIONS
 from coraza_poc.engine import RuleGroup
 from coraza_poc.rules import Rule
+from coraza_poc.transaction import Transaction
 
 class SecLangParser:
     def __init__(self, rule_group):
