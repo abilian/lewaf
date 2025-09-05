@@ -1,6 +1,10 @@
 import pytest
 
-from coraza_poc.poc import compile_regex, WAF, MapCollection, lowercase, RxOperator
+from coraza_poc.core import compile_regex
+from coraza_poc.integration import WAF
+from coraza_poc.primitives.collections import MapCollection
+from coraza_poc.primitives.transformations import lowercase
+from coraza_poc.primitives.operators import RxOperator
 
 
 @pytest.fixture
