@@ -6,14 +6,13 @@ class RuleGroup:
 
     def add(self, rule):
         self.rules_by_phase[rule.phase].append(rule)
-        logging.debug(f"Added rule {rule.id} to phase {rule.phase}")
+        logging.debug("Added rule %s to phase %s", rule.id, rule.phase)
 
     def evaluate(self, phase, transaction):
-        logging.info(f"--- Executing Phase {phase} ---")
+        logging.info("--- Executing Phase %s ---", phase)
         for rule in self.rules_by_phase[phase]:
             rule.evaluate(transaction)
             if transaction.interruption:
-                logging.warning(
-                    f"Transaction interrupted by rule {transaction.interruption['rule_id']}. Halting phase."
-                )
+                logging.warning("Transaction interrupted by rule %s. Halting phase.", 
+                               transaction.interruption["rule_id"])
                 return
