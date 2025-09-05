@@ -1,6 +1,7 @@
 import pytest
 
 from coraza_poc.integration import WAF
+from coraza_poc.primitives.operators import RxOperator
 
 
 @pytest.fixture
