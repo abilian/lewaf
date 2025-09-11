@@ -9,7 +9,7 @@ from coraza_poc.transaction import Transaction
 
 def test_load_crs_method_enforcement():
     """Test loading and using CRS METHOD-ENFORCEMENT rules."""
-    rules_dir = Path(__file__).parent.parent / "rules"
+    rules_dir = Path(__file__).parent.parent.parent / "rules"
     method_file = rules_dir / "REQUEST-911-METHOD-ENFORCEMENT.conf"
 
     if not method_file.exists():
@@ -49,7 +49,7 @@ def test_load_crs_method_enforcement():
 
 def test_crs_rule_components():
     """Test that CRS rules have expected components."""
-    rules_dir = Path(__file__).parent.parent / "rules"
+    rules_dir = Path(__file__).parent.parent.parent / "rules"
     files = list(rules_dir.glob("REQUEST-*.conf"))
 
     if not files:
@@ -85,7 +85,7 @@ def test_crs_rule_components():
 
 def test_crs_paranoia_levels():
     """Test CRS paranoia level structure."""
-    rules_dir = Path(__file__).parent.parent / "rules"
+    rules_dir = Path(__file__).parent.parent.parent / "rules"
     files = list(rules_dir.glob("REQUEST-9*.conf"))
 
     if not files:
@@ -117,7 +117,7 @@ def test_crs_paranoia_levels():
 
 def test_crs_data_file_references():
     """Test that CRS rules reference existing data files."""
-    rules_dir = Path(__file__).parent.parent / "rules"
+    rules_dir = Path(__file__).parent.parent.parent / "rules"
 
     # Get all .conf files
     conf_files = list(rules_dir.glob("*.conf"))
@@ -264,12 +264,12 @@ def test_crs_rule_metadata():
         if rule_id >= 1000:
             rule_range = (rule_id // 1000) * 1000  # 942011 -> 942000, but we want 942
             rule_range = rule_range // 1000  # Convert 942000 -> 942
-            # Special case: 941xxx rules are XSS (940 category)  
+            # Special case: 941xxx rules are XSS (940 category)
             if rule_range == 941:
                 rule_range = 940
         else:
             rule_range = (rule_id // 100) * 100  # For 3-digit IDs
-        
+
         if rule_range in rule_id_ranges:
             found_ranges.add(rule_range)
 
