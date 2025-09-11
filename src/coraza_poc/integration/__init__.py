@@ -1,4 +1,5 @@
-from coraza_poc.primitives import OPERATORS, ACTIONS
+from coraza_poc.primitives.operators import get_operator, OperatorOptions
+from coraza_poc.primitives.actions import ACTIONS
 from coraza_poc.engine import RuleGroup
 from coraza_poc.rules import Rule
 from coraza_poc.transaction import Transaction
@@ -30,15 +31,16 @@ class SecLangParser:
         else:
             op_name, op_arg = "rx", operator_str
 
-        operator_class = OPERATORS.get(op_name.lower())
-        if not operator_class:
-            raise ValueError(f"Unknown operator: {op_name}")
-        op_instance = operator_class(op_arg)
-        parsed_operator = type(
-            "ParsedOperator",
-            (),
-            {"name": op_name, "argument": op_arg, "op": op_instance},
-        )
+        try:
+            options = OperatorOptions(op_arg)
+            op_instance = get_operator(op_name, options)
+            parsed_operator = type(
+                "ParsedOperator",
+                (),
+                {"name": op_name, "argument": op_arg, "op": op_instance},
+            )
+        except ValueError as e:
+            raise ValueError(f"Failed to create operator {op_name}: {e}") from e
 
         parsed_actions = {}
         parsed_transformations = []
