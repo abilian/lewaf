@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import re
+
 from coraza_poc.primitives.collections import (
-    MatchData,
     MapCollection,
+    MatchData,
     SingleValueCollection,
     TransactionVariables,
 )

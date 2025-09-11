@@ -1,13 +1,14 @@
 """Tests for Core Rule Set (CRS) rule parsing and validation."""
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
-from typing import List, Tuple
 
 import pytest
 
-from coraza_poc.integration import SecLangParser
 from coraza_poc.engine import RuleGroup
+from coraza_poc.integration import SecLangParser
 
 
 class CRSRuleTest:
@@ -19,7 +20,7 @@ class CRSRuleTest:
         self.rule_group = RuleGroup()
         self.parser = SecLangParser(self.rule_group)
 
-    def get_crs_files(self) -> List[Path]:
+    def get_crs_files(self) -> list[Path]:
         """Get all CRS configuration files."""
         if not self.rules_dir.exists():
             pytest.skip(f"Rules directory not found: {self.rules_dir}")
@@ -37,7 +38,7 @@ class CRSRuleTest:
         except UnicodeDecodeError:
             return file_path.read_text(encoding="latin1")
 
-    def extract_secrules(self, content: str) -> List[Tuple[str, int]]:
+    def extract_secrules(self, content: str) -> list[tuple[str, int]]:
         """Extract SecRule directives from file content."""
         rules = []
         lines = content.split("\n")
@@ -75,7 +76,7 @@ class CRSRuleTest:
 
         return rules
 
-    def _rule_is_complete(self, rule_lines: List[str]) -> bool:
+    def _rule_is_complete(self, rule_lines: list[str]) -> bool:
         """Check if a multi-line rule is complete."""
         full_rule = " ".join(rule_lines)
         # A rule is complete if it has all required parts

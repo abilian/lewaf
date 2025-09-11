@@ -1,5 +1,7 @@
 """Tests for extended operators matching Go Coraza functionality."""
 
+from __future__ import annotations
+
 import pytest
 
 from coraza_poc.primitives.operators import (
@@ -12,11 +14,11 @@ from coraza_poc.primitives.operators import (
     IpMatchOperator,
     LeOperator,
     LtOperator,
+    OperatorOptions,
     ValidateByteRangeOperator,
     ValidateUtf8EncodingOperator,
     WithinOperator,
     get_operator,
-    OperatorOptions,
 )
 
 

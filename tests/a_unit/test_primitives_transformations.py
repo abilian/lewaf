@@ -1,11 +1,13 @@
+from __future__ import annotations
+
 from coraza_poc.primitives.transformations import (
-    lowercase,
-    uppercase,
-    length,
-    trim,
-    compress_whitespace,
-    remove_whitespace,
     TRANSFORMATIONS,
+    compress_whitespace,
+    length,
+    lowercase,
+    remove_whitespace,
+    trim,
+    uppercase,
 )
 
 

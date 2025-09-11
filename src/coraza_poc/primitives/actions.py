@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from enum import IntEnum
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from coraza_poc.rules import Rule
@@ -21,7 +23,7 @@ class ActionType(IntEnum):
 class Action:
     """Base class for rule actions."""
 
-    def __init__(self, argument: Optional[str] = None):
+    def __init__(self, argument: str | None = None):
         self.argument = argument
 
     def init(self, rule_metadata: dict, data: str) -> None:
@@ -29,7 +31,7 @@ class Action:
         if data and len(data) > 0:
             raise ValueError(f"Unexpected arguments for {self.__class__.__name__}")
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: Rule, transaction: Transaction) -> None:
         """Evaluate the action."""
         raise NotImplementedError
 

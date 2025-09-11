@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import re
-from typing import List
 
 
 class MatchData:
@@ -24,7 +25,7 @@ class Collection:
         """Return the name of this collection."""
         return self._name
 
-    def find_all(self) -> List[MatchData]:
+    def find_all(self) -> list[MatchData]:
         """Return all matches in this collection."""
         raise NotImplementedError
 
@@ -34,7 +35,7 @@ class MapCollection(Collection):
 
     def __init__(self, name: str, case_insensitive: bool = True):
         super().__init__(name)
-        self._data: dict[str, List[str]] = {}
+        self._data: dict[str, list[str]] = {}
         self._case_insensitive = case_insensitive
 
     def add(self, key: str, value: str) -> None:
@@ -45,13 +46,13 @@ class MapCollection(Collection):
             self._data[key] = []
         self._data[key].append(value)
 
-    def get(self, key: str) -> List[str]:
+    def get(self, key: str) -> list[str]:
         """Get all values for the given key."""
         if self._case_insensitive:
             key = key.lower()
         return self._data.get(key, [])
 
-    def set(self, key: str, values: List[str]) -> None:
+    def set(self, key: str, values: list[str]) -> None:
         """Replace the key's values with the provided list."""
         if self._case_insensitive:
             key = key.lower()
@@ -63,7 +64,7 @@ class MapCollection(Collection):
             key = key.lower()
         self._data.pop(key, None)
 
-    def find_regex(self, pattern: re.Pattern[str]) -> List[MatchData]:
+    def find_regex(self, pattern: re.Pattern[str]) -> list[MatchData]:
         """Find all matches where the key matches the regex pattern."""
         matches = []
         for key, values in self._data.items():
@@ -72,7 +73,7 @@ class MapCollection(Collection):
                     matches.append(MatchData(self._name, key, value))
         return matches
 
-    def find_string(self, search_key: str) -> List[MatchData]:
+    def find_string(self, search_key: str) -> list[MatchData]:
         """Find all matches for the exact key string."""
         if self._case_insensitive:
             search_key = search_key.lower()
@@ -82,7 +83,7 @@ class MapCollection(Collection):
                 matches.append(MatchData(self._name, search_key, value))
         return matches
 
-    def find_all(self) -> List[MatchData]:
+    def find_all(self) -> list[MatchData]:
         """Return all key-value pairs as MatchData objects."""
         matches = []
         for key, values in self._data.items():
@@ -109,7 +110,7 @@ class SingleValueCollection(Collection):
         """Get the single value of this collection."""
         return self._value
 
-    def find_all(self) -> List[MatchData]:
+    def find_all(self) -> list[MatchData]:
         """Return the single value as a MatchData object."""
         return [MatchData(self._name, "", self._value)]
 
@@ -135,7 +136,7 @@ class FilesCollection(Collection):
 
     def __init__(self, name: str = "FILES"):
         super().__init__(name)
-        self._files: dict[str, List[FileData]] = {}
+        self._files: dict[str, list[FileData]] = {}
 
     def add_file(
         self, name: str, filename: str, content: bytes, content_type: str = ""
@@ -146,11 +147,11 @@ class FilesCollection(Collection):
             self._files[name] = []
         self._files[name].append(file_data)
 
-    def get_files(self, name: str) -> List[FileData]:
+    def get_files(self, name: str) -> list[FileData]:
         """Get all files for a given form field name."""
         return self._files.get(name, [])
 
-    def find_all(self) -> List[MatchData]:
+    def find_all(self) -> list[MatchData]:
         """Return all file names and filenames as MatchData objects."""
         matches = []
         for name, files in self._files.items():
@@ -158,7 +159,7 @@ class FilesCollection(Collection):
                 matches.append(MatchData(self._name, name, file_data.filename))
         return matches
 
-    def find_regex(self, pattern: re.Pattern[str]) -> List[MatchData]:
+    def find_regex(self, pattern: re.Pattern[str]) -> list[MatchData]:
         """Find files where the field name matches the regex pattern."""
         matches = []
         for name, files in self._files.items():
@@ -167,7 +168,7 @@ class FilesCollection(Collection):
                     matches.append(MatchData(self._name, name, file_data.filename))
         return matches
 
-    def find_string(self, search_name: str) -> List[MatchData]:
+    def find_string(self, search_name: str) -> list[MatchData]:
         """Find files for the exact field name."""
         matches = []
         if search_name in self._files:

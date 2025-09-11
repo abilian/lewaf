@@ -1,13 +1,14 @@
 """Command-line interface for Coraza reverse proxy."""
 
+from __future__ import annotations
+
 import argparse
 import logging
 import sys
-from typing import Optional
 
 import uvicorn
 
-from coraza_poc.proxy.server import create_proxy_app
+from .server import create_proxy_app
 
 
 def setup_logging(level: str = "INFO") -> None:
@@ -23,7 +24,7 @@ def load_rules_from_file(file_path: str) -> list[str]:
     """Load WAF rules from a configuration file."""
     rules = []
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith("#"):
@@ -47,10 +48,10 @@ def main() -> None:
 Examples:
   # Basic proxy
   python -m coraza_poc.proxy.cli --upstream http://backend:8000
-  
+
   # With custom rules file
   python -m coraza_poc.proxy.cli --upstream http://backend:8000 --rules-file waf.conf
-  
+
   # Custom host and port
   python -m coraza_poc.proxy.cli --upstream http://backend:8000 --host 0.0.0.0 --port 8080
         """,
@@ -125,7 +126,7 @@ Examples:
     logger.info(f"Listening on: {args.host}:{args.port}")
 
     # Load WAF rules
-    waf_rules: Optional[list[str]] = None
+    waf_rules: list[str] | None = None
     if args.rules_file:
         waf_rules = load_rules_from_file(args.rules_file)
         logger.info(f"Loaded {len(waf_rules)} WAF rules from {args.rules_file}")

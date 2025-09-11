@@ -1,7 +1,9 @@
 """Coraza reverse proxy server using Starlette."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -9,7 +11,8 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
 from coraza_poc.integrations.starlette import CorazaMiddleware
-from coraza_poc.proxy.client import ProxyClient
+
+from .client import ProxyClient
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +23,9 @@ class CorazaReverseProxy:
     def __init__(
         self,
         upstream_url: str,
-        waf_config: Optional[dict[str, Any]] = None,
-        waf_rules: Optional[list[str]] = None,
-        proxy_config: Optional[dict[str, Any]] = None,
+        waf_config: dict[str, Any] | None = None,
+        waf_rules: list[str] | None = None,
+        proxy_config: dict[str, Any] | None = None,
     ):
         """Initialize the reverse proxy.
 
@@ -97,8 +100,8 @@ class CorazaReverseProxy:
 
 def create_proxy_app(
     upstream_url: str,
-    waf_rules: Optional[list[str]] = None,
-    waf_config_file: Optional[str] = None,
+    waf_rules: list[str] | None = None,
+    waf_config_file: str | None = None,
     **proxy_kwargs: Any,
 ) -> Starlette:
     """Create a Coraza reverse proxy application.

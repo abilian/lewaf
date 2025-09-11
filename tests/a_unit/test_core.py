@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from coraza_poc.core import compile_regex
 
 

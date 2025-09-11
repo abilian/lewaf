@@ -1,5 +1,7 @@
 """Tests for extended collections matching Go Coraza functionality."""
 
+from __future__ import annotations
+
 from coraza_poc.primitives.collections import (
     BodyCollection,
     FileData,
@@ -106,7 +108,7 @@ def test_body_collection_encoding_handling():
     body = BodyCollection("REQUEST_BODY")
 
     # Test UTF-8 content
-    utf8_content = "Hello 世界".encode("utf-8")
+    utf8_content = "Hello 世界".encode()
     body.set_content(utf8_content, "text/plain; charset=utf-8")
 
     assert body.get() == "Hello 世界"

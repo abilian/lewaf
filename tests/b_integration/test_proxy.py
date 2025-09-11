@@ -1,5 +1,7 @@
 """Tests for Coraza reverse proxy functionality."""
 
+from __future__ import annotations
+
 import pytest
 from starlette.applications import Starlette
 from starlette.requests import Request

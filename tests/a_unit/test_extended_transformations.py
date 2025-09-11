@@ -1,5 +1,7 @@
 """Tests for extended transformations matching Go Coraza functionality."""
 
+from __future__ import annotations
+
 import base64
 
 from coraza_poc.primitives.transformations import (

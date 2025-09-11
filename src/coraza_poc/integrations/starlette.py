@@ -1,7 +1,10 @@
 """Starlette integration for Coraza WAF."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Awaitable, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import Any
 from urllib.parse import parse_qs
 
 from starlette.applications import Starlette
@@ -20,9 +23,9 @@ class CorazaMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app: Starlette,
-        waf: Optional[WAF] = None,
-        config_file: Optional[str] = None,
-        rules: Optional[list[str]] = None,
+        waf: WAF | None = None,
+        config_file: str | None = None,
+        rules: list[str] | None = None,
         block_response_status: int = 403,
         block_response_body: str = "Request blocked by WAF",
     ):
@@ -122,8 +125,8 @@ class CorazaMiddleware(BaseHTTPMiddleware):
 
 def create_waf_app(
     target_app: Starlette,
-    config_file: Optional[str] = None,
-    rules: Optional[list[str]] = None,
+    config_file: str | None = None,
+    rules: list[str] | None = None,
     **middleware_kwargs: Any,
 ) -> Starlette:
     """Create a Starlette app with WAF protection."""

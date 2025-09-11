@@ -1,7 +1,10 @@
 """Integration tests for loading and using CRS rules."""
 
-import pytest
+from __future__ import annotations
+
 from pathlib import Path
+
+import pytest
 
 from coraza_poc.integration import WAF
 from coraza_poc.transaction import Transaction
