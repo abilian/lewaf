@@ -263,6 +263,7 @@ class SetVarAction(Action):
     def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
         # Parse variable specification (e.g., "tx.anomaly_score=+5")
         import logging
+
         logging.debug(f"Setting variable: {self.var_spec}")
         # Variable setting logic would go here
 
@@ -283,6 +284,7 @@ class CtlAction(Action):
     def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
         # Parse control specification (e.g., "ruleRemoveTargetByID=123;ARGS:foo")
         import logging
+
         logging.debug(f"Control setting: {self.control_spec}")
         # Control logic would go here
 
