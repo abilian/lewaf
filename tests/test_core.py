@@ -1,5 +1,3 @@
-import pytest
-
 from coraza_poc.core import compile_regex
 
 

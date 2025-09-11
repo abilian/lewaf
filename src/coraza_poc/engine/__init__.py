@@ -1,5 +1,6 @@
 import logging
 
+
 class RuleGroup:
     def __init__(self):
         self.rules_by_phase = {1: [], 2: [], 3: [], 4: [], 5: []}
@@ -13,6 +14,8 @@ class RuleGroup:
         for rule in self.rules_by_phase[phase]:
             rule.evaluate(transaction)
             if transaction.interruption:
-                logging.warning("Transaction interrupted by rule %s. Halting phase.", 
-                               transaction.interruption["rule_id"])
+                logging.warning(
+                    "Transaction interrupted by rule %s. Halting phase.",
+                    transaction.interruption["rule_id"],
+                )
                 return

@@ -7,6 +7,7 @@ class MatchData:
     def __repr__(self):
         return f"MatchData(variable='{self.variable}', key='{self.key}', value='{self.value}')"
 
+
 class Collection:
     def __init__(self, name):
         self._name = name

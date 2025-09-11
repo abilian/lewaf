@@ -1,6 +1,7 @@
 from urllib.parse import parse_qs
 from coraza_poc.primitives.collections import TransactionVariables
 
+
 class Transaction:
     def __init__(self, waf, id):
         self.id = id
