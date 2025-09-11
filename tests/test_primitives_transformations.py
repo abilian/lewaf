@@ -1,5 +1,3 @@
-import pytest
-
 from coraza_poc.primitives.transformations import lowercase
 
 
