@@ -7,7 +7,11 @@ authors = [
     { name = "Stefane Fermigier", email = "sf@abilian.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "starlette>=0.41.0",
+    "httpx>=0.27.0",
+    "uvicorn>=0.32.0",
+]
 
 [project.scripts]
 coraza-poc = "coraza_poc:main"
