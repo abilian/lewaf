@@ -29,7 +29,7 @@ services:
       - backend
     networks:
       - coraza-net
-    command: ["python", "-m", "lewaf.proxy.cli", "--upstream", "http://backend:80", "--rules-file", "waf.conf", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["python", "-m", "coraza_poc.proxy.cli", "--upstream", "http://backend:80", "--rules-file", "waf.conf", "--host", "0.0.0.0", "--port", "8080"]
 
 networks:
   coraza-net:
