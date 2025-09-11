@@ -27,7 +27,9 @@ class SecLangParser:
                 parsed_vars.append((var.upper(), None))
 
         if operator_str.startswith("@"):
-            op_name, op_arg = operator_str[1:].split(" ", 1)
+            parts = operator_str[1:].split(" ", 1)
+            op_name = parts[0]
+            op_arg = parts[1] if len(parts) > 1 else ""
         else:
             op_name, op_arg = "rx", operator_str
 

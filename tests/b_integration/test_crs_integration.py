@@ -188,7 +188,7 @@ def test_sample_crs_rule_parsing():
 
 def test_crs_rule_metadata():
     """Test that CRS rules contain expected metadata."""
-    rules_dir = Path(__file__).parent.parent / "rules"
+    rules_dir = Path(__file__).parent.parent.parent / "rules"
 
     # Read a few rule files
     test_files = [
@@ -259,8 +259,17 @@ def test_crs_rule_metadata():
     }
 
     found_ranges = set()
-    for rule_id in metadata_found["rule_ids"][:20]:  # Check first 20
-        rule_range = (rule_id // 10) * 10  # Get range like 940, 920, etc.
+    for rule_id in metadata_found["rule_ids"][:100]:  # Check first 100 to get diversity
+        # For rule IDs like 942011, extract the first 3 digits (942)
+        if rule_id >= 1000:
+            rule_range = (rule_id // 1000) * 1000  # 942011 -> 942000, but we want 942
+            rule_range = rule_range // 1000  # Convert 942000 -> 942
+            # Special case: 941xxx rules are XSS (940 category)  
+            if rule_range == 941:
+                rule_range = 940
+        else:
+            rule_range = (rule_id // 100) * 100  # For 3-digit IDs
+        
         if rule_range in rule_id_ranges:
             found_ranges.add(rule_range)
 
