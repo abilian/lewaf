@@ -440,7 +440,9 @@ class PmOperator(Operator):
     def __init__(self, argument: str):
         super().__init__(argument)
         # Parse space-separated phrases
-        self._phrases = [phrase.strip() for phrase in argument.split() if phrase.strip()]
+        self._phrases = [
+            phrase.strip() for phrase in argument.split() if phrase.strip()
+        ]
 
     def evaluate(self, tx: "Transaction", value: str) -> bool:
         """Check if any phrase matches the value."""
@@ -480,7 +482,7 @@ class PmFromFileOperator(Operator):
         elif "unix-shell" in self._filename:
             shell_commands = ["bin/sh", "/bin/bash", "wget", "curl"]
             return any(cmd in value.lower() for cmd in shell_commands)
-        
+
         # Default behavior - no match
         return False
 
