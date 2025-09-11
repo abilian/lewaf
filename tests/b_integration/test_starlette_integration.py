@@ -1,5 +1,7 @@
 """Tests for Starlette Coraza integration."""
 
+from __future__ import annotations
+
 import pytest
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -7,8 +9,8 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from coraza_poc.integrations.starlette import CorazaMiddleware, create_waf_app
 from coraza_poc.integration import WAF
+from coraza_poc.integrations.starlette import CorazaMiddleware, create_waf_app
 
 
 @pytest.fixture

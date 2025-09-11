@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from urllib.parse import parse_qs
+
 from coraza_poc.primitives.collections import TransactionVariables
 
 

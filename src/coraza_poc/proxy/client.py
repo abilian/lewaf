@@ -1,7 +1,9 @@
 """HTTP client for proxying requests to upstream servers."""
 
+from __future__ import annotations
+
 import logging
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 from urllib.parse import urljoin, urlparse
 
 import httpx

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from coraza_poc.primitives.collections import MapCollection, SingleValueCollection
 from coraza_poc.primitives.transformations import TRANSFORMATIONS
 

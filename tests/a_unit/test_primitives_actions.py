@@ -1,15 +1,18 @@
+from __future__ import annotations
+
 import pytest
+
 from coraza_poc.primitives.actions import (
-    ActionType,
-    Action,
     ACTIONS,
-    LogAction,
-    DenyAction,
+    Action,
+    ActionType,
     AllowAction,
     BlockAction,
+    DenyAction,
     IdAction,
-    PhaseAction,
+    LogAction,
     MsgAction,
+    PhaseAction,
     SeverityAction,
 )
 

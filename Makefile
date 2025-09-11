@@ -1,43 +1,25 @@
-.PHONY: all test build format check lint clean docs docs-serve
+.PHONY: all test build format check lint clean
 
-all:
-	uv run pytest
-	@make lint
-
+all: check test
 
 check: lint
 
 lint:
-	uv run ruff check src tests
-	uv run ruff format --check
-	uv run pyrefly check src
-	uv run ty check src
-	uv run mypy src
-
+	ruff check .
+	ruff format . --check
 
 format:
-	uv run ruff format .
-	uv run ruff check --fix src tests
-	uv run ruff format .
+	ruff check . --fix
+	ruff format .
 
 test:
 	uv run pytest
-
-test-cov:
-	uv run pytest --cov=lewaf --cov-report=html --cov-report=term tests
 
 build: clean
 	uv build
 
 clean:
-	rm -rf .pytest_cache .ruff_cache dist build __pycache__ .mypy_cache \
-		.coverage htmlcov .coverage.* *.egg-info site
+	rm -rf .pytest_cache .ruff_cache dist build __pycache__ .mypy_cache .coverage htmlcov .coverage.* *.egg-info
 
 publish: build
 	uv publish
-
-docs:
-	uv run mkdocs build
-
-docs-serve:
-	uv run mkdocs serve

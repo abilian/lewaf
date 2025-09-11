@@ -1,10 +1,13 @@
+from __future__ import annotations
+
 import pytest
+
 from coraza_poc.primitives.operators import (
-    OperatorOptions,
-    get_operator,
-    RxOperator,
-    EqOperator,
     OPERATORS,
+    EqOperator,
+    OperatorOptions,
+    RxOperator,
+    get_operator,
 )
 
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import fnmatch
 import ipaddress
 from typing import TYPE_CHECKING

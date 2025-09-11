@@ -1,6 +1,8 @@
-from coraza_poc.primitives.operators import get_operator, OperatorOptions
-from coraza_poc.primitives.actions import ACTIONS
+from __future__ import annotations
+
 from coraza_poc.engine import RuleGroup
+from coraza_poc.primitives.actions import ACTIONS
+from coraza_poc.primitives.operators import OperatorOptions, get_operator
 from coraza_poc.rules import Rule
 from coraza_poc.transaction import Transaction
 
