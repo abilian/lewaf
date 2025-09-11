@@ -14,7 +14,7 @@ class CRSRuleTest:
     """Helper class for testing CRS rule parsing."""
 
     def __init__(self):
-        self.rules_dir = Path(__file__).parent.parent / "rules"
+        self.rules_dir = Path(__file__).parent.parent.parent / "rules"
         # SecLangParser needs a RuleGroup
         self.rule_group = RuleGroup()
         self.parser = SecLangParser(self.rule_group)
