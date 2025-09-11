@@ -192,3 +192,17 @@ class SeverityAction(Action):
 
     def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
         pass  # Severity is metadata, no runtime behavior
+
+
+@register_action("pass")
+class PassAction(Action):
+    """Pass action allows the request to continue."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+        import logging
+
+        logging.debug(f"Rule {rule.id} matched but allowed to pass")
+        # Pass action does nothing - just allows the request to continue

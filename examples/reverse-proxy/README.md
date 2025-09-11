@@ -38,7 +38,7 @@ docker run -p 8001:80 httpbin/httpbin
 
 Start the Coraza proxy:
 ```bash
-python -m lewaf.proxy.cli --upstream http://localhost:8001 --rules-file examples/reverse-proxy/waf.conf
+python -m coraza_poc.proxy.cli --upstream http://localhost:8001 --rules-file examples/reverse-proxy/waf.conf
 ```
 
 ## Testing the WAF
@@ -98,7 +98,7 @@ SecRule ARGS "@rx (\bunion\b.*\bselect\b)" \
 ### CLI Options
 
 ```bash
-python -m lewaf.proxy.cli --help
+python -m coraza_poc.proxy.cli --help
 ```
 
 Key options:
@@ -114,7 +114,7 @@ Key options:
 
 WAF events are logged with structured information:
 ```
-2025-01-11 10:30:15 - lewaf.integrations.starlette - WARNING - Request blocked in headers phase by rule 1001
+2025-01-11 10:30:15 - coraza_poc.integrations.starlette - WARNING - Request blocked in headers phase by rule 1001
 ```
 
 ### Metrics
@@ -174,7 +174,7 @@ spec:
         command:
           - python
           - -m
-          - lewaf.proxy.cli
+          - coraza_poc.proxy.cli
           - --upstream
           - http://backend-service:80
           - --rules-file
