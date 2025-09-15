@@ -1,11 +1,25 @@
 from __future__ import annotations
 
 from enum import IntEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from coraza_poc.rules import Rule
-    from coraza_poc.transaction import Transaction
+    pass
+
+
+class RuleProtocol(Protocol):
+    """Protocol defining the minimal rule interface needed by actions."""
+
+    id: int | str
+
+
+class TransactionProtocol(Protocol):
+    """Protocol defining the minimal transaction interface needed by actions."""
+
+    def interrupt(self, rule: RuleProtocol) -> None:
+        """Interrupt the transaction with the given rule."""
+        ...
+
 
 ACTIONS = {}
 
@@ -31,7 +45,7 @@ class Action:
         if data and len(data) > 0:
             raise ValueError(f"Unexpected arguments for {self.__class__.__name__}")
 
-    def evaluate(self, rule: Rule, transaction: Transaction) -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Evaluate the action."""
         raise NotImplementedError
 
@@ -57,7 +71,7 @@ class LogAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.NONDISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         import logging
 
         logging.info(f"Rule {rule.id} matched and logged.")
@@ -70,7 +84,7 @@ class DenyAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.DISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         import logging
 
         logging.warning(f"Executing DENY action from rule {rule.id}")
@@ -84,7 +98,7 @@ class AllowAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.DISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         import logging
 
         logging.info(f"Rule {rule.id} allowing request")
@@ -98,7 +112,7 @@ class BlockAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.DISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         import logging
 
         logging.warning(f"Blocking request due to rule {rule.id}")
@@ -121,7 +135,7 @@ class IdAction(Action):
         except ValueError as e:
             raise ValueError(f"ID must be a valid integer: {data}") from e
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # ID is metadata, no runtime behavior
 
 
@@ -144,7 +158,7 @@ class PhaseAction(Action):
         except ValueError as e:
             raise ValueError(f"Phase must be a valid integer 1-5: {data}") from e
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Phase is metadata, no runtime behavior
 
 
@@ -161,7 +175,7 @@ class MsgAction(Action):
             raise ValueError("Message action requires a message")
         self.message = data
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Message is metadata, no runtime behavior
 
 
@@ -192,7 +206,7 @@ class SeverityAction(Action):
             )
         self.severity = data.lower()
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Severity is metadata, no runtime behavior
 
 
@@ -203,7 +217,7 @@ class PassAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.NONDISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         import logging
 
         logging.debug(f"Rule {rule.id} matched but allowed to pass")
@@ -217,7 +231,7 @@ class NoLogAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.NONDISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         # This action prevents logging, handled at framework level
         pass
 
@@ -233,7 +247,7 @@ class LogDataAction(Action):
         """LogData action can have optional data specification."""
         self.log_data = data or ""
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Metadata only
 
 
@@ -244,7 +258,7 @@ class CaptureAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.NONDISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         # Capture functionality handled by operators
         pass
 
@@ -262,7 +276,7 @@ class SetVarAction(Action):
             raise ValueError("SetVar action requires variable specification")
         self.var_spec = data
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         # Parse variable specification (e.g., "tx.anomaly_score=+5")
         import logging
 
@@ -283,7 +297,7 @@ class CtlAction(Action):
             raise ValueError("Ctl action requires control specification")
         self.control_spec = data
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         # Parse control specification (e.g., "ruleRemoveTargetByID=123;ARGS:foo")
         import logging
 
@@ -304,7 +318,7 @@ class SkipAfterAction(Action):
             raise ValueError("SkipAfter action requires a marker")
         self.marker = data
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         # Skip logic handled by rule engine
         pass
 
@@ -322,7 +336,7 @@ class TagAction(Action):
             raise ValueError("Tag action requires a tag name")
         self.tag_name = data
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Tags are metadata only
 
 
@@ -339,7 +353,7 @@ class VerAction(Action):
             raise ValueError("Ver action requires a version string")
         self.version = data
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Version is metadata only
 
 
@@ -359,7 +373,7 @@ class MaturityAction(Action):
         except ValueError as e:
             raise ValueError(f"Maturity must be an integer: {data}") from e
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Maturity is metadata only
 
 
@@ -379,7 +393,7 @@ class AccuracyAction(Action):
         except ValueError as e:
             raise ValueError(f"Accuracy must be an integer: {data}") from e
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Accuracy is metadata only
 
 
@@ -390,7 +404,7 @@ class ChainAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.FLOW
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         # Chain logic handled by rule engine
         pass
 
@@ -402,7 +416,7 @@ class MultiMatchAction(Action):
     def action_type(self) -> ActionType:
         return ActionType.NONDISRUPTIVE
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         # Multi-match logic handled by operators
         pass
 
@@ -423,5 +437,5 @@ class StatusAction(Action):
         except ValueError as e:
             raise ValueError(f"Status must be an integer: {data}") from e
 
-    def evaluate(self, rule: "Rule", transaction: "Transaction") -> None:
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Status is metadata only

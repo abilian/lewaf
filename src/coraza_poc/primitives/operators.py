@@ -2,13 +2,26 @@ from __future__ import annotations
 
 import fnmatch
 import ipaddress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 from urllib.parse import unquote
 
 from coraza_poc.core import compile_regex
 
 if TYPE_CHECKING:
-    from coraza_poc.transaction import Transaction
+    pass
+
+
+class TransactionProtocol(Protocol):
+    """Protocol defining the minimal transaction interface needed by operators."""
+
+    def capturing(self) -> bool:
+        """Return whether the transaction is capturing matches."""
+        ...
+
+    def capture_field(self, index: int, value: str) -> None:
+        """Capture a field value at the given index."""
+        ...
+
 
 OPERATORS = {}
 
@@ -33,7 +46,7 @@ class Operator:
     def __init__(self, argument: str):
         self._argument = argument
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Evaluate the operator against a value in the context of a transaction."""
         raise NotImplementedError
 
@@ -80,7 +93,7 @@ class RxOperator(Operator):
         super().__init__(argument)
         self._regex = compile_regex(argument)
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Evaluate regex against the value."""
         if hasattr(tx, "capturing") and tx.capturing():
             # Handle capture groups if transaction supports it
@@ -109,7 +122,7 @@ class EqOperatorFactory(OperatorFactory):
 class EqOperator(Operator):
     """Equality operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value equals the argument."""
         return value == self._argument
 
@@ -126,7 +139,7 @@ class ContainsOperatorFactory(OperatorFactory):
 class ContainsOperator(Operator):
     """Contains substring operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value contains the argument substring."""
         return self._argument in value
 
@@ -143,7 +156,7 @@ class BeginsWithOperatorFactory(OperatorFactory):
 class BeginsWithOperator(Operator):
     """Begins with operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value begins with the argument."""
         return value.startswith(self._argument)
 
@@ -160,7 +173,7 @@ class EndsWithOperatorFactory(OperatorFactory):
 class EndsWithOperator(Operator):
     """Ends with operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value ends with the argument."""
         return value.endswith(self._argument)
 
@@ -177,7 +190,7 @@ class GtOperatorFactory(OperatorFactory):
 class GtOperator(Operator):
     """Greater than operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value is greater than the argument."""
         try:
             return float(value) > float(self._argument)
@@ -197,7 +210,7 @@ class GeOperatorFactory(OperatorFactory):
 class GeOperator(Operator):
     """Greater than or equal operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value is greater than or equal to the argument."""
         try:
             return float(value) >= float(self._argument)
@@ -217,7 +230,7 @@ class LtOperatorFactory(OperatorFactory):
 class LtOperator(Operator):
     """Less than operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value is less than the argument."""
         try:
             return float(value) < float(self._argument)
@@ -237,7 +250,7 @@ class LeOperatorFactory(OperatorFactory):
 class LeOperator(Operator):
     """Less than or equal operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value is less than or equal to the argument."""
         try:
             return float(value) <= float(self._argument)
@@ -262,7 +275,7 @@ class WithinOperator(Operator):
         # Parse space-separated values
         self._values = set(argument.split())
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value is within the set of allowed values."""
         return value in self._values
 
@@ -291,7 +304,7 @@ class IpMatchOperator(Operator):
             except ValueError:
                 self._network = None
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if IP address matches the network/address."""
         if not self._network:
             return False
@@ -327,7 +340,7 @@ class DetectSQLiOperator(Operator):
             compile_regex(r"(?i)(having\s+|group\s+by\s+|order\s+by\s+)"),
         ]
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Detect SQL injection patterns."""
         decoded_value = unquote(value)  # URL decode first
         for pattern in self._patterns:
@@ -363,7 +376,7 @@ class DetectXSSOperator(Operator):
             compile_regex(r"(?i)<embed[^>]*>"),
         ]
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Detect XSS patterns."""
         decoded_value = unquote(value)  # URL decode first
         for pattern in self._patterns:
@@ -396,7 +409,7 @@ class ValidateByteRangeOperator(Operator):
             else:
                 self._valid_bytes.add(int(part))
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if all bytes in value are within valid ranges."""
         try:
             value_bytes = value.encode("utf-8")
@@ -417,7 +430,7 @@ class ValidateUtf8EncodingOperatorFactory(OperatorFactory):
 class ValidateUtf8EncodingOperator(Operator):
     """UTF-8 encoding validation operator."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value is valid UTF-8."""
         try:
             # If we can encode and decode it, it's valid UTF-8
@@ -446,7 +459,7 @@ class PmOperator(Operator):
             phrase.strip() for phrase in argument.split() if phrase.strip()
         ]
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if any phrase matches the value."""
         value_lower = value.lower()
         return any(phrase.lower() in value_lower for phrase in self._phrases)
@@ -471,7 +484,7 @@ class PmFromFileOperator(Operator):
         # For now, we'll simulate by treating the argument as a filename
         self._filename = argument
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if any phrase from file matches the value."""
         # For testing purposes, we'll simulate some common patterns
         # In production, this would read from the actual data file
@@ -506,7 +519,7 @@ class StrMatchOperator(Operator):
         # Convert glob-style pattern to regex
         self._pattern = compile_regex(fnmatch.translate(argument))
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value matches the string pattern."""
         return self._pattern.match(value) is not None
 
@@ -523,7 +536,7 @@ class StrEqOperatorFactory(OperatorFactory):
 class StrEqOperator(Operator):
     """String equality operator (case sensitive)."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value exactly equals the argument."""
         return value == self._argument
 
@@ -540,6 +553,6 @@ class UnconditionalOperatorFactory(OperatorFactory):
 class UnconditionalOperator(Operator):
     """Unconditional operator that always matches."""
 
-    def evaluate(self, tx: "Transaction", value: str) -> bool:
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Always returns True."""
         return True
