@@ -200,13 +200,11 @@ def test_crs_rule_metadata():
         "REQUEST-930-APPLICATION-ATTACK-LFI.conf",
     ]
 
-    metadata_found = {
-        "rule_ids": [],
-        "phases": set(),
-        "messages": [],
-        "tags": [],
-        "severity": [],
-    }
+    rule_ids: list[int] = []
+    phases: set[int] = set()
+    messages: list[str] = []
+    tags: list[str] = []
+    severity: list[str] = []
 
     for filename in test_files:
         file_path = rules_dir / filename
@@ -224,31 +222,31 @@ def test_crs_rule_metadata():
 
                 id_match = re.search(r"id:(\d+)", line)
                 if id_match:
-                    metadata_found["rule_ids"].append(int(id_match.group(1)))
+                    rule_ids.append(int(id_match.group(1)))
 
             if "phase:" in line:
                 # Extract phase
                 phase_match = re.search(r"phase:(\d+)", line)
                 if phase_match:
-                    metadata_found["phases"].add(int(phase_match.group(1)))
+                    phases.add(int(phase_match.group(1)))
 
             if "msg:" in line:
-                metadata_found["messages"].append(line)
+                messages.append(line)
 
             if "tag:" in line:
-                metadata_found["tags"].append(line)
+                tags.append(line)
 
             if "severity:" in line:
-                metadata_found["severity"].append(line)
+                severity.append(line)
 
     # Validate metadata
-    assert len(metadata_found["rule_ids"]) > 10, "Should find multiple rule IDs"
-    assert len(metadata_found["phases"]) >= 2, "Should find multiple phases"
-    assert len(metadata_found["messages"]) > 5, "Should find rule messages"
-    assert len(metadata_found["tags"]) > 5, "Should find rule tags"
+    assert len(rule_ids) > 10, "Should find multiple rule IDs"
+    assert len(phases) >= 2, "Should find multiple phases"
+    assert len(messages) > 5, "Should find rule messages"
+    assert len(tags) > 5, "Should find rule tags"
 
     # Check phase ranges (should be 1-5)
-    for phase in metadata_found["phases"]:
+    for phase in phases:
         assert 1 <= phase <= 5, f"Phase {phase} should be in range 1-5"
 
     # Check rule ID ranges
@@ -262,7 +260,7 @@ def test_crs_rule_metadata():
     }
 
     found_ranges = set()
-    for rule_id in metadata_found["rule_ids"][:100]:  # Check first 100 to get diversity
+    for rule_id in rule_ids[:100]:  # Check first 100 to get diversity
         # For rule IDs like 942011, extract the first 3 digits (942)
         if rule_id >= 1000:
             rule_range = (rule_id // 1000) * 1000  # 942011 -> 942000, but we want 942

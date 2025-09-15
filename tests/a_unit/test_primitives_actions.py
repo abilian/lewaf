@@ -28,7 +28,7 @@ class MockTransaction:
     """Mock transaction for testing actions."""
 
     def __init__(self):
-        self.interruption = None
+        self.interruption: dict[str, str | int] | None = None
         self.logs = []
 
     def interrupt(self, rule):
