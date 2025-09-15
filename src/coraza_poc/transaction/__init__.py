@@ -10,7 +10,7 @@ class Transaction:
         self.id = id
         self.waf = waf
         self.variables = TransactionVariables()
-        self.interruption = None
+        self.interruption: dict[str, str | int] | None = None
         self.current_phase = 0
 
     def process_uri(self, uri, method):

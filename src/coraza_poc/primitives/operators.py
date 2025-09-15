@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import fnmatch
 import ipaddress
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, Any
 from urllib.parse import unquote
 
 from coraza_poc.core import compile_regex
@@ -55,7 +55,7 @@ class OperatorFactory:
     """Factory function type for creating operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> Operator:
+    def create(options: OperatorOptions) -> Any:
         raise NotImplementedError
 
 
@@ -294,6 +294,7 @@ class IpMatchOperator(Operator):
 
     def __init__(self, argument: str):
         super().__init__(argument)
+        self._network: ipaddress.IPv4Network | ipaddress.IPv6Network | None = None
         # Parse IP address or CIDR network
         try:
             self._network = ipaddress.ip_network(argument, strict=False)
