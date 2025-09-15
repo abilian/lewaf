@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, cast
 from urllib.parse import parse_qs
 
 from starlette.applications import Starlette
@@ -133,7 +133,7 @@ def create_waf_app(
 
     # Add Coraza middleware to the target app
     target_app.add_middleware(
-        CorazaMiddleware,
+        cast(Any, CorazaMiddleware),
         config_file=config_file,
         rules=rules,
         **middleware_kwargs,

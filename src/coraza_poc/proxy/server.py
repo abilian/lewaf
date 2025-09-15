@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -85,7 +85,7 @@ class CorazaReverseProxy:
 
         # Add Coraza WAF middleware
         app.add_middleware(
-            CorazaMiddleware,
+            cast(Any, CorazaMiddleware),
             rules=self.waf_rules,
             config_file=self.waf_config.get("config_file") if self.waf_config else None,
             block_response_status=403,

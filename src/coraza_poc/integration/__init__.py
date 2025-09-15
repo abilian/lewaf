@@ -2,9 +2,18 @@ from __future__ import annotations
 
 from coraza_poc.engine import RuleGroup
 from coraza_poc.primitives.actions import ACTIONS
-from coraza_poc.primitives.operators import OperatorOptions, get_operator
+from coraza_poc.primitives.operators import OperatorOptions, get_operator, Operator
 from coraza_poc.rules import Rule
 from coraza_poc.transaction import Transaction
+
+
+class ParsedOperator:
+    """Container for parsed operator information."""
+
+    def __init__(self, name: str, argument: str, op: Operator):
+        self.name = name
+        self.argument = argument
+        self.op = op
 
 
 class SecLangParser:
@@ -38,11 +47,7 @@ class SecLangParser:
         try:
             options = OperatorOptions(op_arg)
             op_instance = get_operator(op_name, options)
-            parsed_operator = type(
-                "ParsedOperator",
-                (),
-                {"name": op_name, "argument": op_arg, "op": op_instance},
-            )
+            parsed_operator = ParsedOperator(op_name, op_arg, op_instance)
         except ValueError as e:
             raise ValueError(f"Failed to create operator {op_name}: {e}") from e
 
