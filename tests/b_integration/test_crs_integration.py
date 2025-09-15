@@ -38,16 +38,11 @@ def test_load_crs_method_enforcement():
     # Create WAF with one of the simple rules
     config = {"rules": [simple_rules[0]]}
 
-    try:
-        waf = WAF(config)
-        tx = waf.new_transaction()
+    waf = WAF(config)
+    tx = waf.new_transaction()
 
-        assert isinstance(tx, Transaction)
-        assert tx.waf is waf
-        print(f"Successfully loaded CRS rule: {simple_rules[0][:80]}...")
-
-    except Exception as e:
-        pytest.fail(f"Failed to load CRS rule: {e}")
+    assert isinstance(tx, Transaction)
+    assert tx.waf is waf
 
 
 def test_crs_rule_components():
@@ -172,21 +167,11 @@ def test_sample_crs_rule_parsing():
     parsed_count = 0
 
     for rule in sample_rules:
-        try:
-            config = {"rules": [rule]}
-            waf = WAF(config)
-            waf.new_transaction()
-            parsed_count += 1
-            print(f"✓ Parsed: {rule[:60]}...")
-
-        except Exception as e:
-            print(f"✗ Failed: {rule[:60]}... - {e}")
-
-    # Should parse most sample rules
-    success_rate = parsed_count / len(sample_rules)
-    assert success_rate >= 0.75, (
-        f"Should parse most sample rules, got {success_rate:.1%} success rate"
-    )
+        config = {"rules": [rule]}
+        waf = WAF(config)
+        waf.new_transaction()
+        parsed_count += 1
+        print(f"✓ Parsed: {rule[:60]}...")
 
 
 def test_crs_rule_metadata():

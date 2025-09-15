@@ -7,8 +7,11 @@ check: lint
 lint:
 	ruff check .
 	ruff format . --check
+	pyrefly check src
+	
 
 format:
+	ruff format .
 	ruff check . --fix
 	ruff format .
 
