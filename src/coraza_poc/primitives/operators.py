@@ -687,3 +687,276 @@ class RestPathOperator(Operator):
             # with the captured groups from the match
             return True
         return False
+
+
+@register_operator("inspectfile")
+class InspectFileOperatorFactory(OperatorFactory):
+    """Factory for InspectFile operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "InspectFileOperator":
+        return InspectFileOperator(options.arguments)
+
+
+class InspectFileOperator(Operator):
+    """File inspection operator that executes external programs."""
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        self._script_path = argument.strip()
+        if not self._script_path:
+            raise ValueError("InspectFile operator requires a script path")
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Execute external script for file inspection."""
+        import subprocess
+        import tempfile
+        import os
+
+        # Security check: only allow certain file extensions
+        allowed_extensions = [".pl", ".py", ".sh", ".lua"]
+        if not any(self._script_path.endswith(ext) for ext in allowed_extensions):
+            raise ValueError(
+                f"InspectFile: Script type not allowed: {self._script_path}"
+            )
+
+        # Security check: prevent path traversal
+        if ".." in self._script_path:
+            raise ValueError(
+                f"InspectFile: Path traversal not allowed: {self._script_path}"
+            )
+
+        try:
+            # Create temporary file with the content to inspect
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+                temp_file.write(value)
+                temp_file_path = temp_file.name
+
+            try:
+                # Execute the script with the temporary file path
+                result = subprocess.run(
+                    [self._script_path, temp_file_path],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,  # 30 second timeout
+                    check=False,
+                )
+
+                # Parse output: expect "1 message" for clean, "0 message" for threat
+                output = result.stdout.strip()
+                if output.startswith("1 "):
+                    return False  # Clean file
+                elif output.startswith("0 "):
+                    return True  # Threat detected
+                else:
+                    # Unexpected output format, treat as error
+                    return True
+
+            finally:
+                # Clean up temporary file
+                try:
+                    os.unlink(temp_file_path)
+                except OSError:
+                    pass
+
+            # If we get here, the script ran but we didn't parse the output correctly
+            return True
+
+        except subprocess.TimeoutExpired:
+            # Script timed out, treat as error
+            return True
+        except Exception:
+            # Any other error, treat as failed inspection
+            return True
+
+
+@register_operator("ipmatchfromfile")
+class IpMatchFromFileOperatorFactory(OperatorFactory):
+    """Factory for IpMatchFromFile operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "IpMatchFromFileOperator":
+        return IpMatchFromFileOperator(options.arguments)
+
+
+class IpMatchFromFileOperator(Operator):
+    """IP address matching from file operator."""
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        self._file_path = argument.strip()
+        self._ip_list = self._load_ip_list()
+
+    def _load_ip_list(self) -> list[str]:
+        """Load IP addresses and networks from file."""
+        import os
+
+        if not self._file_path:
+            raise ValueError("IpMatchFromFile operator requires a file path")
+
+        # Security check: prevent path traversal
+        if ".." in self._file_path:
+            raise ValueError(
+                f"IpMatchFromFile: Path traversal not allowed: {self._file_path}"
+            )
+
+        ip_list = []
+        try:
+            # Check if file exists
+            if not os.path.exists(self._file_path):
+                # For now, just log and continue with empty list
+                import logging
+
+                logging.warning(f"IpMatchFromFile: File not found: {self._file_path}")
+                return ip_list
+
+            with open(self._file_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip empty lines and comments
+                    if line and not line.startswith("#"):
+                        ip_list.append(line)
+        except Exception as e:
+            import logging
+
+            logging.error(f"IpMatchFromFile: Error loading file {self._file_path}: {e}")
+
+        return ip_list
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Check if IP address matches any in the file."""
+        import ipaddress
+
+        if not self._ip_list:
+            return False
+
+        try:
+            # Parse the input IP address
+            input_ip = ipaddress.ip_address(value.strip())
+
+            # Check against each IP/network in the list
+            for ip_entry in self._ip_list:
+                try:
+                    # Try as network first (CIDR notation)
+                    if "/" in ip_entry:
+                        network = ipaddress.ip_network(ip_entry, strict=False)
+                        if input_ip in network:
+                            return True
+                    else:
+                        # Try as individual IP
+                        list_ip = ipaddress.ip_address(ip_entry)
+                        if input_ip == list_ip:
+                            return True
+                except ValueError:
+                    # Invalid IP format in file, skip it
+                    continue
+
+        except ValueError:
+            # Invalid input IP address
+            return False
+
+        return False
+
+
+# Simple dataset registry for SecDataset support
+DATASETS: dict[str, list[str]] = {}
+
+
+def register_dataset(name: str, data: list[str]) -> None:
+    """Register a dataset for use with dataset operators."""
+    DATASETS[name] = data
+
+
+def get_dataset(name: str) -> list[str]:
+    """Get a dataset by name."""
+    return DATASETS.get(name, [])
+
+
+@register_operator("pmfromdataset")
+class PmFromDatasetOperatorFactory(OperatorFactory):
+    """Factory for PmFromDataset operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "PmFromDatasetOperator":
+        return PmFromDatasetOperator(options.arguments)
+
+
+class PmFromDatasetOperator(Operator):
+    """Pattern matching from dataset operator."""
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        self._dataset_name = argument.strip()
+        if not self._dataset_name:
+            raise ValueError("PmFromDataset operator requires a dataset name")
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Check if value contains any patterns from the dataset."""
+        patterns = get_dataset(self._dataset_name)
+        if not patterns:
+            return False
+
+        value_lower = value.lower()
+
+        # Case-insensitive substring matching
+        for pattern in patterns:
+            if pattern.lower() in value_lower:
+                if tx.capturing():
+                    tx.capture_field(0, pattern)
+                return True
+
+        return False
+
+
+@register_operator("ipmatchfromdataset")
+class IpMatchFromDatasetOperatorFactory(OperatorFactory):
+    """Factory for IpMatchFromDataset operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "IpMatchFromDatasetOperator":
+        return IpMatchFromDatasetOperator(options.arguments)
+
+
+class IpMatchFromDatasetOperator(Operator):
+    """IP address matching from dataset operator."""
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        self._dataset_name = argument.strip()
+        if not self._dataset_name:
+            raise ValueError("IpMatchFromDataset operator requires a dataset name")
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Check if IP address matches any in the dataset."""
+        import ipaddress
+
+        ip_list = get_dataset(self._dataset_name)
+        if not ip_list:
+            return False
+
+        try:
+            # Parse the input IP address
+            input_ip = ipaddress.ip_address(value.strip())
+
+            # Check against each IP/network in the dataset
+            for ip_entry in ip_list:
+                try:
+                    # Try as network first (CIDR notation)
+                    if "/" in ip_entry:
+                        network = ipaddress.ip_network(ip_entry, strict=False)
+                        if input_ip in network:
+                            return True
+                    else:
+                        # Try as individual IP
+                        list_ip = ipaddress.ip_address(ip_entry)
+                        if input_ip == list_ip:
+                            return True
+                except ValueError:
+                    # Invalid IP format in dataset, skip it
+                    continue
+
+        except ValueError:
+            # Invalid input IP address
+            return False
+
+        return False
