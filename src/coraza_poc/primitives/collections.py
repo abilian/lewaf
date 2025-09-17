@@ -255,5 +255,45 @@ class TransactionVariables:
 
         # Environment and server variables
         self.env = MapCollection("ENV")
+
+        # File upload variables
+        self.files_combined_size = SingleValueCollection("FILES_COMBINED_SIZE")
+        self.files_names = MapCollection("FILES_NAMES")
+        self.files_sizes = MapCollection("FILES_SIZES")
+        self.files_tmp_content = MapCollection("FILES_TMP_CONTENT")
+        self.files_tmp_names = MapCollection("FILES_TMPNAMES")
+
+        # Error handling variables
+        self.reqbody_error = SingleValueCollection("REQBODY_ERROR")
+        self.reqbody_error_msg = SingleValueCollection("REQBODY_ERROR_MSG")
+        self.reqbody_processor = SingleValueCollection("REQBODY_PROCESSOR")
+        self.reqbody_processor_error = SingleValueCollection("REQBODY_PROCESSOR_ERROR")
+        self.reqbody_processor_error_msg = SingleValueCollection(
+            "REQBODY_PROCESSOR_ERROR_MSG"
+        )
+        self.inbound_data_error = SingleValueCollection("INBOUND_DATA_ERROR")
+        self.outbound_data_error = SingleValueCollection("OUTBOUND_DATA_ERROR")
+
+        # Additional request/response variables
+        self.request_body_length = SingleValueCollection("REQUEST_BODY_LENGTH")
+        self.response_content_length = SingleValueCollection("RESPONSE_CONTENT_LENGTH")
+        self.response_content_type = SingleValueCollection("RESPONSE_CONTENT_TYPE")
+        self.request_headers_names = MapCollection("REQUEST_HEADERS_NAMES")
+        self.response_headers_names = MapCollection("RESPONSE_HEADERS_NAMES")
+        self.args_combined_size = SingleValueCollection("ARGS_COMBINED_SIZE")
+
+        # Performance and monitoring variables
+        self.duration = SingleValueCollection("DURATION")
+        self.highest_severity = SingleValueCollection("HIGHEST_SEVERITY")
+        self.unique_id = SingleValueCollection("UNIQUE_ID")
+
+        # Additional path variables
+        self.request_basename = SingleValueCollection("REQUEST_BASENAME")
+        self.request_filename = SingleValueCollection("REQUEST_FILENAME")
+        self.request_uri_raw = SingleValueCollection("REQUEST_URI_RAW")
+
+        # Status and protocol variables
+        self.status_line = SingleValueCollection("STATUS_LINE")
+        self.response_protocol = SingleValueCollection("RESPONSE_PROTOCOL")
         self.server_addr = SingleValueCollection("SERVER_ADDR")
         self.server_port = SingleValueCollection("SERVER_PORT")

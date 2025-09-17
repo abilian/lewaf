@@ -528,3 +528,112 @@ class RevAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Revision is metadata only
+
+
+@register_action("drop")
+class DropAction(Action):
+    """Drop action terminates connection."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.DISRUPTIVE
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.warning(f"Rule {rule.id} dropping connection")
+        transaction.interrupt(rule)
+        # TODO: In full implementation, terminate the connection
+
+
+@register_action("exec")
+class ExecAction(Action):
+    """Exec action executes external command (SECURITY RISK)."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """Exec action requires a command."""
+        if not data:
+            raise ValueError("Exec action requires a command")
+        self.command = data
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        # WARNING: exec action is a significant security risk
+        # In production, this should be heavily restricted or disabled
+        logging.warning(f"Rule {rule.id} would execute: {self.command}")
+        logging.warning("SECURITY WARNING: exec action disabled for safety")
+        # TODO: In full implementation with proper security controls:
+        # subprocess.run(self.command, shell=True, timeout=10)
+
+
+@register_action("setenv")
+class SetEnvAction(Action):
+    """SetEnv action sets environment variables."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """SetEnv action requires var=value format."""
+        if not data or "=" not in data:
+            raise ValueError("SetEnv action requires var=value format")
+        parts = data.split("=", 1)
+        self.var_name = parts[0].strip()
+        self.var_value = parts[1].strip()
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import os
+        import logging
+
+        logging.debug(f"Rule {rule.id} setting env {self.var_name}={self.var_value}")
+        os.environ[self.var_name] = self.var_value
+
+
+@register_action("expirevar")
+class ExpireVarAction(Action):
+    """ExpireVar action sets variable expiration."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """ExpireVar action requires var=seconds format."""
+        if not data or "=" not in data:
+            raise ValueError("ExpireVar action requires var=seconds format")
+        parts = data.split("=", 1)
+        self.var_name = parts[0].strip()
+        try:
+            self.expire_seconds = int(parts[1].strip())
+        except ValueError as e:
+            raise ValueError(f"ExpireVar seconds must be integer: {parts[1]}") from e
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.debug(
+            f"Rule {rule.id} setting expiration for {self.var_name}: {self.expire_seconds}s"
+        )
+        # TODO: In full implementation, set variable expiration
+
+
+@register_action("initcol")
+class InitColAction(Action):
+    """InitCol action initializes persistent collection."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """InitCol action requires collection specification."""
+        if not data:
+            raise ValueError("InitCol action requires collection specification")
+        self.collection_spec = data
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.debug(f"Rule {rule.id} initializing collection: {self.collection_spec}")
+        # TODO: In full implementation, initialize persistent collection
