@@ -237,9 +237,12 @@ class TransactionVariables:
         self.request_line = SingleValueCollection("REQUEST_LINE")
         self.response_status = SingleValueCollection("RESPONSE_STATUS")
         self.server_name = SingleValueCollection("SERVER_NAME")
+        self.server_addr = SingleValueCollection("SERVER_ADDR")
+        self.server_port = SingleValueCollection("SERVER_PORT")
         self.remote_addr = SingleValueCollection("REMOTE_ADDR")
         self.remote_host = SingleValueCollection("REMOTE_HOST")
         self.remote_port = SingleValueCollection("REMOTE_PORT")
+        self.query_string = SingleValueCollection("QUERY_STRING")
 
         # Content analysis collections
         self.xml = MapCollection("XML")
