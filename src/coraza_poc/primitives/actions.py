@@ -439,3 +439,92 @@ class StatusAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Status is metadata only
+
+
+@register_action("auditlog")
+class AuditLogAction(Action):
+    """Audit log action marks transaction for logging."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.info(f"Rule {rule.id} marked transaction for audit logging")
+        # TODO: In full implementation, mark transaction for audit logging
+
+
+@register_action("noauditlog")
+class NoAuditLogAction(Action):
+    """No audit log action prevents audit logging."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.debug(f"Rule {rule.id} disabled audit logging for transaction")
+        # TODO: In full implementation, disable audit logging for transaction
+
+
+@register_action("redirect")
+class RedirectAction(Action):
+    """Redirect action issues external redirection."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.DISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """Redirect action requires a URL."""
+        if not data:
+            raise ValueError("Redirect action requires a URL")
+        self.redirect_url = data
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.warning(f"Rule {rule.id} redirecting to {self.redirect_url}")
+        transaction.interrupt(rule)
+        # TODO: In full implementation, set redirect response
+
+
+@register_action("skip")
+class SkipAction(Action):
+    """Skip action skips one or more rules."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.FLOW
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """Skip action requires number of rules to skip."""
+        if not data:
+            raise ValueError("Skip action requires number of rules to skip")
+        try:
+            self.skip_count = int(data)
+        except ValueError as e:
+            raise ValueError(f"Skip count must be an integer: {data}") from e
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.debug(f"Rule {rule.id} skipping {self.skip_count} rules")
+        # TODO: In full implementation, skip the specified number of rules
+
+
+@register_action("rev")
+class RevAction(Action):
+    """Rev action specifies rule revision."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.METADATA
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """Rev action requires a revision number."""
+        if not data:
+            raise ValueError("Rev action requires a revision number")
+        self.revision = data
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        pass  # Revision is metadata only

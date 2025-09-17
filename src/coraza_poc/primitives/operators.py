@@ -557,3 +557,133 @@ class UnconditionalOperator(Operator):
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Always returns True."""
         return True
+
+
+@register_operator("nomatch")
+class NoMatchOperatorFactory(OperatorFactory):
+    """Factory for NoMatch operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "NoMatchOperator":
+        return NoMatchOperator(options.arguments)
+
+
+class NoMatchOperator(Operator):
+    """NoMatch operator that always returns false."""
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Always returns False."""
+        return False
+
+
+@register_operator("validateurlencoding")
+class ValidateUrlEncodingOperatorFactory(OperatorFactory):
+    """Factory for ValidateUrlEncoding operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "ValidateUrlEncodingOperator":
+        return ValidateUrlEncodingOperator(options.arguments)
+
+
+class ValidateUrlEncodingOperator(Operator):
+    """Validates URL-encoded characters in input."""
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Check if the input contains valid URL encoding."""
+        import re
+
+        # Find all percent-encoded sequences
+        encoded_chars = re.findall(r"%[0-9A-Fa-f]{2}", value)
+
+        for encoded_char in encoded_chars:
+            try:
+                # Try to decode the percent-encoded character
+                hex_value = encoded_char[1:]  # Remove the %
+                int(hex_value, 16)  # Validate it's a valid hex number
+            except ValueError:
+                # Invalid hex encoding found
+                return True
+
+        # Check for incomplete percent encodings (% followed by less than 2 hex chars)
+        incomplete_pattern = r"%(?:[0-9A-Fa-f]?(?![0-9A-Fa-f])|(?![0-9A-Fa-f]))"
+        if re.search(incomplete_pattern, value):
+            return True
+
+        return False
+
+
+@register_operator("validateschema")
+class ValidateSchemaOperatorFactory(OperatorFactory):
+    """Factory for ValidateSchema operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "ValidateSchemaOperator":
+        return ValidateSchemaOperator(options.arguments)
+
+
+class ValidateSchemaOperator(Operator):
+    """Validates JSON/XML schema."""
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Check if the input is valid JSON or XML."""
+        import json
+        import xml.etree.ElementTree as ET
+
+        # Try JSON validation first
+        try:
+            json.loads(value)
+            return False  # Valid JSON, no error
+        except json.JSONDecodeError:
+            pass
+
+        # Try XML validation
+        try:
+            ET.fromstring(value)
+            return False  # Valid XML, no error
+        except ET.ParseError:
+            pass
+
+        # If neither JSON nor XML is valid, return True (validation failed)
+        return True
+
+
+@register_operator("restpath")
+class RestPathOperatorFactory(OperatorFactory):
+    """Factory for RestPath operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "RestPathOperator":
+        return RestPathOperator(options.arguments)
+
+
+class RestPathOperator(Operator):
+    """REST path pattern matching operator."""
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        self._pattern = self._compile_path_pattern(argument)
+
+    def _compile_path_pattern(self, path_pattern: str) -> str:
+        """Convert REST path pattern to regex."""
+        import re
+
+        # Escape special regex characters except {}
+        escaped = re.escape(path_pattern)
+
+        # Replace escaped braces back and convert {param} to named capture groups
+        # This handles patterns like /path/{id}/{name}
+        pattern = re.sub(r"\\{([^}]+)\\}", r"(?P<\1>[^/]+)", escaped)
+
+        # Anchor the pattern
+        return f"^{pattern}$"
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Check if the input matches the REST path pattern."""
+        import re
+
+        match = re.match(self._pattern, value)
+        if match:
+            # TODO: In a full implementation, we would populate ARGS_PATH, ARGS_NAMES, and ARGS
+            # with the captured groups from the match
+            return True
+        return False
