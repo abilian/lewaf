@@ -567,3 +567,197 @@ def normalize_path_win(value: str) -> tuple[str, bool]:
     """Normalize Windows file path by converting backslashes and resolving path components."""
     # Same as normalise_path_win but with American spelling
     return normalise_path_win(value)
+
+
+# Advanced Phase 6 Transformations
+
+
+@register_transformation("sha1")
+def sha1_transform(value: str) -> tuple[str, bool]:
+    """Generate SHA-1 hash of the input value."""
+    sha1_hash = hashlib.sha1(value.encode("utf-8")).hexdigest()
+    return sha1_hash, True
+
+
+@register_transformation("md5")
+def md5_transform(value: str) -> tuple[str, bool]:
+    """Generate MD5 hash of the input value."""
+    md5_hash = hashlib.md5(value.encode("utf-8")).hexdigest()
+    return md5_hash, True
+
+
+@register_transformation("sha256")
+def sha256_transform(value: str) -> tuple[str, bool]:
+    """Generate SHA-256 hash of the input value."""
+    sha256_hash = hashlib.sha256(value.encode("utf-8")).hexdigest()
+    return sha256_hash, True
+
+
+@register_transformation("replacecomments")
+def replace_comments(value: str) -> tuple[str, bool]:
+    """Replace common comment patterns with spaces.
+
+    Removes SQL, C-style, and other comment patterns that might be used
+    to evade detection in injection attacks.
+    """
+    original_value = value
+
+    # SQL line comments
+    value = re.sub(r"--[^\r\n]*", " ", value)
+
+    # SQL block comments
+    value = re.sub(r"/\*.*?\*/", " ", value, flags=re.DOTALL)
+
+    # C-style line comments
+    value = re.sub(r"//[^\r\n]*", " ", value)
+
+    # Hash comments (shell style)
+    value = re.sub(r"#[^\r\n]*", " ", value)
+
+    # HTML comments
+    value = re.sub(r"<!--.*?-->", " ", value, flags=re.DOTALL)
+
+    return value, value != original_value
+
+
+@register_transformation("replaceNulls")
+def replace_nulls(value: str) -> tuple[str, bool]:
+    """Replace null bytes and null-like patterns."""
+    original_value = value
+
+    # Replace null bytes
+    value = value.replace("\x00", " ")
+
+    # Replace common null representations
+    value = re.sub(r"\\x00|\\0+|%00|&#0+;|&#x0+;", " ", value, flags=re.IGNORECASE)
+
+    return value, value != original_value
+
+
+@register_transformation("normalizePath")
+def normalize_path(value: str) -> tuple[str, bool]:
+    """Normalize file paths by resolving . and .. components and removing duplicates."""
+    original_value = value
+
+    # Split path into components
+    components = []
+    for part in value.split("/"):
+        if part == "" or part == ".":
+            continue
+        elif part == "..":
+            if components:
+                components.pop()
+        else:
+            components.append(part)
+
+    # Reconstruct path
+    result = (
+        "/" + "/".join(components) if value.startswith("/") else "/".join(components)
+    )
+
+    return result, result != original_value
+
+
+@register_transformation("sqlHexDecode")
+def sql_hex_decode(value: str) -> tuple[str, bool]:
+    """Decode SQL hex encoding (0x48656c6c6f format)."""
+    original_value = value
+
+    def decode_hex_match(match):
+        hex_value = match.group(1)
+        try:
+            # Convert hex to bytes then to string
+            decoded_bytes = bytes.fromhex(hex_value)
+            return decoded_bytes.decode("utf-8", errors="ignore")
+        except (ValueError, UnicodeDecodeError):
+            return match.group(0)  # Return original if decode fails
+
+    # Match SQL hex literals like 0x48656c6c6f
+    result = re.sub(r"0[xX]([0-9a-fA-F]+)", decode_hex_match, value)
+
+    return result, result != original_value
+
+
+@register_transformation("removeComments")
+def remove_comments(value: str) -> tuple[str, bool]:
+    """Remove common comment patterns entirely.
+
+    Similar to replaceComments but removes comments completely instead
+    of replacing with spaces.
+    """
+    original_value = value
+
+    # SQL line comments
+    value = re.sub(r"--[^\r\n]*", "", value)
+
+    # SQL block comments
+    value = re.sub(r"/\*.*?\*/", "", value, flags=re.DOTALL)
+
+    # C-style line comments
+    value = re.sub(r"//[^\r\n]*", "", value)
+
+    # Hash comments
+    value = re.sub(r"#[^\r\n]*", "", value)
+
+    # HTML comments
+    value = re.sub(r"<!--.*?-->", "", value, flags=re.DOTALL)
+
+    return value, value != original_value
+
+
+@register_transformation("parityEven7bit")
+def parity_even_7bit(value: str) -> tuple[str, bool]:
+    """Set even parity on 7-bit characters."""
+    original_value = value
+    result = []
+
+    for char in value:
+        byte_val = ord(char)
+        if byte_val < 128:  # 7-bit character
+            # Count number of 1 bits
+            ones_count = bin(byte_val).count("1")
+            # Set parity bit to make total even
+            if ones_count % 2 == 1:
+                byte_val |= 0x80  # Set high bit
+            else:
+                byte_val &= 0x7F  # Clear high bit
+        result.append(chr(byte_val))
+
+    result_str = "".join(result)
+    return result_str, result_str != original_value
+
+
+@register_transformation("parityOdd7bit")
+def parity_odd_7bit(value: str) -> tuple[str, bool]:
+    """Set odd parity on 7-bit characters."""
+    original_value = value
+    result = []
+
+    for char in value:
+        byte_val = ord(char)
+        if byte_val < 128:  # 7-bit character
+            # Count number of 1 bits
+            ones_count = bin(byte_val).count("1")
+            # Set parity bit to make total odd
+            if ones_count % 2 == 0:
+                byte_val |= 0x80  # Set high bit
+            else:
+                byte_val &= 0x7F  # Clear high bit
+        result.append(chr(byte_val))
+
+    result_str = "".join(result)
+    return result_str, result_str != original_value
+
+
+@register_transformation("parityZero7bit")
+def parity_zero_7bit(value: str) -> tuple[str, bool]:
+    """Clear parity bit (high bit) on all characters."""
+    original_value = value
+    result = []
+
+    for char in value:
+        byte_val = ord(char) & 0x7F  # Clear high bit
+        result.append(chr(byte_val))
+
+    result_str = "".join(result)
+    return result_str, result_str != original_value
