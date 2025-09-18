@@ -8,12 +8,12 @@ import pytest
 from coraza_poc.integration import WAF
 
 
-def get_rules_directory():
+def get_rules_directory() -> Path:
     """Get the CRS rules directory path."""
     return Path(__file__).parent.parent.parent / "rules"
 
 
-def collect_crs_rule_files():
+def collect_crs_rule_files() -> list[Path]:
     """Collect all CRS rule files for testing."""
     rules_dir = get_rules_directory()
     if not rules_dir.exists():
@@ -28,7 +28,7 @@ def collect_crs_rule_files():
     return sorted(conf_files)
 
 
-def extract_rules_from_file(file_path):
+def extract_rules_from_file(file_path: Path) -> list[dict]:
     """Extract individual SecRule directives from a file."""
     try:
         content = file_path.read_text(encoding="utf-8")
