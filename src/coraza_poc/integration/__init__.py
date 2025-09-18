@@ -10,18 +10,61 @@ from coraza_poc.transaction import Transaction
 class ParsedOperator:
     """Container for parsed operator information."""
 
-    def __init__(self, name: str, argument: str, op: Operator):
+    def __init__(self, name: str, argument: str, op: Operator, negated: bool = False):
         self.name = name
         self.argument = argument
         self.op = op
+        self.negated = negated
 
 
 class SecLangParser:
     def __init__(self, rule_group):
         self.rule_group = rule_group
 
+    def _normalize_line_continuations(self, rule_str):
+        """Normalize line continuations by removing backslash-newline sequences."""
+        import re
+
+        # Remove backslash followed by optional whitespace and newline
+        # This handles cases like "action,\" followed by newline and indentation
+        # Be more careful to only remove actual line continuations, not escaped quotes
+        normalized = re.sub(r"\\\s*\n\s*", "", rule_str)
+        return normalized
+
+    def _split_actions(self, actions_str):
+        """Split actions string on commas, but respect quoted values."""
+        actions = []
+        current_action = ""
+        in_quotes = False
+        quote_char = None
+
+        for char in actions_str:
+            if char in ("'", '"') and not in_quotes:
+                in_quotes = True
+                quote_char = char
+                current_action += char
+            elif char == quote_char and in_quotes:
+                in_quotes = False
+                quote_char = None
+                current_action += char
+            elif char == "," and not in_quotes:
+                if current_action.strip():
+                    actions.append(current_action.strip())
+                current_action = ""
+            else:
+                current_action += char
+
+        # Add the last action if any
+        if current_action.strip():
+            actions.append(current_action.strip())
+
+        return actions
+
     def from_string(self, rule_str):
-        parts = rule_str.split('"')
+        # Preprocess line continuations: remove backslash-newline sequences
+        normalized_rule = self._normalize_line_continuations(rule_str)
+
+        parts = normalized_rule.split('"')
         if len(parts) < 5 or not parts[0].strip().startswith("SecRule"):
             raise ValueError(f"Invalid rule format: {rule_str}")
 
@@ -37,6 +80,12 @@ class SecLangParser:
             else:
                 parsed_vars.append((var.upper(), None))
 
+        # Handle negated operators like !@rx
+        negated = False
+        if operator_str.startswith("!"):
+            negated = True
+            operator_str = operator_str[1:]
+
         if operator_str.startswith("@"):
             parts = operator_str[1:].split(" ", 1)
             op_name = parts[0]
@@ -47,14 +96,18 @@ class SecLangParser:
         try:
             options = OperatorOptions(op_arg)
             op_instance = get_operator(op_name, options)
-            parsed_operator = ParsedOperator(op_name, op_arg, op_instance)
+            parsed_operator = ParsedOperator(op_name, op_arg, op_instance, negated)
         except ValueError as e:
             raise ValueError(f"Failed to create operator {op_name}: {e}") from e
 
         parsed_actions = {}
         parsed_transformations = []
         parsed_metadata = {}
-        for action in actions_str.split(","):
+
+        # Split actions properly, respecting quoted values
+        actions = self._split_actions(actions_str)
+
+        for action in actions:
             action = action.strip()
             key, _, value = action.partition(":")
             key = key.lower()

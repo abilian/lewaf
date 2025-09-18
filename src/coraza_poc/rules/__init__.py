@@ -37,7 +37,9 @@ class Rule:
         for value in values_to_test:
             transformed_value = value
             for t_name in self.transformations:
-                transformed_value, _ = TRANSFORMATIONS[t_name](transformed_value)
+                transformed_value, _ = TRANSFORMATIONS[t_name.lower()](
+                    transformed_value
+                )
 
             logging.debug(
                 "Testing operator '%s' with arg '%s' against value '%s'",
@@ -46,7 +48,12 @@ class Rule:
                 transformed_value,
             )
 
-            if self.operator.op.evaluate(transaction, transformed_value):
+            match_result = self.operator.op.evaluate(transaction, transformed_value)
+            # Handle negation
+            if self.operator.negated:
+                match_result = not match_result
+
+            if match_result:
                 logging.info(
                     "MATCH! Rule %s matched on value '%s'", self.id, transformed_value
                 )
