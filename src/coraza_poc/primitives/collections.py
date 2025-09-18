@@ -280,6 +280,8 @@ class TransactionVariables:
         self.response_content_type = SingleValueCollection("RESPONSE_CONTENT_TYPE")
         self.request_headers_names = MapCollection("REQUEST_HEADERS_NAMES")
         self.response_headers_names = MapCollection("RESPONSE_HEADERS_NAMES")
+        self.request_cookies_names = MapCollection("REQUEST_COOKIES_NAMES")
+        self.args_names = MapCollection("ARGS_NAMES")
         self.args_combined_size = SingleValueCollection("ARGS_COMBINED_SIZE")
 
         # Performance and monitoring variables

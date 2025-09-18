@@ -20,6 +20,12 @@ def register_transformation(name: str):
     return decorator
 
 
+@register_transformation("none")
+def none_transform(value: str) -> tuple[str, bool]:
+    """No transformation - pass through unchanged."""
+    return value, False
+
+
 @register_transformation("lowercase")
 def lowercase(value: str) -> tuple[str, bool]:
     """Transform string to lowercase."""
