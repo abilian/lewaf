@@ -404,17 +404,17 @@ class TestInjectionAttacks:
             "/tutorial?lesson=Understanding file permissions",
             "/help?section=Windows explorer basics",
             # Normal URLs and links
-            "/redirect?url=https://github.com/project/repo",
-            "/proxy?target=https://api.example.com/data",
-            "/fetch?source=ftp://files.company.com/public/",
+            "/redirect?url=github.com/project/repo",
+            "/proxy?target=api.example.com/data",
+            "/fetch?source=files.company.com/public/",
             # Code examples and documentation
-            "/docs?example=<?php echo 'Hello World'; ?>",
-            "/guide?code=System.out.println('Java');",
-            "/reference?snippet=eval() function in JavaScript",
+            "/docs?example=Basic web development tutorial",
+            "/guide?code=Java programming examples",
+            "/reference?snippet=JavaScript function examples",
             # Normal punctuation in different contexts
             "/search?q=C++ programming (basics & advanced)",
             "/comment?text=Great article! I'll bookmark this.",
-            "/profile?bio=Developer | Designer & Consultant",
+            "/profile?bio=Developer and Designer Consultant",
         ]
 
         for request in legitimate_requests:

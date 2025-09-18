@@ -16,6 +16,8 @@ class Transaction:
     def process_uri(self, uri, method):
         self.variables.request_uri.set(uri)
         self.variables.request_method.set(method)
+        # Set default HTTP protocol version
+        self.variables.request_protocol.set("HTTP/1.1")
         if "?" in uri:
             qs = uri.split("?", 1)[1]
             for key, values in parse_qs(qs).items():

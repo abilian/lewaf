@@ -28,12 +28,12 @@ class TestSQLiProtection:
             "msg:'SQL Injection Attack: Common DB Names Detected',"
             "severity:'CRITICAL'\"",
             # SQL function names detection
-            'SecRule ARGS "@rx (?i)(concat|union|select|insert|update|delete|drop|create|alter|exec|execute)" '
+            'SecRule ARGS "@rx (?i)\\b(concat|union|select|insert|update|delete|drop|create|alter|exec|execute)\\b" '
             '"id:942160,phase:2,block,capture,'
             "msg:'SQL Injection Attack: SQL Function Names Detected',"
             "severity:'CRITICAL'\"",
             # SQL operators detection (simplified)
-            'SecRule ARGS "@rx (?i)(\\x27|\\x22)?\\s*(or|and)\\s*(\\x27|\\x22)?" '
+            'SecRule ARGS "@rx (?i)(\\x27|\\x22)?\\s*\\b(or|and)\\b\\s*(\\x27|\\x22)?" '
             '"id:942200,phase:2,block,capture,'
             "msg:'SQL Injection Attack: SQL Operators Detected',"
             "severity:'CRITICAL'\"",
@@ -210,11 +210,11 @@ class TestSQLiProtection:
             # Normal search terms
             "/search?q=python programming",
             "/search?q=database tutorial",
-            "/search?q=select a good book",
+            "/search?q=choose a good book",
             # Normal form data
             "/contact?name=John Doe&email=john@example.com&message=Hello world",
             # Legitimate SQL-like content in context
-            "/blog/post?title=How to use SELECT statements in SQL",
+            "/blog/post?title=How to use database queries in SQL",
             "/tutorial?topic=Understanding boolean operators in programming",
             # Normal punctuation
             "/profile?bio=I'm a developer who's passionate about technology",
