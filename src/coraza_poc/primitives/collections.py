@@ -248,8 +248,8 @@ class TransactionVariables:
         self.xml = MapCollection("XML")
         self.json = MapCollection("JSON")
 
-        # Geo and IP collections (placeholders - would need actual implementation)
-        self.geo = MapCollection("GEO")
+        # Geographic location collection populated by geoLookup operator
+        self.geo = MapCollection("GEO", case_insensitive=False)
         self.matched_var = SingleValueCollection("MATCHED_VAR")
         self.matched_var_name = SingleValueCollection("MATCHED_VAR_NAME")
 
@@ -299,3 +299,102 @@ class TransactionVariables:
         self.response_protocol = SingleValueCollection("RESPONSE_PROTOCOL")
         self.server_addr = SingleValueCollection("SERVER_ADDR")
         self.server_port = SingleValueCollection("SERVER_PORT")
+
+    def set_geo_data(self, geo_data: dict[str, str]) -> None:
+        """Set geographic location data from geoLookup operator.
+
+        Args:
+            geo_data: Dictionary containing geographic information with keys:
+                - COUNTRY_CODE: ISO 3166-1 alpha-2 country code (e.g., 'US', 'GB')
+                - COUNTRY_NAME: Full country name (e.g., 'United States', 'United Kingdom')
+                - REGION: Region/state code (e.g., 'CA', 'NY')
+                - REGION_NAME: Full region/state name (e.g., 'California', 'New York')
+                - CITY: City name (e.g., 'San Francisco', 'New York')
+                - POSTAL_CODE: Postal/ZIP code (e.g., '94102', '10001')
+                - LATITUDE: Latitude coordinate as string (e.g., '37.7749')
+                - LONGITUDE: Longitude coordinate as string (e.g., '-122.4194')
+                - CONTINENT: Continent code (e.g., 'NA', 'EU')
+                - TIME_ZONE: Time zone identifier (e.g., 'America/Los_Angeles')
+        """
+        # Clear existing geo data
+        self.geo._data.clear()
+
+        # Set all provided geographic data
+        for key, value in geo_data.items():
+            if value:  # Only add non-empty values
+                self.geo.add(key, value)
+
+    def set_performance_metrics(
+        self,
+        duration_ms: float | None = None,
+        severity: int | None = None,
+        transaction_id: str | None = None,
+    ) -> None:
+        """Set performance monitoring variables.
+
+        Args:
+            duration_ms: Transaction processing duration in milliseconds
+            severity: Highest severity level encountered (0-5, where 5 is most severe)
+            transaction_id: Unique identifier for this transaction
+        """
+        if duration_ms is not None:
+            self.duration.set(str(duration_ms))
+
+        if severity is not None:
+            # Ensure severity is within valid range (0-5)
+            severity = max(0, min(5, severity))
+            self.highest_severity.set(str(severity))
+
+        if transaction_id is not None:
+            self.unique_id.set(transaction_id)
+
+    def update_highest_severity(self, severity: int) -> None:
+        """Update highest severity if the new severity is higher.
+
+        Args:
+            severity: New severity level to compare (0-5)
+        """
+        current_severity = self.highest_severity.get()
+        if current_severity:
+            try:
+                current_severity_int = int(current_severity)
+                if severity > current_severity_int:
+                    self.highest_severity.set(str(severity))
+            except ValueError:
+                # If current severity is invalid, set the new one
+                self.highest_severity.set(str(max(0, min(5, severity))))
+        else:
+            # No current severity set
+            self.highest_severity.set(str(max(0, min(5, severity))))
+
+    def set_network_variables(
+        self,
+        remote_addr: str | None = None,
+        remote_host: str | None = None,
+        remote_port: int | None = None,
+        server_addr: str | None = None,
+        server_port: int | None = None,
+    ) -> None:
+        """Set network connection variables.
+
+        Args:
+            remote_addr: Client IP address
+            remote_host: Client hostname (if available)
+            remote_port: Client port number
+            server_addr: Server IP address
+            server_port: Server port number
+        """
+        if remote_addr is not None:
+            self.remote_addr.set(remote_addr)
+
+        if remote_host is not None:
+            self.remote_host.set(remote_host)
+
+        if remote_port is not None:
+            self.remote_port.set(str(remote_port))
+
+        if server_addr is not None:
+            self.server_addr.set(server_addr)
+
+        if server_port is not None:
+            self.server_port.set(str(server_port))

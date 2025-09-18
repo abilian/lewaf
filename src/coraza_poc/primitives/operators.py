@@ -960,3 +960,229 @@ class IpMatchFromDatasetOperator(Operator):
             return False
 
         return False
+
+
+@register_operator("geolookup")
+class GeoLookupOperatorFactory(OperatorFactory):
+    """Factory for GeoLookup operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "GeoLookupOperator":
+        return GeoLookupOperator(options.arguments)
+
+
+class GeoLookupOperator(Operator):
+    """
+    Geographic IP lookup operator for threat assessment.
+
+    Performs IP geolocation and populates GEO collection variables:
+    - GEO:COUNTRY_CODE (ISO 3166-1 alpha-2)
+    - GEO:COUNTRY_CODE3 (ISO 3166-1 alpha-3)
+    - GEO:COUNTRY_NAME (full country name)
+    - GEO:COUNTRY_CONTINENT (continent code)
+    - GEO:REGION (region/state code)
+    - GEO:CITY (city name)
+    - GEO:POSTAL_CODE (postal/zip code)
+    - GEO:LATITUDE (latitude coordinate)
+    - GEO:LONGITUDE (longitude coordinate)
+    """
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        # Argument can specify the geolocation database path
+        # For now, we'll use a simple mock implementation for demonstration
+        self._db_path = argument if argument else None
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """
+        Perform geolocation lookup on the input IP address.
+
+        Args:
+            tx: Transaction context
+            value: IP address to lookup
+
+        Returns:
+            bool: True if geolocation data was successfully populated
+        """
+        import ipaddress
+
+        try:
+            # Validate IP address format
+            ip_addr = ipaddress.ip_address(value.strip())
+
+            # Skip private/local IP addresses
+            if ip_addr.is_private or ip_addr.is_loopback or ip_addr.is_reserved:
+                return False
+
+            # For this implementation, we'll provide mock geolocation data
+            # In a real implementation, this would query MaxMind GeoIP2 or similar
+            geo_data = self._get_geolocation_data(str(ip_addr))
+
+            if geo_data:
+                # Populate GEO collection variables in transaction
+                if hasattr(tx, "variables") and hasattr(tx.variables, "set_geo_data"):
+                    tx.variables.set_geo_data(geo_data)
+                elif hasattr(tx, "variables") and hasattr(tx.variables, "geo"):
+                    # Fallback to direct geo collection access
+                    for key, value_data in geo_data.items():
+                        tx.variables.geo.add(key, value_data)
+
+                return True
+
+            return False
+
+        except ValueError:
+            # Invalid IP address format
+            return False
+
+    def _get_geolocation_data(self, ip_address: str) -> dict[str, str] | None:
+        """
+        Get geolocation data for an IP address.
+
+        This is a mock implementation. In production, this would integrate
+        with MaxMind GeoIP2, IP2Location, or another geolocation service.
+
+        Args:
+            ip_address: IP address to lookup
+
+        Returns:
+            dict: Geolocation data or None if not found
+        """
+        # Mock data for common IP ranges for demonstration
+        # In production, this would query an actual geolocation database
+
+        # Example: Classify some known IP ranges
+        if ip_address.startswith("8.8.8.") or ip_address.startswith("8.8.4."):
+            # Google DNS servers - mock as US
+            return {
+                "COUNTRY_CODE": "US",
+                "COUNTRY_CODE3": "USA",
+                "COUNTRY_NAME": "United States",
+                "COUNTRY_CONTINENT": "NA",
+                "REGION": "CA",
+                "CITY": "Mountain View",
+                "POSTAL_CODE": "94043",
+                "LATITUDE": "37.4056",
+                "LONGITUDE": "-122.0775",
+            }
+        elif ip_address.startswith("1.1.1.") or ip_address.startswith("1.0.0."):
+            # Cloudflare DNS - mock as US
+            return {
+                "COUNTRY_CODE": "US",
+                "COUNTRY_CODE3": "USA",
+                "COUNTRY_NAME": "United States",
+                "COUNTRY_CONTINENT": "NA",
+                "REGION": "CA",
+                "CITY": "San Francisco",
+                "POSTAL_CODE": "94102",
+                "LATITUDE": "37.7749",
+                "LONGITUDE": "-122.4194",
+            }
+        else:
+            # Default/unknown - mock as generic location
+            return {
+                "COUNTRY_CODE": "XX",
+                "COUNTRY_CODE3": "XXX",
+                "COUNTRY_NAME": "Unknown",
+                "COUNTRY_CONTINENT": "XX",
+                "REGION": "XX",
+                "CITY": "Unknown",
+                "POSTAL_CODE": "",
+                "LATITUDE": "0.0000",
+                "LONGITUDE": "0.0000",
+            }
+
+
+@register_operator("rbl")
+class RblOperatorFactory(OperatorFactory):
+    """Factory for Real-time Blacklist (RBL) operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "RblOperator":
+        return RblOperator(options.arguments)
+
+
+class RblOperator(Operator):
+    """
+    Real-time Blacklist (RBL) operator for threat intelligence integration.
+
+    Checks IP addresses against DNS-based blacklists (DNSBL) for known threats:
+    - Spam sources
+    - Malware command & control servers
+    - Known attackers
+    - Compromised hosts
+    - Tor exit nodes
+    """
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        # Argument specifies the RBL hostname(s) to check
+        # Format: "rbl1.example.com,rbl2.example.com" or single hostname
+        self._rbl_hosts = []
+        if argument:
+            self._rbl_hosts = [host.strip() for host in argument.split(",")]
+        else:
+            # Default to common RBL services
+            self._rbl_hosts = [
+                "zen.spamhaus.org",
+                "bl.spamcop.net",
+                "dnsbl.sorbs.net",
+                "cbl.abuseat.org",
+            ]
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """
+        Check if IP address is listed in configured RBL services.
+
+        Args:
+            tx: Transaction context
+            value: IP address to check
+
+        Returns:
+            bool: True if IP is found in any RBL
+        """
+        import ipaddress
+        import socket
+
+        try:
+            # Validate IP address format
+            ip_addr = ipaddress.ip_address(value.strip())
+
+            # Skip private/local IP addresses - they won't be in public RBLs
+            if ip_addr.is_private or ip_addr.is_loopback or ip_addr.is_reserved:
+                return False
+
+            # Reverse the IP address for DNS lookup
+            # e.g., 192.168.1.1 becomes 1.1.168.192
+            ip_parts = str(ip_addr).split(".")
+            reversed_ip = ".".join(reversed(ip_parts))
+
+            # Check each configured RBL
+            for rbl_host in self._rbl_hosts:
+                rbl_query = f"{reversed_ip}.{rbl_host}"
+
+                try:
+                    # Perform DNS lookup - if it resolves, IP is blacklisted
+                    result = socket.gethostbyname(rbl_query)
+
+                    # Most RBLs return 127.0.0.x for positive matches
+                    if result.startswith("127.0.0."):
+                        # Log which RBL triggered
+                        if hasattr(tx, "variables") and hasattr(tx.variables, "tx"):
+                            tx.variables.tx.add("RBL_MATCH", rbl_host)
+                            tx.variables.tx.add("RBL_RESULT", result)
+
+                        return True
+
+                except socket.gaierror:
+                    # DNS lookup failed - IP not in this RBL
+                    continue
+                except Exception:
+                    # Other DNS errors - skip this RBL
+                    continue
+
+            return False
+
+        except ValueError:
+            # Invalid IP address format
+            return False
