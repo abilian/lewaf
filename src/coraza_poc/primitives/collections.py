@@ -398,3 +398,143 @@ class TransactionVariables:
 
         if server_port is not None:
             self.server_port.set(str(server_port))
+
+    def set_request_variables(
+        self,
+        uri: str | None = None,
+        method: str | None = None,
+        protocol: str | None = None,
+        body: bytes | None = None,
+        content_type: str | None = None,
+    ) -> None:
+        """Set core request variables and compute derived values.
+
+        Args:
+            uri: Request URI path
+            method: HTTP method (GET, POST, etc.)
+            protocol: HTTP protocol version (HTTP/1.1, HTTP/2, etc.)
+            body: Request body content
+            content_type: Content-Type header value
+        """
+        if uri is not None:
+            self.request_uri.set(uri)
+            self.request_uri_raw.set(uri)  # In production, this would be URL-encoded
+
+            # Extract basename and filename from URI
+            import os
+
+            if uri:
+                # Remove query string for path extraction
+                path = uri.split("?")[0]
+                self.request_basename.set(os.path.basename(path))
+
+                # Extract filename (basename if it has an extension, empty otherwise)
+                basename = os.path.basename(path)
+                if "." in basename and not basename.startswith("."):
+                    self.request_filename.set(basename)
+                else:
+                    self.request_filename.set("")
+
+        if method is not None:
+            self.request_method.set(method.upper())
+
+        if protocol is not None:
+            self.request_protocol.set(protocol)
+
+        if body is not None:
+            self.request_body.set_content(body, content_type or "")
+            self.request_body_length.set(str(len(body)))
+
+    def set_response_variables(
+        self,
+        status: int | None = None,
+        protocol: str | None = None,
+        body: bytes | None = None,
+        content_type: str | None = None,
+        content_length: int | None = None,
+    ) -> None:
+        """Set response variables.
+
+        Args:
+            status: HTTP status code (200, 404, etc.)
+            protocol: HTTP protocol version
+            body: Response body content
+            content_type: Response Content-Type header
+            content_length: Response Content-Length value
+        """
+        if status is not None:
+            self.response_status.set(str(status))
+
+        if protocol is not None:
+            self.response_protocol.set(protocol)
+
+        # Set status line after protocol is potentially set
+        if status is not None:
+            # Use provided protocol or current response_protocol or default
+            protocol_val = protocol or self.response_protocol.get() or "HTTP/1.1"
+
+            # HTTP status phrases (subset of common ones)
+            status_phrases = {
+                200: "OK",
+                201: "Created",
+                204: "No Content",
+                301: "Moved Permanently",
+                302: "Found",
+                304: "Not Modified",
+                400: "Bad Request",
+                401: "Unauthorized",
+                403: "Forbidden",
+                404: "Not Found",
+                405: "Method Not Allowed",
+                409: "Conflict",
+                500: "Internal Server Error",
+                502: "Bad Gateway",
+                503: "Service Unavailable",
+            }
+            phrase = status_phrases.get(status, "Unknown")
+            self.status_line.set(f"{protocol_val} {status} {phrase}")
+
+        if content_type is not None:
+            self.response_content_type.set(content_type)
+
+        if content_length is not None:
+            self.response_content_length.set(str(content_length))
+
+        if body is not None:
+            self.response_body.set_content(body, content_type or "")
+            if content_length is None:  # Auto-set if not provided
+                self.response_content_length.set(str(len(body)))
+
+    def populate_header_names(self) -> None:
+        """Populate header name collections from existing headers."""
+        # Populate REQUEST_HEADERS_NAMES from REQUEST_HEADERS
+        self.request_headers_names._data.clear()
+        for header_name in self.request_headers._data.keys():
+            self.request_headers_names.add(header_name, header_name)
+
+        # Populate RESPONSE_HEADERS_NAMES from RESPONSE_HEADERS
+        self.response_headers_names._data.clear()
+        for header_name in self.response_headers._data.keys():
+            self.response_headers_names.add(header_name, header_name)
+
+    def populate_args_metadata(self) -> None:
+        """Populate argument metadata collections."""
+        # Populate ARGS_NAMES from ARGS
+        self.args_names._data.clear()
+        for arg_name in self.args._data.keys():
+            self.args_names.add(arg_name, arg_name)
+
+        # Calculate ARGS_COMBINED_SIZE
+        total_size = 0
+        for arg_name, arg_values in self.args._data.items():
+            total_size += len(arg_name)  # Key size
+            for value in arg_values:
+                total_size += len(value)  # Value size
+        self.args_combined_size.set(str(total_size))
+
+    def populate_cookie_names(self) -> None:
+        """Populate cookie name collections from existing cookies."""
+        # Populate REQUEST_COOKIES_NAMES from REQUEST_COOKIES
+        self.request_cookies_names._data.clear()
+        for cookie_name in self.request_cookies._data.keys():
+            self.request_cookies_names.add(cookie_name, cookie_name)
