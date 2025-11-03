@@ -2,8 +2,8 @@
 
 from unittest.mock import Mock, patch
 
-from coraza_poc.primitives.collections import TransactionVariables
-from coraza_poc.primitives.operators import (
+from lewaf.primitives.collections import TransactionVariables
+from lewaf.primitives.operators import (
     GeoLookupOperator,
     RblOperator,
     OperatorOptions,
@@ -326,7 +326,7 @@ class TestPhase4Integration:
 
     def test_operator_factory_integration(self):
         """Test operator creation through factory pattern."""
-        from coraza_poc.primitives.operators import get_operator
+        from lewaf.primitives.operators import get_operator
 
         # Test geoLookup operator factory
         geo_options = OperatorOptions(arguments="")
@@ -340,7 +340,7 @@ class TestPhase4Integration:
 
     def test_case_insensitive_operator_lookup(self):
         """Test that operator names are case insensitive."""
-        from coraza_poc.primitives.operators import get_operator
+        from lewaf.primitives.operators import get_operator
 
         # Test various case combinations
         test_cases = ["GEOLOOKUP", "GeoLookup", "geolookup", "geoLOOKUP"]

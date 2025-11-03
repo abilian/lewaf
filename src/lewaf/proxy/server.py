@@ -1,26 +1,24 @@
-"""LeWAF reverse proxy server using Starlette."""
+"""Coraza reverse proxy server using Starlette."""
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import Any, cast
 
 from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
-from lewaf.integrations.starlette import LeWAFMiddleware
+from lewaf.integrations.starlette import CorazaMiddleware
 
 from .client import ProxyClient
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
 
-class LeWAFReverseProxy:
-    """LeWAF-enabled reverse proxy server."""
+class CorazaReverseProxy:
+    """Coraza-enabled reverse proxy server."""
 
     def __init__(
         self,
@@ -54,7 +52,7 @@ class LeWAFReverseProxy:
             # If we get here, the request passed WAF checks
             return await self.proxy_client.proxy_request(request)
         except Exception as e:
-            logger.error("Error in proxy handler: %s", e)
+            logger.error(f"Error in proxy handler: {e}")
             return JSONResponse(
                 status_code=500, content={"error": "Internal proxy error"}
             )
@@ -65,7 +63,7 @@ class LeWAFReverseProxy:
             content={
                 "status": "healthy",
                 "upstream": self.upstream_url,
-                "proxy": "lewaf",
+                "proxy": "coraza-py",
             }
         )
 
@@ -85,9 +83,9 @@ class LeWAFReverseProxy:
         # Create base app
         app = Starlette(routes=routes)
 
-        # Add LeWAF middleware
+        # Add Coraza WAF middleware
         app.add_middleware(
-            cast("Any", LeWAFMiddleware),
+            cast(Any, CorazaMiddleware),
             rules=self.waf_rules,
             config_file=self.waf_config.get("config_file") if self.waf_config else None,
             block_response_status=403,
@@ -106,7 +104,7 @@ def create_proxy_app(
     waf_config_file: str | None = None,
     **proxy_kwargs: Any,
 ) -> Starlette:
-    """Create a LeWAF reverse proxy application.
+    """Create a Coraza reverse proxy application.
 
     Args:
         upstream_url: URL of the upstream server to proxy to
@@ -137,7 +135,7 @@ def create_proxy_app(
         waf_config["config_file"] = waf_config_file
 
     # Create proxy instance
-    proxy = LeWAFReverseProxy(
+    proxy = CorazaReverseProxy(
         upstream_url=upstream_url,
         waf_config=waf_config,
         waf_rules=waf_rules,

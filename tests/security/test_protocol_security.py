@@ -6,7 +6,7 @@ and HTTP security violations using CRS rules.
 
 import pytest
 
-from coraza_poc.integration import WAF
+from lewaf.integration import WAF
 
 
 class TestProtocolSecurity:
@@ -203,9 +203,9 @@ class TestProtocolSecurity:
 
         # Require good detection rate for header injection
         detection_rate = detected_count / len(header_attacks)
-        assert (
-            detection_rate >= 0.3
-        ), f"Low detection rate for header injection: {detection_rate:.1%}"
+        assert detection_rate >= 0.3, (
+            f"Low detection rate for header injection: {detection_rate:.1%}"
+        )
 
     def test_request_smuggling_attacks(self, protocol_waf):
         """Test HTTP request smuggling detection."""
@@ -466,9 +466,9 @@ class TestProtocolSecurity:
             if not interruption:
                 interruption = tx.process_request_body()
 
-            assert (
-                tx.interruption is None
-            ), f"Valid request incorrectly blocked: {method} {uri}"
+            assert tx.interruption is None, (
+                f"Valid request incorrectly blocked: {method} {uri}"
+            )
 
     def test_slowloris_protection(self, protocol_waf):
         """Test protection against Slowloris-style attacks."""

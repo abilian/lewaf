@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from coraza_poc.engine import RuleGroup
-from coraza_poc.integration import SecLangParser, WAF
-from coraza_poc.transaction import Transaction
+from lewaf.engine import RuleGroup
+from lewaf.integration import SecLangParser, WAF
+from lewaf.transaction import Transaction
 
 
 def get_rules_directory():
@@ -96,9 +96,9 @@ def test_crs_rule_id_ranges():
         file_path = rules_dir / filename
         if file_path.exists():
             content = file_path.read_text(encoding="utf-8")
-            assert (
-                f"id:{id_prefix}" in content
-            ), f"Missing {id_prefix}xxx IDs in {filename}"
+            assert f"id:{id_prefix}" in content, (
+                f"Missing {id_prefix}xxx IDs in {filename}"
+            )
 
 
 def test_crs_rule_phases():

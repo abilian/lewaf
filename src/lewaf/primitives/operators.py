@@ -5,7 +5,7 @@ import ipaddress
 from typing import TYPE_CHECKING, Protocol, Any
 from urllib.parse import unquote
 
-from coraza_poc.core import compile_regex
+from lewaf.core import compile_regex
 
 if TYPE_CHECKING:
     pass

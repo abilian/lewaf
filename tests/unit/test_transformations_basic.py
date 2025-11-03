@@ -1,6 +1,6 @@
 """Unit tests for basic transformations (lowercase, uppercase, trim, etc.)."""
 
-from coraza_poc.primitives.transformations import (
+from lewaf.primitives.transformations import (
     lowercase,
     uppercase,
     length,

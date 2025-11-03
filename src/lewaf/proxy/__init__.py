@@ -1,4 +1,4 @@
-"""LeWAF reverse proxy implementation."""
+"""Coraza reverse proxy implementation."""
 
 from __future__ import annotations
 

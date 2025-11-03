@@ -1,29 +1,24 @@
-"""Starlette integration for LeWAF."""
+"""Starlette integration for Coraza WAF."""
 
 from __future__ import annotations
 
 import logging
-from pathlib import Path
-from typing import TYPE_CHECKING, Any, cast
+from collections.abc import Awaitable, Callable
+from typing import Any, cast
 from urllib.parse import parse_qs
 
+from starlette.applications import Starlette
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse, RedirectResponse, Response
+from starlette.requests import Request
+from starlette.responses import JSONResponse, Response
 
-from lewaf.config.loader import ConfigLoader
 from lewaf.integration import WAF
-
-if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
-
-    from starlette.applications import Starlette
-    from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
 
-class LeWAFMiddleware(BaseHTTPMiddleware):
-    """Starlette middleware for LeWAF protection."""
+class CorazaMiddleware(BaseHTTPMiddleware):
+    """Starlette middleware for Coraza WAF protection."""
 
     def __init__(
         self,
@@ -40,13 +35,10 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
             self.waf = waf
         else:
             # Create WAF from config
-            config: dict[str, Any] = {}
+            config = {}
             if config_file:
-                # Load rules from config file
-                loader = ConfigLoader()
-                loaded_config = loader.load_from_file(Path(config_file))
-                config["rules"] = loaded_config.rules
-                config["rule_files"] = loaded_config.rule_files
+                # TODO: Load rules from file
+                config["rules"] = []
             elif rules:
                 config["rules"] = rules
             else:
@@ -70,7 +62,8 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
         tx = self.waf.new_transaction()
 
         try:
-            # Process URI and method
+            # Process connection info
+
             tx.process_uri(str(request.url.path), request.method)
 
             # Add query parameters to ARGS
@@ -84,7 +77,7 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
             for name, value in request.headers.items():
                 tx.variables.request_headers.add(name, value)
 
-            # Process request headers phase (Phase 1)
+            # Process request headers phase
             interruption = tx.process_request_headers()
             if interruption:
                 logger.warning(
@@ -92,12 +85,7 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
                 )
                 return self._create_block_response(interruption)
 
-            # Read and process request body (Phase 2)
-            body = await request.body()
-            if body:
-                content_type = request.headers.get("content-type", "")
-                tx.add_request_body(body, content_type)
-
+            # TODO: Process request body if present
             body_interruption = tx.process_request_body()
             if body_interruption:
                 logger.warning(
@@ -108,35 +96,16 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
             # Request passed WAF, continue to upstream
             response = await call_next(request)
 
-            # Process response headers phase (Phase 3)
-            response_headers = dict(response.headers)
-            tx.add_response_headers(response_headers)
-            tx.add_response_status(response.status_code)
-
-            response_interruption = tx.process_response_headers()
-            if response_interruption:
-                logger.warning(
-                    f"Response blocked in headers phase by rule {response_interruption['rule_id']}"
-                )
-                return self._create_block_response(response_interruption)
-
-            # Note: Response body phase (Phase 4) would require buffering the entire
-            # response body, which has performance implications. Skipped for now.
-
+            # TODO: Process response phase if needed
             return response
 
         except Exception as e:
-            logger.error("Error in LeWAF middleware: %s", e)
+            logger.error(f"Error in Coraza middleware: {e}")
             # On error, allow request to proceed (fail open)
             return await call_next(request)
 
     def _create_block_response(self, interruption: dict[str, Any]) -> Response:
         """Create a blocked request response."""
-        # Check for redirect URL
-        redirect_url = interruption.get("redirect_url")
-        if redirect_url:
-            return RedirectResponse(url=redirect_url, status_code=302)
-
         if self.block_response_status == 403:
             return JSONResponse(
                 status_code=self.block_response_status,
@@ -146,11 +115,12 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
                     "message": self.block_response_body,
                 },
             )
-        return Response(
-            content=self.block_response_body,
-            status_code=self.block_response_status,
-            media_type="text/plain",
-        )
+        else:
+            return Response(
+                content=self.block_response_body,
+                status_code=self.block_response_status,
+                media_type="text/plain",
+            )
 
 
 def create_waf_app(
@@ -161,9 +131,9 @@ def create_waf_app(
 ) -> Starlette:
     """Create a Starlette app with WAF protection."""
 
-    # Add LeWAF middleware to the target app
+    # Add Coraza middleware to the target app
     target_app.add_middleware(
-        cast("Any", LeWAFMiddleware),
+        cast(Any, CorazaMiddleware),
         config_file=config_file,
         rules=rules,
         **middleware_kwargs,

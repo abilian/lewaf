@@ -1,5 +1,5 @@
 [project]
-name = "coraza-poc"
+name = "lewaf"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -14,8 +14,8 @@ dependencies = [
 ]
 
 [project.scripts]
-coraza-poc = "coraza_poc:main"
-coraza-proxy = "coraza_poc.proxy.cli:main"
+coraza-poc = "lewaf:main"
+coraza-proxy = "lewaf.proxy.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.8.4,<0.9.0"]
@@ -23,12 +23,19 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "httpx>=0.28.1",
-    "isort>=6.0.1",
-    "mypy>=1.17.1",
-    "pyrefly>=0.32.0",
+    # Test
     "pytest>=8.4.2",
+    # Lint / Check
+    "isort>=6.0.1",
     "ruff>=0.12.12",
+    "pyrefly>=0.32.0",
+    # Other
+    "httpx>=0.28.1",
     "starlette>=0.47.3",
     "uvicorn>=0.35.0",
+    "monkeytype>=23.3.0",
 ]
+
+#
+# QA tools
+#

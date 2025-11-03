@@ -1,6 +1,6 @@
 """Unit tests for basic actions (log, deny, allow, block, etc.)."""
 
-from coraza_poc.primitives.actions import (
+from lewaf.primitives.actions import (
     ACTIONS,
     ActionType,
     LogAction,

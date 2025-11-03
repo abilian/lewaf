@@ -1,6 +1,6 @@
 """Unit tests for TransactionVariables functionality."""
 
-from coraza_poc.primitives.collections import TransactionVariables
+from lewaf.primitives.collections import TransactionVariables
 
 
 def test_transaction_variables_creation():

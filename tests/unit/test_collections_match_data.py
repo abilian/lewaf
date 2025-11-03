@@ -1,6 +1,6 @@
 """Unit tests for collections match data functionality."""
 
-from coraza_poc.primitives.collections import MatchData
+from lewaf.primitives.collections import MatchData
 
 
 def test_match_data_creation():

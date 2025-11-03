@@ -1,6 +1,6 @@
 """Unit tests for basic operators (rx, eq, contains, etc.)."""
 
-from coraza_poc.primitives.operators import get_operator, OperatorOptions
+from lewaf.primitives.operators import get_operator, OperatorOptions
 
 
 def test_rx_operator_basic_match():

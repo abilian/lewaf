@@ -6,7 +6,7 @@ using real-world attack vectors and CRS rules.
 
 import pytest
 
-from coraza_poc.integration import WAF
+from lewaf.integration import WAF
 
 
 class TestSQLiProtection:
@@ -71,9 +71,9 @@ class TestSQLiProtection:
             if not interruption:
                 interruption = tx.process_request_body()
 
-            assert (
-                tx.interruption is not None
-            ), f"Failed to detect SQL injection: {attack}"
+            assert tx.interruption is not None, (
+                f"Failed to detect SQL injection: {attack}"
+            )
             assert tx.interruption.get("rule_id") in [
                 942100,
                 942140,
@@ -110,9 +110,9 @@ class TestSQLiProtection:
             if not interruption:
                 interruption = tx.process_request_body()
 
-            assert (
-                tx.interruption is not None
-            ), f"Failed to detect DB-specific attack: {attack}"
+            assert tx.interruption is not None, (
+                f"Failed to detect DB-specific attack: {attack}"
+            )
 
     def test_encoded_sqli_attacks(self, sqli_waf):
         """Test URL-encoded and other encoded SQL injection attempts."""
@@ -159,9 +159,9 @@ class TestSQLiProtection:
             if not interruption:
                 interruption = tx.process_request_body()
 
-            assert (
-                tx.interruption is not None
-            ), f"Failed to detect POST SQL injection: {attack_data}"
+            assert tx.interruption is not None, (
+                f"Failed to detect POST SQL injection: {attack_data}"
+            )
 
     def test_sqli_bypass_attempts(self, sqli_waf):
         """Test common SQL injection bypass techniques."""
@@ -203,9 +203,9 @@ class TestSQLiProtection:
 
         # Require at least 80% detection rate for bypass attempts
         detection_rate = detected_count / total_count
-        assert (
-            detection_rate >= 0.8
-        ), f"Low detection rate for bypass attempts: {detection_rate:.1%}"
+        assert detection_rate >= 0.8, (
+            f"Low detection rate for bypass attempts: {detection_rate:.1%}"
+        )
 
     def test_false_positive_prevention(self, sqli_waf):
         """Test that legitimate requests are not blocked as SQL injection."""

@@ -1,6 +1,6 @@
 """Unit tests for SingleValueCollection functionality."""
 
-from coraza_poc.primitives.collections import SingleValueCollection
+from lewaf.primitives.collections import SingleValueCollection
 
 
 def test_single_value_collection_creation():

@@ -1,6 +1,6 @@
 """Unit tests for encoding/decoding transformations."""
 
-from coraza_poc.primitives.transformations import (
+from lewaf.primitives.transformations import (
     url_decode,
     url_decode_uni,
     html_entity_decode,

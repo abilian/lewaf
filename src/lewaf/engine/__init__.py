@@ -1,23 +1,17 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, cast
-
-if TYPE_CHECKING:
-    from lewaf.rules import Rule
-    from lewaf.transaction import Transaction
 
 
 class RuleGroup:
     def __init__(self):
-        self.rules_by_phase: dict[int, list[Rule]] = {1: [], 2: [], 3: [], 4: [], 5: []}
+        self.rules_by_phase = {1: [], 2: [], 3: [], 4: [], 5: []}
 
-    def add(self, rule: Rule):
-        phase = cast("int", rule.phase)  # Phase is always int in practice
-        self.rules_by_phase[phase].append(rule)
-        logging.debug("Added rule %s to phase %s", rule.id, phase)
+    def add(self, rule):
+        self.rules_by_phase[rule.phase].append(rule)
+        logging.debug("Added rule %s to phase %s", rule.id, rule.phase)
 
-    def evaluate(self, phase: int, transaction: Transaction):
+    def evaluate(self, phase, transaction):
         logging.info("--- Executing Phase %s ---", phase)
         rules = self.rules_by_phase[phase]
 
@@ -57,7 +51,7 @@ class RuleGroup:
 
             i += 1
 
-    def _should_skip_rule(self, rule: Rule, transaction: Transaction, rule_index: int):
+    def _should_skip_rule(self, rule, transaction, rule_index):
         """Check if a rule should be skipped based on skip actions."""
         if not hasattr(transaction, "skip_state"):
             return False
@@ -82,13 +76,9 @@ class RuleGroup:
 
         # Check skip_after_tag
         skip_after_tag = skip_state.get("skip_after_tag")
-        if skip_after_tag:
-            # If current rule has the target tag, clear skip state and don't skip this rule
-            if hasattr(rule, "tags") and skip_after_tag in rule.tags:
-                del skip_state["skip_after_tag"]
-                return False  # Don't skip this rule, and stop skipping after it
-            # Otherwise skip this rule (we haven't reached the target yet)
-            return True
+        if skip_after_tag and hasattr(rule, "tags") and skip_after_tag in rule.tags:
+            skip_state["skip_remaining"] = True
+            return False  # Don't skip this rule, but skip all after it
 
         return False
 
@@ -126,9 +116,7 @@ class RuleGroup:
         if hasattr(transaction, "chain_state"):
             transaction.chain_state.clear()
 
-    def _handle_post_rule_processing(
-        self, rule: Rule, rule_matched: bool, transaction: Transaction
-    ):
+    def _handle_post_rule_processing(self, rule, rule_matched, transaction):
         """Handle any post-rule processing like updating skip counts."""
         # Update skip counts if rule didn't match
         if not rule_matched and hasattr(transaction, "skip_state"):
