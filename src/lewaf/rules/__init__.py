@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from lewaf.primitives.actions import Action
+from lewaf.primitives.actions import Action, RuleProtocol, TransactionProtocol
 from lewaf.primitives.collections import MapCollection, SingleValueCollection
 from lewaf.primitives.transformations import TRANSFORMATIONS
 from lewaf.transaction import Transaction
@@ -29,15 +29,15 @@ class Rule:
     operator: ParsedOperator
     transformations: list[Any | str]
     actions: dict[str, Action]
-    metadata: dict[str, int]
+    metadata: dict[str, int | str]
 
     @property
-    def id(self) -> int:
+    def id(self) -> int | str:
         """Get rule ID from metadata."""
         return self.metadata.get("id", 0)
 
     @property
-    def phase(self) -> int:
+    def phase(self) -> int | str:
         """Get rule phase from metadata."""
         return self.metadata.get("phase", 1)
 
@@ -74,7 +74,9 @@ class Rule:
                 transformed_value,
             )
 
-            match_result = self.operator.op.evaluate(transaction, transformed_value)
+            match_result = self.operator.op.evaluate(
+                cast(Any, transaction), transformed_value
+            )
             # Handle negation
             if self.operator.negated:
                 match_result = not match_result
@@ -84,6 +86,8 @@ class Rule:
                     "MATCH! Rule %s matched on value '%s'", self.id, transformed_value
                 )
                 for action in self.actions.values():
-                    action.evaluate(self, transaction)
+                    action.evaluate(
+                        cast(RuleProtocol, self), cast(TransactionProtocol, transaction)
+                    )
                 return True
         return False

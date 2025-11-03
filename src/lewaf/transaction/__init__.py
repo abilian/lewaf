@@ -3,7 +3,7 @@ from __future__ import annotations
 from urllib.parse import parse_qs
 
 from lewaf.primitives.collections import TransactionVariables
-from typing import Dict, Optional, Union, TYPE_CHECKING
+from typing import Any, Dict, Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from lewaf.integration import WAF
@@ -17,6 +17,20 @@ class Transaction:
         self.variables = TransactionVariables()
         self.interruption: dict[str, str | int] | None = None
         self.current_phase = 0
+
+        # State attributes for advanced actions (Phase 6)
+        self.chain_state: dict[str, Any] = {}
+        self.skip_state: dict[str, Any] = {}
+        self.multimatch_state: dict[str, Any] = {}
+        self.deprecated_vars: set[str] = set()
+        self.var_expiration: dict[str, float] = {}
+        self.ctl_directives: dict[str, Any] = {}
+
+        # Engine control attributes
+        self.rule_engine_enabled: bool = True
+        self.rule_engine_mode: str = "on"
+        self.body_processor: str = "URLENCODED"
+        self.body_limit: int = 131072
 
     def process_uri(self, uri: str, method: str):
         self.variables.request_uri.set(uri)
@@ -41,3 +55,13 @@ class Transaction:
 
     def interrupt(self, rule: Rule):
         self.interruption = {"rule_id": rule.id, "action": "deny"}
+
+    def capturing(self) -> bool:
+        """Return whether the transaction is capturing matches."""
+        # For now, always return False. This can be extended later.
+        return False
+
+    def capture_field(self, index: int, value: str) -> None:
+        """Capture a field value at the given index."""
+        # Placeholder implementation - can be extended to store captures
+        pass
