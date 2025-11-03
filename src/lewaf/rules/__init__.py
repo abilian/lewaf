@@ -1,35 +1,45 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
-from typing import TYPE_CHECKING
-
+from lewaf.primitives.actions import Action
 from lewaf.primitives.collections import MapCollection, SingleValueCollection
 from lewaf.primitives.transformations import TRANSFORMATIONS
-from lewaf.primitives.actions import Action
 from lewaf.transaction import Transaction
-from typing import Any, Dict, List, Tuple, Union
 
 if TYPE_CHECKING:
     from lewaf.integration import ParsedOperator
 
 
+@dataclass(frozen=True)
 class Rule:
-    def __init__(
-        self,
-        variables: List[Union[Tuple[str, None], Tuple[str, str]]],
-        operator: ParsedOperator,
-        transformations: List[Union[Any, str]],
-        actions: Dict[str, Action],
-        metadata: Dict[str, int],
-    ):
-        self.variables = variables
-        self.operator = operator
-        self.transformations = transformations
-        self.actions = actions
-        self.metadata = metadata
-        self.id = metadata.get("id", 0)
-        self.phase = metadata.get("phase", 1)
+    """Immutable rule definition for WAF evaluation.
+
+    Attributes:
+        variables: List of (variable_name, key) tuples to extract values from transaction
+        operator: Parsed operator to match against values
+        transformations: List of transformation names to apply before matching
+        actions: Dictionary of action name to Action instances
+        metadata: Rule metadata including id and phase
+    """
+
+    variables: list[tuple[str, str | None]]
+    operator: ParsedOperator
+    transformations: list[Any | str]
+    actions: dict[str, Action]
+    metadata: dict[str, int]
+
+    @property
+    def id(self) -> int:
+        """Get rule ID from metadata."""
+        return self.metadata.get("id", 0)
+
+    @property
+    def phase(self) -> int:
+        """Get rule phase from metadata."""
+        return self.metadata.get("phase", 1)
 
     def evaluate(self, transaction: Transaction):
         logging.debug(
