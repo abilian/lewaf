@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import fnmatch
 import ipaddress
+import re
 from typing import TYPE_CHECKING, Protocol, Any
 from urllib.parse import unquote
 
@@ -543,6 +544,7 @@ class StrEqOperator(Operator):
 
 
 @register_operator("unconditional")
+@register_operator("unconditionalmatch")  # Alias for Go compatibility
 class UnconditionalOperatorFactory(OperatorFactory):
     """Factory for unconditional operators."""
 
@@ -644,6 +646,156 @@ class ValidateSchemaOperator(Operator):
             pass
 
         # If neither JSON nor XML is valid, return True (validation failed)
+        return True
+
+
+@register_operator("validatenid")
+class ValidateNidOperatorFactory(OperatorFactory):
+    """Factory for ValidateNid operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> "ValidateNidOperator":
+        return ValidateNidOperator(options.arguments)
+
+
+class ValidateNidOperator(Operator):
+    """Validates National ID numbers for different countries.
+
+    Syntax: @validateNid <country_code> <regex>
+    Supported countries:
+    - cl: Chilean RUT (Rol Único Tributario)
+    - us: US Social Security Number
+    """
+
+    def __init__(self, argument: str):
+        super().__init__(argument)
+        # Parse argument: "country_code regex_pattern"
+        parts = argument.split(None, 1)
+        if len(parts) < 2:
+            raise ValueError("validateNid requires format: <country_code> <regex>")
+
+        self._country_code = parts[0].lower()
+        self._regex_pattern = parts[1]
+        self._regex = compile_regex(self._regex_pattern)
+
+        # Select validation function based on country code
+        if self._country_code == "cl":
+            self._validator = self._validate_cl
+        elif self._country_code == "us":
+            self._validator = self._validate_us
+        else:
+            raise ValueError(
+                f"Unsupported country code '{self._country_code}'. "
+                "Supported: cl (Chile), us (USA)"
+            )
+
+    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
+        """Find and validate National IDs in the input value."""
+        matches = self._regex.findall(value)
+
+        result = False
+        for i, match in enumerate(matches[:10]):  # Max 10 matches
+            if self._validator(match):
+                result = True
+                # Capture the valid NID if transaction supports it
+                if hasattr(tx, "capture_field"):
+                    tx.capture_field(i, match)
+
+        return result
+
+    def _validate_cl(self, nid: str) -> bool:
+        """Validate Chilean RUT (Rol Único Tributario).
+
+        Format: 12.345.678-9 or 12345678-9 or 123456789
+        Uses modulo 11 checksum algorithm.
+        """
+        if len(nid) < 8:
+            return False
+
+        # Normalize: remove non-digits except 'k' or 'K'
+        nid = nid.lower()
+        nid = re.sub(r"[^\dk]", "", nid)
+
+        if len(nid) < 2:
+            return False
+
+        # Split into number and verification digit
+        rut_number = nid[:-1]
+        dv = nid[-1]
+
+        try:
+            rut = int(rut_number)
+        except ValueError:
+            return False
+
+        # Calculate verification digit using modulo 11
+        total = 0
+        factor = 2
+        while rut > 0:
+            total += (rut % 10) * factor
+            rut //= 10
+            if factor == 7:
+                factor = 2
+            else:
+                factor += 1
+
+        remainder = total % 11
+        if remainder == 0:
+            expected_dv = "0"
+        elif remainder == 1:
+            expected_dv = "k"
+        else:
+            expected_dv = str(11 - remainder)
+
+        return dv == expected_dv
+
+    def _validate_us(self, nid: str) -> bool:
+        """Validate US Social Security Number.
+
+        Format: 123-45-6789
+        Rules:
+        - Area (first 3 digits): 001-665, 667-899 (not 666)
+        - Group (middle 2 digits): 01-99
+        - Serial (last 4 digits): 0001-9999
+        - No repeating digits (e.g., 111-11-1111)
+        - No sequential digits (e.g., 123-45-6789 if truly sequential)
+        """
+        # Remove non-digits
+        nid = re.sub(r"[^\d]", "", nid)
+
+        if len(nid) < 9:
+            return False
+
+        try:
+            area = int(nid[0:3])
+            group = int(nid[3:5])
+            serial = int(nid[5:9])
+        except ValueError:
+            return False
+
+        # Validate area, group, serial ranges
+        if area == 0 or group == 0 or serial == 0:
+            return False
+        if area >= 740 or area == 666:
+            return False
+
+        # Check for all same digits
+        if len(set(nid[:9])) == 1:
+            return False
+
+        # Check for sequential digits
+        is_sequential = True
+        prev_digit = int(nid[0])
+        for i in range(1, 9):
+            curr_digit = int(nid[i])
+            if curr_digit != prev_digit + 1:
+                is_sequential = False
+                break
+            prev_digit = curr_digit
+
+        if is_sequential:
+            return False
+
         return True
 
 

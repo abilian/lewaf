@@ -1,11 +1,19 @@
 """Unit tests for Phase 6 operators (validatenid, unconditionalmatch alias)."""
 
-from __future__ import annotations
-
 import pytest
 
 from lewaf.primitives.operators import OPERATORS, OperatorOptions
-from tests.utils import StubOperatorTransaction
+
+
+class MockTransaction:
+    """Mock transaction for testing."""
+
+    def __init__(self):
+        self.captured_fields = {}
+
+    def capture_field(self, index: int, value: str) -> None:
+        """Capture a field for testing."""
+        self.captured_fields[index] = value
 
 
 def test_unconditionalmatch_alias_registered():
@@ -22,7 +30,7 @@ def test_unconditionalmatch_behavior():
     options = OperatorOptions("")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     assert operator.evaluate(tx, "") is True
     assert operator.evaluate(tx, "any value") is True
@@ -40,7 +48,7 @@ def test_validatenid_chilean_valid():
     options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Valid Chilean RUTs (with correct checksum)
     assert operator.evaluate(tx, "12.345.678-5") is True
@@ -58,7 +66,7 @@ def test_validatenid_chilean_invalid():
     options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Invalid RUTs (wrong checksum)
     assert operator.evaluate(tx, "12.345.678-9") is False
@@ -72,7 +80,7 @@ def test_validatenid_chilean_too_short():
     options = OperatorOptions(r"cl \d{1,7}")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Too short (< 8 characters)
     assert operator.evaluate(tx, "1234567") is False
@@ -85,7 +93,7 @@ def test_validatenid_us_valid():
     options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Valid SSNs (non-sequential, non-repeating, valid ranges)
     assert operator.evaluate(tx, "123-45-6780") is True
@@ -100,7 +108,7 @@ def test_validatenid_us_invalid_area():
     options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Invalid area codes
     assert operator.evaluate(tx, "666-45-6789") is False  # 666 forbidden
@@ -115,7 +123,7 @@ def test_validatenid_us_invalid_group_serial():
     options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Invalid group (00)
     assert operator.evaluate(tx, "123-00-6789") is False
@@ -130,7 +138,7 @@ def test_validatenid_us_invalid_patterns():
     options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # All same digits
     assert operator.evaluate(tx, "111-11-1111") is False
@@ -146,7 +154,7 @@ def test_validatenid_us_too_short():
     options = OperatorOptions(r"us \d{1,8}")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Too short (< 9 digits)
     assert operator.evaluate(tx, "12345678") is False
@@ -159,7 +167,7 @@ def test_validatenid_capture():
     options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Should capture valid RUTs (both have correct checksums)
     result = operator.evaluate(tx, "Valid RUT: 12.345.678-5 and 11.111.111-1")
@@ -176,7 +184,7 @@ def test_validatenid_multiple_matches():
     options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Multiple RUTs, some valid, some invalid
     text = "RUT1: 12.345.678-5 (valid), RUT2: 12.345.678-9 (invalid), RUT3: 11.111.111-k (valid)"
@@ -192,7 +200,7 @@ def test_validatenid_max_matches():
     options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
     operator = factory.create(options)
 
-    tx = StubOperatorTransaction()
+    tx = MockTransaction()
 
     # Create text with 15 valid RUTs
     ruts = ["12.345.678-5"] * 15
