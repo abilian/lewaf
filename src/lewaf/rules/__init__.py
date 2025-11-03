@@ -2,12 +2,27 @@ from __future__ import annotations
 
 import logging
 
+from typing import TYPE_CHECKING
+
 from lewaf.primitives.collections import MapCollection, SingleValueCollection
 from lewaf.primitives.transformations import TRANSFORMATIONS
+from lewaf.primitives.actions import Action
+from lewaf.transaction import Transaction
+from typing import Any, Dict, List, Tuple, Union
+
+if TYPE_CHECKING:
+    from lewaf.integration import ParsedOperator
 
 
 class Rule:
-    def __init__(self, variables, operator, transformations, actions, metadata):
+    def __init__(
+        self,
+        variables: List[Union[Tuple[str, None], Tuple[str, str]]],
+        operator: ParsedOperator,
+        transformations: List[Union[Any, str]],
+        actions: Dict[str, Action],
+        metadata: Dict[str, int],
+    ):
         self.variables = variables
         self.operator = operator
         self.transformations = transformations
@@ -16,7 +31,7 @@ class Rule:
         self.id = metadata.get("id", 0)
         self.phase = metadata.get("phase", 1)
 
-    def evaluate(self, transaction):
+    def evaluate(self, transaction: Transaction):
         logging.debug(
             "Evaluating rule %s in phase %s...", self.id, transaction.current_phase
         )
@@ -24,6 +39,7 @@ class Rule:
         values_to_test = []
         for var_name, key in self.variables:
             collection = getattr(transaction.variables, var_name.lower())
+            # TODO: use match operator
             if isinstance(collection, MapCollection):
                 if key:
                     values_to_test.extend(collection.get(key))
