@@ -10,18 +10,21 @@ all:
 check: lint
 
 lint:
-	ruff check .
-	ruff format . --check
-	pyrefly check src
-	
+	uv run ruff check .
+	uv run ruff format . --check
+	uv run pyrefly check src
+
 
 format:
-	ruff format .
-	ruff check . --fix
-	ruff format .
+	uv run ruff format .
+	uv run ruff check . --fix
+	uv run ruff format .
 
 test:
 	uv run pytest
+
+test-cov:
+	uv run pytest --cov=lewaf --cov-report=html --cov-report=term tests
 
 build: clean
 	uv build
