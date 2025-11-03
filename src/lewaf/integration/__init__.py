@@ -5,6 +5,7 @@ from lewaf.primitives.actions import ACTIONS
 from lewaf.primitives.operators import OperatorOptions, get_operator, Operator
 from lewaf.rules import Rule
 from lewaf.transaction import Transaction
+from typing import Any, Dict, List, Union
 
 
 class ParsedOperator:
@@ -18,10 +19,10 @@ class ParsedOperator:
 
 
 class SecLangParser:
-    def __init__(self, rule_group):
+    def __init__(self, rule_group: RuleGroup):
         self.rule_group = rule_group
 
-    def _normalize_line_continuations(self, rule_str):
+    def _normalize_line_continuations(self, rule_str: str) -> str:
         """Normalize line continuations by removing backslash-newline sequences."""
         import re
 
@@ -31,7 +32,7 @@ class SecLangParser:
         normalized = re.sub(r"\\\s*\n\s*", "", rule_str)
         return normalized
 
-    def _split_actions(self, actions_str):
+    def _split_actions(self, actions_str: str) -> List[str]:
         """Split actions string on commas, but respect quoted values."""
         actions = []
         current_action = ""
@@ -60,7 +61,7 @@ class SecLangParser:
 
         return actions
 
-    def from_string(self, rule_str):
+    def from_string(self, rule_str: str):
         # Preprocess line continuations: remove backslash-newline sequences
         normalized_rule = self._normalize_line_continuations(rule_str)
 
@@ -133,13 +134,13 @@ class SecLangParser:
 
 
 class WAF:
-    def __init__(self, config):
+    def __init__(self, config: Dict[str, Union[List[Any], List[str]]]):
         self.rule_group = RuleGroup()
         self.parser = SecLangParser(self.rule_group)
         for rule_str in config["rules"]:
             self.parser.from_string(rule_str)
         self._tx_counter = 0
 
-    def new_transaction(self):
+    def new_transaction(self) -> Transaction:
         self._tx_counter += 1
         return Transaction(self, f"tx-{self._tx_counter}")

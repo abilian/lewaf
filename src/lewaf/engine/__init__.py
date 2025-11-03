@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import logging
+from lewaf.rules import Rule
+from lewaf.transaction import Transaction
 
 
 class RuleGroup:
     def __init__(self):
         self.rules_by_phase = {1: [], 2: [], 3: [], 4: [], 5: []}
 
-    def add(self, rule):
+    def add(self, rule: Rule):
         self.rules_by_phase[rule.phase].append(rule)
         logging.debug("Added rule %s to phase %s", rule.id, rule.phase)
 
-    def evaluate(self, phase, transaction):
+    def evaluate(self, phase: int, transaction: Transaction):
         logging.info("--- Executing Phase %s ---", phase)
         rules = self.rules_by_phase[phase]
 
@@ -51,7 +53,7 @@ class RuleGroup:
 
             i += 1
 
-    def _should_skip_rule(self, rule, transaction, rule_index):
+    def _should_skip_rule(self, rule: Rule, transaction: Transaction, rule_index: int):
         """Check if a rule should be skipped based on skip actions."""
         if not hasattr(transaction, "skip_state"):
             return False
@@ -116,7 +118,9 @@ class RuleGroup:
         if hasattr(transaction, "chain_state"):
             transaction.chain_state.clear()
 
-    def _handle_post_rule_processing(self, rule, rule_matched, transaction):
+    def _handle_post_rule_processing(
+        self, rule: Rule, rule_matched: bool, transaction: Transaction
+    ):
         """Handle any post-rule processing like updating skip counts."""
         # Update skip counts if rule didn't match
         if not rule_matched and hasattr(transaction, "skip_state"):
