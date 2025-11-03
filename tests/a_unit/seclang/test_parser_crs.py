@@ -1,10 +1,11 @@
 """Tests for SecLang parser with real CRS .conf files."""
 
-import pytest
 from pathlib import Path
 
+import pytest
+
 from lewaf.engine import RuleGroup
-from lewaf.seclang import SecLangParser, ParseError
+from lewaf.seclang import ParseError, SecLangParser
 
 
 class StubWAF:

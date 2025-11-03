@@ -6,18 +6,18 @@ simple stub objects instead of Mock() to verify tangible outcomes.
 
 import time
 
+from lewaf.engine import RuleGroup
 from lewaf.primitives.actions import (
     ChainAction,
-    SkipAfterAction,
-    SkipNextAction,
-    SetVarAction,
     ConditionalAction,
     CtlAction,
     MacroExpander,
+    SetVarAction,
+    SkipAfterAction,
+    SkipNextAction,
 )
 from lewaf.primitives.collections import TransactionVariables
 from lewaf.primitives.transformations import TRANSFORMATIONS
-from lewaf.engine import RuleGroup
 
 
 class StubRule:

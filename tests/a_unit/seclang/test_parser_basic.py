@@ -1,11 +1,12 @@
 """Basic tests for SecLang parser functionality."""
 
-import pytest
-from pathlib import Path
 import tempfile
+from pathlib import Path
+
+import pytest
 
 from lewaf.engine import RuleGroup
-from lewaf.seclang import SecLangParser, ParseError
+from lewaf.seclang import ParseError, SecLangParser
 
 
 class StubWAF:

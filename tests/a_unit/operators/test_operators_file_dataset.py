@@ -4,10 +4,10 @@ import os
 import tempfile
 
 from lewaf.primitives.operators import (
-    get_operator,
     OperatorOptions,
-    register_dataset,
     get_dataset,
+    get_operator,
+    register_dataset,
 )
 
 

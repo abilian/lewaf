@@ -3,13 +3,13 @@
 from lewaf.primitives.actions import (
     ACTIONS,
     ActionType,
-    LogAction,
-    DenyAction,
     AllowAction,
     BlockAction,
+    DenyAction,
     IdAction,
-    PhaseAction,
+    LogAction,
     MsgAction,
+    PhaseAction,
     SeverityAction,
 )
 
