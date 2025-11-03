@@ -119,9 +119,9 @@ class TestInjectionAttacks:
 
         # Require at least 80% detection rate for LFI attacks
         detection_rate = detected_count / len(lfi_vectors)
-        assert detection_rate >= 0.8, (
-            f"Low detection rate for LFI attacks: {detection_rate:.1%}"
-        )
+        assert (
+            detection_rate >= 0.8
+        ), f"Low detection rate for LFI attacks: {detection_rate:.1%}"
 
     def test_remote_file_inclusion(self, injection_waf):
         """Test Remote File Inclusion attacks."""
@@ -232,9 +232,9 @@ class TestInjectionAttacks:
 
         # Require high detection rate for command injection
         detection_rate = detected_count / len(command_vectors)
-        assert detection_rate >= 0.7, (
-            f"Low detection rate for command injection: {detection_rate:.1%}"
-        )
+        assert (
+            detection_rate >= 0.7
+        ), f"Low detection rate for command injection: {detection_rate:.1%}"
 
     def test_php_injection_attacks(self, injection_waf):
         """Test PHP code injection attacks."""

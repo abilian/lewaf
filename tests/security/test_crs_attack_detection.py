@@ -43,9 +43,9 @@ class TestCRSAttackDetection:
             else:
                 print(f"✗ Missed SQL injection: {attack}")
 
-        assert detected_count > 0, (
-            f"No SQL injections detected out of {len(sqli_attacks)} attempts"
-        )
+        assert (
+            detected_count > 0
+        ), f"No SQL injections detected out of {len(sqli_attacks)} attempts"
         detection_rate = detected_count / len(sqli_attacks)
         print(f"SQL injection detection rate: {detection_rate:.1%}")
 
@@ -82,9 +82,9 @@ class TestCRSAttackDetection:
             else:
                 print(f"✗ Missed XSS: {attack}")
 
-        assert detected_count > 0, (
-            f"No XSS attacks detected out of {len(xss_attacks)} attempts"
-        )
+        assert (
+            detected_count > 0
+        ), f"No XSS attacks detected out of {len(xss_attacks)} attempts"
         detection_rate = detected_count / len(xss_attacks)
         print(f"XSS detection rate: {detection_rate:.1%}")
 
@@ -202,9 +202,9 @@ class TestCRSAttackDetection:
         if dangerous_methods:
             block_rate = blocked_dangerous / len(dangerous_methods)
             print(f"Dangerous method block rate: {block_rate:.1%}")
-            assert block_rate >= 0.75, (
-                f"Too many dangerous methods allowed: {block_rate:.1%}"
-            )
+            assert (
+                block_rate >= 0.75
+            ), f"Too many dangerous methods allowed: {block_rate:.1%}"
 
     def test_encoding_detection(self):
         """Test detection of attacks with various encodings."""
@@ -245,9 +245,9 @@ class TestCRSAttackDetection:
         print(f"Encoded attack detection rate: {detection_rate:.1%}")
 
         # Should detect at least the normal attacks
-        assert detected_count >= 2, (
-            f"Failed to detect basic attacks: {detected_count}/{len(encoded_attacks)}"
-        )
+        assert (
+            detected_count >= 2
+        ), f"Failed to detect basic attacks: {detected_count}/{len(encoded_attacks)}"
 
     def test_real_world_payloads(self):
         """Test detection of real-world attack payloads."""
@@ -296,9 +296,9 @@ class TestCRSAttackDetection:
         print(f"Real-world payload detection rate: {detection_rate:.1%}")
 
         # Should detect a reasonable percentage of real attacks
-        assert detection_rate >= 0.3, (
-            f"Very low detection rate for real payloads: {detection_rate:.1%}"
-        )
+        assert (
+            detection_rate >= 0.3
+        ), f"Very low detection rate for real payloads: {detection_rate:.1%}"
 
     def test_legitimate_traffic_allowance(self):
         """Test that legitimate traffic is not blocked."""
@@ -341,9 +341,9 @@ class TestCRSAttackDetection:
         print(f"False positive rate: {false_positive_rate:.1%}")
 
         # Should have very low false positive rate
-        assert false_positive_rate <= 0.2, (
-            f"High false positive rate: {false_positive_rate:.1%}"
-        )
+        assert (
+            false_positive_rate <= 0.2
+        ), f"High false positive rate: {false_positive_rate:.1%}"
 
     def test_bypass_attempt_detection(self):
         """Test detection of common WAF bypass techniques."""
@@ -391,6 +391,6 @@ class TestCRSAttackDetection:
         print(f"Bypass detection rate: {detection_rate:.1%}")
 
         # Should detect most bypass attempts
-        assert detection_rate >= 0.5, (
-            f"Many bypass attempts succeeded: {detection_rate:.1%}"
-        )
+        assert (
+            detection_rate >= 0.5
+        ), f"Many bypass attempts succeeded: {detection_rate:.1%}"

@@ -250,9 +250,9 @@ def test_crs_phase3_transformation_coverage():
         print(f"  ✓ {transform}")
 
     # Validate that transformations are working
-    assert len(working_transformations) >= 3, (
-        f"Too few working transformations: {len(working_transformations)}"
-    )
+    assert (
+        len(working_transformations) >= 3
+    ), f"Too few working transformations: {len(working_transformations)}"
 
 
 def test_crs_realistic_attack_scenarios():

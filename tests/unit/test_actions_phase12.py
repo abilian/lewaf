@@ -336,13 +336,11 @@ def test_action_error_handling():
     for action, invalid_data in actions_to_test:
         try:
             action.init({}, invalid_data)
-            assert False, (
-                f"Action {type(action).__name__} should raise ValueError for invalid data"
-            )
+            assert False, f"Action {type(action).__name__} should raise ValueError for invalid data"
         except ValueError:
             # Expected behavior
             pass
         except Exception as e:
-            assert False, (
-                f"Action {type(action).__name__} raised unexpected exception: {e}"
-            )
+            assert (
+                False
+            ), f"Action {type(action).__name__} raised unexpected exception: {e}"
