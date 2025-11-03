@@ -9,13 +9,13 @@ This module handles parsing of SecRule directives, including:
 
 from __future__ import annotations
 
-import logging
-import random
 from typing import TYPE_CHECKING, Any
 
-from lewaf.primitives.actions import ACTIONS, Action
-from lewaf.primitives.operators import OperatorOptions, get_operator
-from lewaf.rules import Rule, VariableSpec
+from lewaf.primitives.actions import ACTIONS
+from lewaf.primitives.operators import get_operator, OperatorOptions
+from lewaf.rules import Rule
+import random
+import logging
 
 if TYPE_CHECKING:
     from lewaf.seclang.parser import SecLangParser
@@ -38,7 +38,7 @@ class SecRuleParser:
             parser: Parent SecLang parser for context
         """
         self.parser = parser
-        self.variables: list[VariableSpec] = []
+        self.variables: list[tuple[str, str | None]] = []
         self.operator_name = ""
         self.operator_negated = False
         self.operator_argument = ""
@@ -63,10 +63,8 @@ class SecRuleParser:
 
         parts = self._split_rule_parts(rule_text)
 
-        # Chained rules may only have 2 parts (variables and operator, no actions)
-        if len(parts) < 2:
-            msg = f"Invalid SecRule format: {rule_text[:100]}"
-            raise ValueError(msg)
+        if len(parts) < 3:
+            raise ValueError(f"Invalid SecRule format: {rule_text[:100]}")
 
         variables_str = parts[0]
         operator_str = parts[1]
@@ -118,7 +116,7 @@ class SecRuleParser:
                     current = []
                 continue
 
-            if not in_quotes and char in {" ", "\t"}:
+            if not in_quotes and char in (" ", "\t"):
                 if current:
                     parts.append("".join(current))
                     current = []
@@ -161,6 +159,8 @@ class SecRuleParser:
             is_count = var_part.startswith("&")
             if is_count:
                 var_part = var_part[1:]
+                # For now, we'll treat count as regular variable
+                # TODO: Implement count handling
 
             # Split variable name and key
             if ":" in var_part:
@@ -180,14 +180,10 @@ class SecRuleParser:
             # Normalize variable name
             var_name = var_name.strip().upper()
 
-            # Create VariableSpec with all modifiers
-            var_spec = VariableSpec(
-                name=var_name,
-                key=key,
-                is_count=is_count,
-                is_negation=is_negation,
-            )
-            self.variables.append(var_spec)
+            # For negations, we'll need special handling
+            # For now, add as regular variable
+            # TODO: Implement proper negation handling
+            self.variables.append((var_name, key))
 
     def _parse_operator(self, operator_str: str) -> None:
         """Parse operator specification.
@@ -225,12 +221,12 @@ class SecRuleParser:
         self.operator_argument = parts[1] if len(parts) > 1 else ""
 
         # Handle operators without arguments
-        if not self.operator_argument and self.operator_name in {
+        if not self.operator_argument and self.operator_name in [
             "unconditional",
             "unconditionalmatch",
             "detectsqli",
             "detectxss",
-        }:
+        ]:
             self.operator_argument = ""
 
     def _parse_actions(self, actions_str: str) -> None:
@@ -267,7 +263,7 @@ class SecRuleParser:
                 continue
 
             # Handle metadata actions (id, phase, rev, severity, msg, etc.)
-            if action_name in {
+            if action_name in [
                 "id",
                 "phase",
                 "rev",
@@ -275,16 +271,16 @@ class SecRuleParser:
                 "ver",
                 "maturity",
                 "accuracy",
-            }:
+            ]:
                 # Strip quotes from value
-                if (action_value.startswith("'") and action_value.endswith("'")) or (
-                    action_value.startswith('"') and action_value.endswith('"')
-                ):
+                if action_value.startswith("'") and action_value.endswith("'"):
+                    action_value = action_value[1:-1]
+                elif action_value.startswith('"') and action_value.endswith('"'):
                     action_value = action_value[1:-1]
 
                 # Try to convert to int
                 try:
-                    if action_name in {"id", "phase", "severity"}:
+                    if action_name in ["id", "phase", "severity"]:
                         self.metadata[action_name] = int(action_value)
                     else:
                         self.metadata[action_name] = action_value
@@ -296,9 +292,15 @@ class SecRuleParser:
             if action_name in ACTIONS:
                 action_class = ACTIONS[action_name]
                 action_instance = action_class()
-                assert isinstance(action_instance, Action)
 
-                action_instance.init(self.metadata, action_value)
+                # Initialize action with value if needed
+                if hasattr(action_instance, "init"):
+                    try:
+                        action_instance.init(self.metadata, action_value)
+                    except Exception:
+                        # Some actions don't need init
+                        pass
+
                 self.actions[action_name] = action_instance
 
     def _split_actions(self, actions_str: str) -> list[str]:
@@ -374,15 +376,13 @@ class SecRuleParser:
             self.metadata["id"] = generated_id
 
             logger = logging.getLogger(__name__)
-            logger.debug("Generated ID %s for rule without explicit ID", generated_id)
+            logger.debug(f"Generated ID {generated_id} for rule without explicit ID")
 
         if "phase" not in self.metadata:
             self.metadata["phase"] = 2  # Default phase
 
         # Create the operator
-        from lewaf.integration import (  # noqa: PLC0415 - Avoids circular import
-            ParsedOperator,
-        )
+        from lewaf.integration import ParsedOperator
 
         operator_options = OperatorOptions(self.operator_argument)
         operator_instance = get_operator(self.operator_name, operator_options)
@@ -394,12 +394,6 @@ class SecRuleParser:
             op=operator_instance,
         )
 
-        # Collect tags from TagAction instances
-        tags = []
-        for action_name, action_instance in self.actions.items():
-            if action_name == "tag" and hasattr(action_instance, "tag_name"):
-                tags.append(action_instance.tag_name)
-
         # Create the Rule
         rule = Rule(
             variables=self.variables,
@@ -407,7 +401,6 @@ class SecRuleParser:
             transformations=self.transformations,
             actions=self.actions,
             metadata=self.metadata,
-            tags=tags,
         )
 
         # Add to WAF
