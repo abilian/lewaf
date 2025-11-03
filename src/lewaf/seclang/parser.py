@@ -14,36 +14,33 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from lewaf.exceptions import IncludeRecursionError, ParseError
-
 if TYPE_CHECKING:
     from lewaf.integration import WAF
 
 logger = logging.getLogger(__name__)
 
 
+class ParseError(Exception):
+    """Exception raised when parsing SecLang files fails."""
+
+    def __init__(self, message: str, line: int = 0, file: str = ""):
+        self.message = message
+        self.line = line
+        self.file = file
+        super().__init__(f"{file}:{line}: {message}" if file else message)
+
+
 class SecLangParser:
     """Parser for ModSecurity SecLang configuration files.
 
-    This parser loads .conf files containing SecLang directives and converts them
-    into LeWAF Rule objects and configuration settings. It handles:
-    - Include/IncludeOptional directives with glob patterns
-    - SecDefaultAction for setting default rule actions
-    - SecMarker for flow control
-    - Multi-line rules with backslash continuation
-    - Backtick-quoted sections
-
-    Note: For parsing individual rule strings from configuration dicts, the WAF
-    class uses a simpler inline parser (`lewaf.integration.SecLangParser`).
+    This parser can load .conf files containing SecLang directives and convert them
+    into LeWAF Rule objects and configuration settings.
 
     Example:
-        from lewaf.seclang import SecLangParser
-
         parser = SecLangParser(waf)
         parser.from_file("rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf")
     """
 
-    # Maximum depth for nested Include directives to prevent infinite recursion
     MAX_INCLUDE_RECURSION = 100
 
     def __init__(self, waf: WAF):
@@ -63,9 +60,6 @@ class SecLangParser:
             2: "phase:2,log,auditlog,pass",
         }
 
-        # Markers for skipAfter flow control
-        self.markers: dict[str, int] = {}  # marker_name -> rule_index
-
     def from_file(self, file_path: str | Path) -> None:
         """Load and parse a SecLang configuration file.
 
@@ -82,7 +76,7 @@ class SecLangParser:
         if "*" in str(file_path):
             files = sorted(file_path.parent.glob(file_path.name))
             if not files:
-                logger.warning("No files matching pattern: %s", file_path)
+                logger.warning(f"No files matching pattern: {file_path}")
                 return
 
             for f in files:
@@ -105,7 +99,7 @@ class SecLangParser:
             self.current_dir = str(file_path.parent)
             self.current_line = 0
 
-            logger.info("Parsing SecLang file: %s", file_path)
+            logger.info(f"Parsing SecLang file: {file_path}")
 
             with open(file_path, encoding="utf-8") as f:
                 content = f.read()
@@ -151,7 +145,7 @@ class SecLangParser:
                 in_backticks = True
                 line_buffer.append(line)
                 continue
-            if in_backticks:
+            elif in_backticks:
                 line_buffer.append(line)
                 if line.startswith("`"):
                     in_backticks = False
@@ -165,15 +159,15 @@ class SecLangParser:
             if line.endswith("\\"):
                 line_buffer.append(line[:-1])  # Remove the backslash
                 continue
-            line_buffer.append(line)
-            full_line = "".join(line_buffer)
-            line_buffer = []
-            self._evaluate_line(full_line)
+            else:
+                line_buffer.append(line)
+                full_line = "".join(line_buffer)
+                line_buffer = []
+                self._evaluate_line(full_line)
 
         if in_backticks:
-            msg = "Unclosed backtick section"
             raise ParseError(
-                msg, file_path=self.current_file, line_number=self.current_line
+                "Unclosed backtick section", self.current_line, self.current_file
             )
 
         if line_buffer:
@@ -203,7 +197,7 @@ class SecLangParser:
         args = parts[1].strip() if len(parts) > 1 else ""
 
         # Remove quotes from arguments if present
-        if args.startswith('"') and args.endswith('"') and len(args) >= 2:
+        if len(args) >= 2 and args[0] == '"' and args[-1] == '"':
             args = args[1:-1]
 
         logger.debug(f"Processing directive: {directive} with args: {args[:100]}...")
@@ -221,11 +215,10 @@ class SecLangParser:
             try:
                 handler(args)
             except Exception as e:
-                msg = f"Failed to process {directive}: {e}"
                 raise ParseError(
-                    msg,
-                    file_path=self.current_file,
-                    line_number=self.current_line,
+                    f"Failed to process {directive}: {e}",
+                    self.current_line,
+                    self.current_file,
                 ) from e
         else:
             logger.warning(
@@ -242,10 +235,10 @@ class SecLangParser:
             ParseError: If recursion limit exceeded or file not found
         """
         if self.include_count >= self.MAX_INCLUDE_RECURSION:
-            raise IncludeRecursionError(
-                file_path=path,
-                depth=self.include_count,
-                max_depth=self.MAX_INCLUDE_RECURSION,
+            raise ParseError(
+                f"Include recursion limit exceeded ({self.MAX_INCLUDE_RECURSION})",
+                self.current_line,
+                self.current_file,
             )
 
         self.include_count += 1
@@ -268,9 +261,7 @@ class SecLangParser:
         Raises:
             ParseError: If the rule cannot be parsed
         """
-        from lewaf.seclang.rule_parser import (  # noqa: PLC0415 - Avoids circular import
-            SecRuleParser,
-        )
+        from lewaf.seclang.rule_parser import SecRuleParser
 
         parser = SecRuleParser(self)
         parser.parse_rule(args)
@@ -295,8 +286,9 @@ class SecLangParser:
             args: Engine mode (On, Off, DetectionOnly)
         """
         mode = args.lower()
-        logger.info("Setting rule engine to: %s", mode)
-        self.waf.rule_engine_mode = mode
+        logger.info(f"Setting rule engine to: {mode}")
+        # TODO: Store in WAF configuration
+        # self.waf.rule_engine = mode
 
     def _handle_secrequestbodyaccess(self, args: str) -> None:
         """Handle SecRequestBodyAccess directive.
@@ -305,8 +297,8 @@ class SecLangParser:
             args: On or Off
         """
         enabled = args.lower() == "on"
-        logger.info("Request body access: %s", enabled)
-        self.waf.request_body_access = enabled
+        logger.info(f"Request body access: {enabled}")
+        # TODO: Store in WAF configuration
 
     def _handle_secresponsebodyaccess(self, args: str) -> None:
         """Handle SecResponseBodyAccess directive.
@@ -315,8 +307,8 @@ class SecLangParser:
             args: On or Off
         """
         enabled = args.lower() == "on"
-        logger.info("Response body access: %s", enabled)
-        self.waf.response_body_access = enabled
+        logger.info(f"Response body access: {enabled}")
+        # TODO: Store in WAF configuration
 
     def _handle_secdefaultaction(self, args: str) -> None:
         """Handle SecDefaultAction directive.
@@ -329,61 +321,6 @@ class SecLangParser:
         if phase_match:
             phase = int(phase_match.group(1))
             self.default_actions[phase] = args
-            logger.info("Set default actions for phase %s: %s", phase, args)
+            logger.info(f"Set default actions for phase {phase}: {args}")
         else:
-            logger.warning("SecDefaultAction without phase specification: %s", args)
-
-    def _handle_secmarker(self, args: str) -> None:
-        """Handle SecMarker directive.
-
-        SecMarker defines a named location in the rule set that can be used
-        as a target for skipAfter actions. This is commonly used in CRS for
-        paranoia level filtering.
-
-        Args:
-            args: Marker name (e.g., "END-REQUEST-920-PROTOCOL-ENFORCEMENT")
-
-        Example:
-            SecMarker "END-HOST-CHECK"
-            SecRule TX:PARANOIA_LEVEL "@lt 2" "skipAfter:END-HOST-CHECK"
-        """
-        marker_name = args.strip()
-        if not marker_name:
-            logger.warning(
-                f"SecMarker with empty name at {self.current_file}:{self.current_line}"
-            )
-            return
-
-        # Create a marker "rule" - a pass-through rule with the marker name
-        # This allows skipAfter to find it during rule evaluation
-        from lewaf.seclang.rule_parser import (  # noqa: PLC0415 - Avoids circular import
-            SecRuleParser,
-        )
-
-        # Create a dummy rule that always passes and has the marker name as a tag
-        marker_rule_str = f'REQUEST_URI "@unconditional" "id:marker_{marker_name},phase:1,nolog,pass,tag:{marker_name}"'
-
-        parser = SecRuleParser(self)
-        try:
-            parser.parse_rule(marker_rule_str)
-        except Exception as e:
-            logger.warning("Failed to create marker rule for '%s': %s", marker_name, e)
-
-        logger.debug("Registered marker '%s' as rule", marker_name)
-
-    def _handle_seccomponentsignature(self, args: str) -> None:
-        """Handle SecComponentSignature directive.
-
-        SecComponentSignature identifies the WAF component and version.
-        This is informational only and doesn't affect rule processing.
-
-        Args:
-            args: Component signature string
-
-        Example:
-            SecComponentSignature "OWASP_CRS/3.3.4"
-        """
-        signature = args.strip()
-        logger.info("Component signature: %s", signature)
-        # Store in WAF metadata
-        self.waf.component_signature = signature
+            logger.warning(f"SecDefaultAction without phase specification: {args}")
