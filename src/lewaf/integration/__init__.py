@@ -7,20 +7,22 @@ from lewaf.rules import Rule
 from lewaf.transaction import Transaction
 from typing import Any, Dict, List, Union
 
+from dataclasses import dataclass
 
+
+@dataclass(frozen=True)
 class ParsedOperator:
     """Container for parsed operator information."""
 
-    def __init__(self, name: str, argument: str, op: Operator, negated: bool = False):
-        self.name = name
-        self.argument = argument
-        self.op = op
-        self.negated = negated
+    name: str
+    argument: str
+    op: Operator
+    negated: bool = False
 
 
+@dataclass(frozen=True)
 class SecLangParser:
-    def __init__(self, rule_group: RuleGroup):
-        self.rule_group = rule_group
+    rule_group: RuleGroup
 
     def _normalize_line_continuations(self, rule_str: str) -> str:
         """Normalize line continuations by removing backslash-newline sequences."""
