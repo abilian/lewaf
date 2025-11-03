@@ -1,23 +1,21 @@
 """Unit tests for Phase 3 transformations (advanced encoding, text processing, path normalization)."""
 
-from __future__ import annotations
-
 from lewaf.primitives.transformations import (
     base64_decode_ext,
     base64_encode,
+    hex_encode,
+    url_encode,
+    utf8_to_unicode,
     cmd_line,
     css_decode,
     escape_seq_decode,
-    hex_encode,
-    normalise_path,
-    normalise_path_win,
-    normalize_path_win,
     remove_comments,
     remove_comments_char,
     trim_left,
     trim_right,
-    url_encode,
-    utf8_to_unicode,
+    normalise_path,
+    normalise_path_win,
+    normalize_path_win,
 )
 
 

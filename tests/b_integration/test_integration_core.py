@@ -1,12 +1,9 @@
 """Integration tests for core WAF functionality."""
 
-from __future__ import annotations
-
 import pytest
 
 from lewaf.integration import WAF
 from lewaf.primitives.operators import RxOperator
-from lewaf.rules import VariableSpec
 
 
 def test_waf_initialization_with_rules():
@@ -43,7 +40,7 @@ def test_seclang_parser_rule_parsing():
 
     assert rule.id == 101
     assert rule.phase == 1
-    assert rule.variables == [VariableSpec("ARGS", "id")]
+    assert rule.variables == [("ARGS", "id")]
     assert isinstance(rule.operator.op, RxOperator)
     assert "deny" in rule.actions
     assert "log" in rule.actions

@@ -1,19 +1,13 @@
 """Integration tests for Starlette framework integration."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 from starlette.applications import Starlette
+from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from lewaf.integration import WAF
-from lewaf.integrations.starlette import LeWAFMiddleware, create_waf_app
-
-if TYPE_CHECKING:
-    from starlette.requests import Request
+from lewaf.integrations.starlette import CorazaMiddleware, create_waf_app
 
 
 def create_test_app():
@@ -23,12 +17,14 @@ def create_test_app():
         return JSONResponse({"message": "Hello World"})
 
     async def echo(request: Request) -> JSONResponse:
-        return JSONResponse({
-            "method": request.method,
-            "path": str(request.url.path),
-            "query": dict(request.query_params),
-            "headers": dict(request.headers),
-        })
+        return JSONResponse(
+            {
+                "method": request.method,
+                "path": str(request.url.path),
+                "query": dict(request.query_params),
+                "headers": dict(request.headers),
+            }
+        )
 
     return Starlette(
         routes=[
@@ -39,10 +35,10 @@ def create_test_app():
 
 
 def test_coraza_middleware_initialization():
-    """Test LeWAFMiddleware initialization with rules."""
+    """Test CorazaMiddleware initialization with rules."""
     app = Starlette()
     rules = ['SecRule ARGS "@rx test" "id:1,phase:2,deny"']
-    middleware = LeWAFMiddleware(app, rules=rules)
+    middleware = CorazaMiddleware(app, rules=rules)
 
     assert middleware.waf is not None
     assert middleware.block_response_status == 403
@@ -52,7 +48,7 @@ def test_middleware_with_preconfigured_waf():
     """Test middleware with pre-configured WAF instance."""
     app = Starlette()
     waf = WAF({"rules": ['SecRule ARGS "@rx attack" "id:1001,phase:2,deny"']})
-    middleware = LeWAFMiddleware(app, waf=waf)
+    middleware = CorazaMiddleware(app, waf=waf)
 
     assert middleware.waf is waf
 

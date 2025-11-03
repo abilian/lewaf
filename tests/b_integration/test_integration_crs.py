@@ -1,14 +1,12 @@
 """Integration tests for Core Rule Set (CRS) functionality."""
 
-from __future__ import annotations
-
 import re
 from pathlib import Path
 
 import pytest
 
 from lewaf.engine import RuleGroup
-from lewaf.integration import WAF, SecLangParser
+from lewaf.integration import SecLangParser, WAF
 from lewaf.transaction import Transaction
 
 

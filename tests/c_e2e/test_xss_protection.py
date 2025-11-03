@@ -4,8 +4,6 @@ This module tests that the WAF correctly detects and blocks various XSS attacks
 using real-world attack vectors and CRS rules.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from lewaf.integration import WAF

@@ -4,8 +4,6 @@ This module tests that the WAF correctly detects and blocks various SQL injectio
 using real-world attack vectors and CRS rules.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from lewaf.integration import WAF
@@ -76,12 +74,12 @@ class TestSQLiProtection:
             assert tx.interruption is not None, (
                 f"Failed to detect SQL injection: {attack}"
             )
-            assert tx.interruption.get("rule_id") in {
+            assert tx.interruption.get("rule_id") in [
                 942100,
                 942140,
                 942160,
                 942200,
-            }, f"Wrong rule triggered for attack: {attack}"
+            ], f"Wrong rule triggered for attack: {attack}"
 
     def test_database_specific_attacks(self, sqli_waf):
         """Test database-specific SQL injection patterns."""

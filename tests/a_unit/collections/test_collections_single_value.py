@@ -1,7 +1,5 @@
 """Unit tests for SingleValueCollection functionality."""
 
-from __future__ import annotations
-
 from lewaf.primitives.collections import SingleValueCollection
 
 

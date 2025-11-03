@@ -1,9 +1,6 @@
 """Unit tests for security-focused operators (detectXSS, detectSQLi, etc.)."""
 
-from __future__ import annotations
-
-from lewaf.primitives.operators import OperatorOptions, get_operator
-from tests.utils import stub_tx
+from lewaf.primitives.operators import get_operator, OperatorOptions
 
 
 def test_detect_xss_operator():
@@ -11,7 +8,7 @@ def test_detect_xss_operator():
     options = OperatorOptions("")
     operator = get_operator("detectxss", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Basic XSS patterns
     assert operator.evaluate(tx, "<script>alert(1)</script>") is True
@@ -29,7 +26,7 @@ def test_detect_sqli_operator():
     options = OperatorOptions("")
     operator = get_operator("detectsqli", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Basic SQLi patterns
     assert operator.evaluate(tx, "' OR 1=1--") is True
@@ -47,7 +44,7 @@ def test_ipmatch_operator():
     options = OperatorOptions("192.168.1.0/24")
     operator = get_operator("ipmatch", options)
 
-    tx = stub_tx()
+    tx = None
 
     # IPs in range
     assert operator.evaluate(tx, "192.168.1.1") is True
@@ -65,7 +62,7 @@ def test_ipmatch_single_ip():
     options = OperatorOptions("10.0.0.1")
     operator = get_operator("ipmatch", options)
 
-    tx = stub_tx()
+    tx = None
 
     assert operator.evaluate(tx, "10.0.0.1") is True
     assert operator.evaluate(tx, "10.0.0.2") is False
@@ -77,7 +74,7 @@ def test_validate_byte_range_operator():
     options = OperatorOptions("32-126")  # Printable ASCII range
     operator = get_operator("validatebyterange", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Valid ASCII characters
     assert operator.evaluate(tx, "Hello World!") is True
@@ -93,7 +90,7 @@ def test_validate_utf8_encoding_operator():
     options = OperatorOptions("")
     operator = get_operator("validateutf8encoding", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Valid UTF-8
     assert operator.evaluate(tx, "Hello World") is True
@@ -109,7 +106,7 @@ def test_validate_url_encoding_operator():
     options = OperatorOptions("")
     operator = get_operator("validateurlencoding", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Valid URL encoding (should return False - no invalid encoding found)
     assert operator.evaluate(tx, "hello%20world") is False
@@ -128,7 +125,7 @@ def test_validate_schema_operator():
     )
     operator = get_operator("validateschema", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Valid JSON (should return False - no validation error)
     assert operator.evaluate(tx, '{"name": "test"}') is False
@@ -145,7 +142,7 @@ def test_nomatch_operator():
     options = OperatorOptions("anything")
     operator = get_operator("nomatch", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Should always return False regardless of input
     assert operator.evaluate(tx, "anything") is False
@@ -158,7 +155,7 @@ def test_restpath_operator():
     options = OperatorOptions("/api/users/{id}/posts/{post_id}")
     operator = get_operator("restpath", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Valid REST paths
     assert operator.evaluate(tx, "/api/users/123/posts/456") is True

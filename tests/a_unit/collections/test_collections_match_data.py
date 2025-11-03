@@ -1,7 +1,5 @@
 """Unit tests for collections match data functionality."""
 
-from __future__ import annotations
-
 from lewaf.primitives.collections import MatchData
 
 

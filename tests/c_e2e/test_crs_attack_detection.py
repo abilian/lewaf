@@ -4,8 +4,6 @@ This module tests that the WAF successfully detects attacks using real CRS rules
 that are known to parse correctly.
 """
 
-from __future__ import annotations
-
 from lewaf.integration import WAF
 
 
