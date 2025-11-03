@@ -1,6 +1,6 @@
 """Test Phase 5 Complete Variable Coverage implementation."""
 
-from coraza_poc.primitives.collections import TransactionVariables
+from lewaf.primitives.collections import TransactionVariables
 
 
 class TestRequestVariables:
@@ -40,12 +40,12 @@ class TestRequestVariables:
 
         for uri, expected_basename, expected_filename in test_cases:
             self.variables.set_request_variables(uri=uri)
-            assert (
-                self.variables.request_basename.get() == expected_basename
-            ), f"Failed for URI: {uri}"
-            assert (
-                self.variables.request_filename.get() == expected_filename
-            ), f"Failed for URI: {uri}"
+            assert self.variables.request_basename.get() == expected_basename, (
+                f"Failed for URI: {uri}"
+            )
+            assert self.variables.request_filename.get() == expected_filename, (
+                f"Failed for URI: {uri}"
+            )
 
     def test_request_body_handling(self):
         """Test request body content and length tracking."""
@@ -148,9 +148,9 @@ class TestResponseVariables:
         for status, expected_phrase in status_tests:
             self.variables.set_response_variables(status=status)
             status_line = self.variables.status_line.get()
-            assert (
-                expected_phrase in status_line
-            ), f"Status {status} should contain '{expected_phrase}'"
+            assert expected_phrase in status_line, (
+                f"Status {status} should contain '{expected_phrase}'"
+            )
 
 
 class TestMetadataPopulation:

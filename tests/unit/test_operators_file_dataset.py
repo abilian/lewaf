@@ -3,7 +3,7 @@
 import os
 import tempfile
 
-from coraza_poc.primitives.operators import (
+from lewaf.primitives.operators import (
     get_operator,
     OperatorOptions,
     register_dataset,

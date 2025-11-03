@@ -1,6 +1,6 @@
 """Unit tests for Phase 3 transformations (advanced encoding, text processing, path normalization)."""
 
-from coraza_poc.primitives.transformations import (
+from lewaf.primitives.transformations import (
     base64_decode_ext,
     base64_encode,
     hex_encode,

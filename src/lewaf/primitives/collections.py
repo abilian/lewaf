@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import re
+import re
 
 
-@dataclass(frozen=True, slots=True)
 class MatchData:
     """Represents a match from a collection with variable name, key, and value."""
 
-    variable: str
-    key: str
-    value: str
+    def __init__(self, variable: str, key: str, value: str):
+        self.variable = variable
+        self.key = key
+        self.value = value
+
+    def __repr__(self):
+        return f"MatchData(variable='{self.variable}', key='{self.key}', value='{self.value}')"
 
 
 class Collection:
@@ -119,19 +118,17 @@ class SingleValueCollection(Collection):
         return f"{self._name}: {self._value}"
 
 
-@dataclass(frozen=True, slots=True)
 class FileData:
     """Represents uploaded file data."""
 
-    name: str
-    filename: str
-    content: bytes
-    content_type: str = ""
-
-    @property
-    def size(self) -> int:
-        """Return the size of the file content."""
-        return len(self.content)
+    def __init__(
+        self, name: str, filename: str, content: bytes, content_type: str = ""
+    ):
+        self.name = name
+        self.filename = filename
+        self.content = content
+        self.content_type = content_type
+        self.size = len(content)
 
 
 class FilesCollection(Collection):
@@ -221,9 +218,6 @@ class TransactionVariables:
     def __init__(self):
         # Core collections from original implementation
         self.args = MapCollection("ARGS")
-        self.args_get = MapCollection("ARGS_GET")
-        self.args_post = MapCollection("ARGS_POST")
-        self.args_path = MapCollection("ARGS_PATH")  # REST path parameters
         self.request_headers = MapCollection("REQUEST_HEADERS")
         self.tx = MapCollection("TX", case_insensitive=False)
         self.request_uri = SingleValueCollection("REQUEST_URI")
@@ -236,7 +230,6 @@ class TransactionVariables:
         self.response_cookies = MapCollection("RESPONSE_COOKIES")
         self.files = FilesCollection("FILES")
         self.multipart_name = MapCollection("MULTIPART_NAME")
-        self.multipart_part_headers = MapCollection("MULTIPART_PART_HEADERS")
 
         # Additional single value collections
         self.request_method = SingleValueCollection("REQUEST_METHOD")
@@ -257,14 +250,8 @@ class TransactionVariables:
 
         # Geographic location collection populated by geoLookup operator
         self.geo = MapCollection("GEO", case_insensitive=False)
-
-        # Match tracking variables - populated during rule evaluation
         self.matched_var = SingleValueCollection("MATCHED_VAR")
         self.matched_var_name = SingleValueCollection("MATCHED_VAR_NAME")
-        self.matched_vars = MapCollection("MATCHED_VARS", case_insensitive=False)
-        self.matched_vars_names = MapCollection(
-            "MATCHED_VARS_NAMES", case_insensitive=False
-        )
 
         # Environment and server variables
         self.env = MapCollection("ENV")
@@ -295,8 +282,6 @@ class TransactionVariables:
         self.response_headers_names = MapCollection("RESPONSE_HEADERS_NAMES")
         self.request_cookies_names = MapCollection("REQUEST_COOKIES_NAMES")
         self.args_names = MapCollection("ARGS_NAMES")
-        self.args_get_names = MapCollection("ARGS_GET_NAMES")
-        self.args_post_names = MapCollection("ARGS_POST_NAMES")
         self.args_combined_size = SingleValueCollection("ARGS_COMBINED_SIZE")
 
         # Performance and monitoring variables
@@ -436,7 +421,7 @@ class TransactionVariables:
             self.request_uri_raw.set(uri)  # In production, this would be URL-encoded
 
             # Extract basename and filename from URI
-            import os  # noqa: PLC0415 - Avoids circular import
+            import os
 
             if uri:
                 # Remove query string for path extraction
@@ -524,19 +509,19 @@ class TransactionVariables:
         """Populate header name collections from existing headers."""
         # Populate REQUEST_HEADERS_NAMES from REQUEST_HEADERS
         self.request_headers_names._data.clear()
-        for header_name in self.request_headers._data:
+        for header_name in self.request_headers._data.keys():
             self.request_headers_names.add(header_name, header_name)
 
         # Populate RESPONSE_HEADERS_NAMES from RESPONSE_HEADERS
         self.response_headers_names._data.clear()
-        for header_name in self.response_headers._data:
+        for header_name in self.response_headers._data.keys():
             self.response_headers_names.add(header_name, header_name)
 
     def populate_args_metadata(self) -> None:
         """Populate argument metadata collections."""
         # Populate ARGS_NAMES from ARGS
         self.args_names._data.clear()
-        for arg_name in self.args._data:
+        for arg_name in self.args._data.keys():
             self.args_names.add(arg_name, arg_name)
 
         # Calculate ARGS_COMBINED_SIZE
@@ -551,5 +536,5 @@ class TransactionVariables:
         """Populate cookie name collections from existing cookies."""
         # Populate REQUEST_COOKIES_NAMES from REQUEST_COOKIES
         self.request_cookies_names._data.clear()
-        for cookie_name in self.request_cookies._data:
+        for cookie_name in self.request_cookies._data.keys():
             self.request_cookies_names.add(cookie_name, cookie_name)

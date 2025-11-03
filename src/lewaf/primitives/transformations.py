@@ -5,17 +5,12 @@ import hashlib
 import html
 import os
 import re
-import string
-from typing import TYPE_CHECKING
-from urllib.parse import quote, unquote, unquote_plus
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from urllib.parse import unquote, unquote_plus, quote
 
 TRANSFORMATIONS = {}
 
 
-def register_transformation(name: str) -> Callable:
+def register_transformation(name: str):
     """Register a transformation function by name."""
 
     def decorator(fn):
@@ -61,6 +56,8 @@ def trim(value: str) -> tuple[str, bool]:
 @register_transformation("compresswhitespace")
 def compress_whitespace(value: str) -> tuple[str, bool]:
     """Replace multiple consecutive whitespace characters with a single space."""
+    import re
+
     compressed = re.sub(r"\s+", " ", value)
     return compressed, compressed != value
 
@@ -362,7 +359,7 @@ def css_decode(value: str) -> tuple[str, bool]:
             while (
                 hex_end < len(value)
                 and hex_end - hex_start < 6
-                and value[hex_end] in string.hexdigits
+                and value[hex_end] in "0123456789abcdefABCDEF"
             ):
                 hex_end += 1
 
@@ -394,7 +391,7 @@ def css_decode(value: str) -> tuple[str, bool]:
                     pass
 
             # Handle non-hex escape or invalid hex
-            if i + 1 < len(value) and value[i + 1] not in string.hexdigits:
+            if i + 1 < len(value) and value[i + 1] not in "0123456789abcdefABCDEF":
                 # Non-hex character escape (e.g., ja\vascript -> javascript)
                 result += value[i + 1]
                 i += 2
@@ -593,11 +590,11 @@ def normalize_path(value: str) -> tuple[str, bool]:
     original_value = value
 
     # Split path into components
-    components: list[str] = []
+    components = []
     for part in value.split("/"):
         if part == "" or part == ".":
             continue
-        if part == "..":
+        elif part == "..":
             if components:
                 components.pop()
         else:
@@ -662,7 +659,7 @@ def remove_comments(value: str) -> tuple[str, bool]:
 def parity_even_7bit(value: str) -> tuple[str, bool]:
     """Set even parity on 7-bit characters."""
     original_value = value
-    result: list[str] = []
+    result = []
 
     for char in value:
         byte_val = ord(char)
@@ -684,7 +681,7 @@ def parity_even_7bit(value: str) -> tuple[str, bool]:
 def parity_odd_7bit(value: str) -> tuple[str, bool]:
     """Set odd parity on 7-bit characters."""
     original_value = value
-    result: list[str] = []
+    result = []
 
     for char in value:
         byte_val = ord(char)
@@ -706,7 +703,7 @@ def parity_odd_7bit(value: str) -> tuple[str, bool]:
 def parity_zero_7bit(value: str) -> tuple[str, bool]:
     """Clear parity bit (high bit) on all characters."""
     original_value = value
-    result: list[str] = []
+    result = []
 
     for char in value:
         byte_val = ord(char) & 0x7F  # Clear high bit

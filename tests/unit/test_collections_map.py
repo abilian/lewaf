@@ -2,7 +2,7 @@
 
 import re
 
-from coraza_poc.primitives.collections import MapCollection
+from lewaf.primitives.collections import MapCollection
 
 
 def test_map_collection_creation():

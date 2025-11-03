@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock, patch
 
-from coraza_poc.primitives.actions import (
+from lewaf.primitives.actions import (
     ChainAction,
     SkipAfterAction,
     SkipNextAction,
@@ -11,9 +11,9 @@ from coraza_poc.primitives.actions import (
     CtlAction,
     MacroExpander,
 )
-from coraza_poc.primitives.collections import TransactionVariables
-from coraza_poc.primitives.transformations import TRANSFORMATIONS
-from coraza_poc.engine import RuleGroup
+from lewaf.primitives.collections import TransactionVariables
+from lewaf.primitives.transformations import TRANSFORMATIONS
+from lewaf.engine import RuleGroup
 
 
 class TestChainAction:
@@ -39,7 +39,7 @@ class TestChainAction:
 
     def test_chain_action_type(self):
         """Test chain action type classification."""
-        from coraza_poc.primitives.actions import ActionType
+        from lewaf.primitives.actions import ActionType
 
         assert self.action.action_type() == ActionType.FLOW
 

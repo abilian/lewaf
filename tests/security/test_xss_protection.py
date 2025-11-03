@@ -6,7 +6,7 @@ using real-world attack vectors and CRS rules.
 
 import pytest
 
-from coraza_poc.integration import WAF
+from lewaf.integration import WAF
 
 
 class TestXSSProtection:
@@ -95,9 +95,9 @@ class TestXSSProtection:
 
         # Require at least 90% detection rate for XSS attacks
         detection_rate = detected_count / len(attack_vectors)
-        assert (
-            detection_rate >= 0.9
-        ), f"Low detection rate for XSS attacks: {detection_rate:.1%}"
+        assert detection_rate >= 0.9, (
+            f"Low detection rate for XSS attacks: {detection_rate:.1%}"
+        )
 
     def test_advanced_xss_vectors(self, xss_waf):
         """Test advanced and obfuscated XSS attack vectors."""
@@ -164,9 +164,9 @@ class TestXSSProtection:
             if not interruption:
                 interruption = tx.process_request_body()
 
-            assert (
-                tx.interruption is not None
-            ), f"Failed to detect POST XSS: {attack_data}"
+            assert tx.interruption is not None, (
+                f"Failed to detect POST XSS: {attack_data}"
+            )
 
     def test_encoded_xss_attacks(self, xss_waf):
         """Test URL-encoded and other encoded XSS attempts."""
@@ -201,9 +201,9 @@ class TestXSSProtection:
 
         # Some encoded attacks might bypass detection depending on transformation coverage
         detection_rate = detected_count / len(attack_vectors)
-        assert (
-            detection_rate >= 0.6
-        ), f"Low detection rate for encoded XSS: {detection_rate:.1%}"
+        assert detection_rate >= 0.6, (
+            f"Low detection rate for encoded XSS: {detection_rate:.1%}"
+        )
 
     def test_context_specific_xss(self, xss_waf):
         """Test XSS attacks in different HTML contexts."""
@@ -283,9 +283,9 @@ class TestXSSProtection:
 
         # Require at least 75% detection rate for bypass attempts
         detection_rate = detected_count / total_count
-        assert (
-            detection_rate >= 0.75
-        ), f"Low detection rate for XSS bypass attempts: {detection_rate:.1%}"
+        assert detection_rate >= 0.75, (
+            f"Low detection rate for XSS bypass attempts: {detection_rate:.1%}"
+        )
 
     def test_false_positive_prevention(self, xss_waf):
         """Test that legitimate content is not blocked as XSS."""

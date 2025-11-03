@@ -1,24 +1,18 @@
 from __future__ import annotations
 
-import contextlib
 import fnmatch
 import ipaddress
-import re
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol, Any
 from urllib.parse import unquote
 
 from lewaf.core import compile_regex
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from lewaf.primitives.collections import TransactionVariables
+    pass
 
 
 class TransactionProtocol(Protocol):
-    """Protocol defining the transaction interface needed by operators."""
-
-    variables: TransactionVariables
+    """Protocol defining the minimal transaction interface needed by operators."""
 
     def capturing(self) -> bool:
         """Return whether the transaction is capturing matches."""
@@ -65,7 +59,7 @@ class OperatorFactory:
         raise NotImplementedError
 
 
-def register_operator(name: str) -> Callable:
+def register_operator(name: str):
     """Register an operator factory by name."""
 
     def decorator(factory_cls):
@@ -78,8 +72,7 @@ def register_operator(name: str) -> Callable:
 def get_operator(name: str, options: OperatorOptions) -> Operator:
     """Get an operator instance by name."""
     if name.lower() not in OPERATORS:
-        msg = f"Unknown operator: {name}"
-        raise ValueError(msg)
+        raise ValueError(f"Unknown operator: {name}")
     factory = OPERATORS[name.lower()]
     return factory.create(options)
 
@@ -89,7 +82,7 @@ class RxOperatorFactory(OperatorFactory):
     """Factory for regex operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> RxOperator:
+    def create(options: OperatorOptions) -> "RxOperator":
         return RxOperator(options.arguments)
 
 
@@ -102,17 +95,19 @@ class RxOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Evaluate regex against the value."""
-        if tx.capturing():
+        if hasattr(tx, "capturing") and tx.capturing():
             # Handle capture groups if transaction supports it
             match = self._regex.search(value)
             if match:
                 for i, group in enumerate(
                     match.groups()[:9]
                 ):  # Max 9 capture groups like Go
-                    tx.capture_field(i + 1, group if group is not None else "")
+                    if hasattr(tx, "capture_field"):
+                        tx.capture_field(i + 1, group if group is not None else "")
                 return True
             return False
-        return self._regex.search(value) is not None
+        else:
+            return self._regex.search(value) is not None
 
 
 @register_operator("eq")
@@ -120,7 +115,7 @@ class EqOperatorFactory(OperatorFactory):
     """Factory for equality operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> EqOperator:
+    def create(options: OperatorOptions) -> "EqOperator":
         return EqOperator(options.arguments)
 
 
@@ -137,7 +132,7 @@ class ContainsOperatorFactory(OperatorFactory):
     """Factory for contains operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> ContainsOperator:
+    def create(options: OperatorOptions) -> "ContainsOperator":
         return ContainsOperator(options.arguments)
 
 
@@ -154,7 +149,7 @@ class BeginsWithOperatorFactory(OperatorFactory):
     """Factory for begins with operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> BeginsWithOperator:
+    def create(options: OperatorOptions) -> "BeginsWithOperator":
         return BeginsWithOperator(options.arguments)
 
 
@@ -171,7 +166,7 @@ class EndsWithOperatorFactory(OperatorFactory):
     """Factory for ends with operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> EndsWithOperator:
+    def create(options: OperatorOptions) -> "EndsWithOperator":
         return EndsWithOperator(options.arguments)
 
 
@@ -188,7 +183,7 @@ class GtOperatorFactory(OperatorFactory):
     """Factory for greater than operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> GtOperator:
+    def create(options: OperatorOptions) -> "GtOperator":
         return GtOperator(options.arguments)
 
 
@@ -208,7 +203,7 @@ class GeOperatorFactory(OperatorFactory):
     """Factory for greater than or equal operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> GeOperator:
+    def create(options: OperatorOptions) -> "GeOperator":
         return GeOperator(options.arguments)
 
 
@@ -228,7 +223,7 @@ class LtOperatorFactory(OperatorFactory):
     """Factory for less than operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> LtOperator:
+    def create(options: OperatorOptions) -> "LtOperator":
         return LtOperator(options.arguments)
 
 
@@ -248,7 +243,7 @@ class LeOperatorFactory(OperatorFactory):
     """Factory for less than or equal operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> LeOperator:
+    def create(options: OperatorOptions) -> "LeOperator":
         return LeOperator(options.arguments)
 
 
@@ -268,7 +263,7 @@ class WithinOperatorFactory(OperatorFactory):
     """Factory for within operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> WithinOperator:
+    def create(options: OperatorOptions) -> "WithinOperator":
         return WithinOperator(options.arguments)
 
 
@@ -290,7 +285,7 @@ class IpMatchOperatorFactory(OperatorFactory):
     """Factory for IP match operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> IpMatchOperator:
+    def create(options: OperatorOptions) -> "IpMatchOperator":
         return IpMatchOperator(options.arguments)
 
 
@@ -327,7 +322,7 @@ class DetectSQLiOperatorFactory(OperatorFactory):
     """Factory for SQL injection detection operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> DetectSQLiOperator:
+    def create(options: OperatorOptions) -> "DetectSQLiOperator":
         return DetectSQLiOperator(options.arguments)
 
 
@@ -360,7 +355,7 @@ class DetectXSSOperatorFactory(OperatorFactory):
     """Factory for XSS detection operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> DetectXSSOperator:
+    def create(options: OperatorOptions) -> "DetectXSSOperator":
         return DetectXSSOperator(options.arguments)
 
 
@@ -396,7 +391,7 @@ class ValidateByteRangeOperatorFactory(OperatorFactory):
     """Factory for byte range validation operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> ValidateByteRangeOperator:
+    def create(options: OperatorOptions) -> "ValidateByteRangeOperator":
         return ValidateByteRangeOperator(options.arguments)
 
 
@@ -406,7 +401,7 @@ class ValidateByteRangeOperator(Operator):
     def __init__(self, argument: str):
         super().__init__(argument)
         # Parse byte ranges like "32-126,9,10,13" or "1-255"
-        self._valid_bytes: set[int] = set()
+        self._valid_bytes = set()
         for part in argument.split(","):
             part = part.strip()
             if "-" in part:
@@ -429,7 +424,7 @@ class ValidateUtf8EncodingOperatorFactory(OperatorFactory):
     """Factory for UTF-8 validation operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> ValidateUtf8EncodingOperator:
+    def create(options: OperatorOptions) -> "ValidateUtf8EncodingOperator":
         return ValidateUtf8EncodingOperator(options.arguments)
 
 
@@ -451,7 +446,7 @@ class PmOperatorFactory(OperatorFactory):
     """Factory for phrase match operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> PmOperator:
+    def create(options: OperatorOptions) -> "PmOperator":
         return PmOperator(options.arguments)
 
 
@@ -476,7 +471,7 @@ class PmFromFileOperatorFactory(OperatorFactory):
     """Factory for phrase match from file operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> PmFromFileOperator:
+    def create(options: OperatorOptions) -> "PmFromFileOperator":
         return PmFromFileOperator(options.arguments)
 
 
@@ -485,7 +480,7 @@ class PmFromFileOperator(Operator):
 
     def __init__(self, argument: str):
         super().__init__(argument)
-        self._phrases: list[str] = []
+        self._phrases = []
         # In a real implementation, we'd read from the file
         # For now, we'll simulate by treating the argument as a filename
         self._filename = argument
@@ -497,10 +492,10 @@ class PmFromFileOperator(Operator):
         if "php-errors" in self._filename:
             php_errors = ["parse error", "fatal error", "warning:", "notice:"]
             return any(error in value.lower() for error in php_errors)
-        if "sql-errors" in self._filename:
+        elif "sql-errors" in self._filename:
             sql_errors = ["syntax error", "mysql error", "ora-", "sqlstate"]
             return any(error in value.lower() for error in sql_errors)
-        if "unix-shell" in self._filename:
+        elif "unix-shell" in self._filename:
             shell_commands = ["bin/sh", "/bin/bash", "wget", "curl"]
             return any(cmd in value.lower() for cmd in shell_commands)
 
@@ -513,7 +508,7 @@ class StrMatchOperatorFactory(OperatorFactory):
     """Factory for string match operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> StrMatchOperator:
+    def create(options: OperatorOptions) -> "StrMatchOperator":
         return StrMatchOperator(options.arguments)
 
 
@@ -535,7 +530,7 @@ class StrEqOperatorFactory(OperatorFactory):
     """Factory for string equality operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> StrEqOperator:
+    def create(options: OperatorOptions) -> "StrEqOperator":
         return StrEqOperator(options.arguments)
 
 
@@ -548,12 +543,11 @@ class StrEqOperator(Operator):
 
 
 @register_operator("unconditional")
-@register_operator("unconditionalmatch")  # Alias for Go compatibility
 class UnconditionalOperatorFactory(OperatorFactory):
     """Factory for unconditional operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> UnconditionalOperator:
+    def create(options: OperatorOptions) -> "UnconditionalOperator":
         return UnconditionalOperator(options.arguments)
 
 
@@ -570,7 +564,7 @@ class NoMatchOperatorFactory(OperatorFactory):
     """Factory for NoMatch operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> NoMatchOperator:
+    def create(options: OperatorOptions) -> "NoMatchOperator":
         return NoMatchOperator(options.arguments)
 
 
@@ -587,7 +581,7 @@ class ValidateUrlEncodingOperatorFactory(OperatorFactory):
     """Factory for ValidateUrlEncoding operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> ValidateUrlEncodingOperator:
+    def create(options: OperatorOptions) -> "ValidateUrlEncodingOperator":
         return ValidateUrlEncodingOperator(options.arguments)
 
 
@@ -596,7 +590,7 @@ class ValidateUrlEncodingOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if the input contains valid URL encoding."""
-        import re  # noqa: PLC0415 - Avoids circular import
+        import re
 
         # Find all percent-encoded sequences
         encoded_chars = re.findall(r"%[0-9A-Fa-f]{2}", value)
@@ -612,7 +606,10 @@ class ValidateUrlEncodingOperator(Operator):
 
         # Check for incomplete percent encodings (% followed by less than 2 hex chars)
         incomplete_pattern = r"%(?:[0-9A-Fa-f]?(?![0-9A-Fa-f])|(?![0-9A-Fa-f]))"
-        return bool(re.search(incomplete_pattern, value))
+        if re.search(incomplete_pattern, value):
+            return True
+
+        return False
 
 
 @register_operator("validateschema")
@@ -620,7 +617,7 @@ class ValidateSchemaOperatorFactory(OperatorFactory):
     """Factory for ValidateSchema operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> ValidateSchemaOperator:
+    def create(options: OperatorOptions) -> "ValidateSchemaOperator":
         return ValidateSchemaOperator(options.arguments)
 
 
@@ -629,8 +626,8 @@ class ValidateSchemaOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if the input is valid JSON or XML."""
-        import json  # noqa: PLC0415 - Avoids circular import
-        import xml.etree.ElementTree as ET  # noqa: PLC0415 - Avoids circular import
+        import json
+        import xml.etree.ElementTree as ET
 
         # Try JSON validation first
         try:
@@ -650,160 +647,12 @@ class ValidateSchemaOperator(Operator):
         return True
 
 
-@register_operator("validatenid")
-class ValidateNidOperatorFactory(OperatorFactory):
-    """Factory for ValidateNid operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> ValidateNidOperator:
-        return ValidateNidOperator(options.arguments)
-
-
-class ValidateNidOperator(Operator):
-    """Validates National ID numbers for different countries.
-
-    Syntax: @validateNid <country_code> <regex>
-    Supported countries:
-    - cl: Chilean RUT (Rol Único Tributario)
-    - us: US Social Security Number
-    """
-
-    def __init__(self, argument: str):
-        super().__init__(argument)
-        # Parse argument: "country_code regex_pattern"
-        parts = argument.split(None, 1)
-        if len(parts) < 2:
-            msg = "validateNid requires format: <country_code> <regex>"
-            raise ValueError(msg)
-
-        self._country_code = parts[0].lower()
-        self._regex_pattern = parts[1]
-        self._regex = compile_regex(self._regex_pattern)
-
-        # Select validation function based on country code
-        if self._country_code == "cl":
-            self._validator = self._validate_cl
-        elif self._country_code == "us":
-            self._validator = self._validate_us
-        else:
-            msg = (
-                f"Unsupported country code '{self._country_code}'. "
-                "Supported: cl (Chile), us (USA)"
-            )
-            raise ValueError(msg)
-
-    def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
-        """Find and validate National IDs in the input value."""
-        matches = self._regex.findall(value)
-
-        result = False
-        for i, match in enumerate(matches[:10]):  # Max 10 matches
-            if self._validator(match):
-                result = True
-                # Capture the valid NID
-                tx.capture_field(i, match)
-
-        return result
-
-    def _validate_cl(self, nid: str) -> bool:
-        """Validate Chilean RUT (Rol Único Tributario).
-
-        Format: 12.345.678-9 or 12345678-9 or 123456789
-        Uses modulo 11 checksum algorithm.
-        """
-        if len(nid) < 8:
-            return False
-
-        # Normalize: remove non-digits except 'k' or 'K'
-        nid = nid.lower()
-        nid = re.sub(r"[^\dk]", "", nid)
-
-        if len(nid) < 2:
-            return False
-
-        # Split into number and verification digit
-        rut_number = nid[:-1]
-        dv = nid[-1]
-
-        try:
-            rut = int(rut_number)
-        except ValueError:
-            return False
-
-        # Calculate verification digit using modulo 11
-        total = 0
-        factor = 2
-        while rut > 0:
-            total += (rut % 10) * factor
-            rut //= 10
-            if factor == 7:
-                factor = 2
-            else:
-                factor += 1
-
-        remainder = total % 11
-        if remainder == 0:
-            expected_dv = "0"
-        elif remainder == 1:
-            expected_dv = "k"
-        else:
-            expected_dv = str(11 - remainder)
-
-        return dv == expected_dv
-
-    def _validate_us(self, nid: str) -> bool:
-        """Validate US Social Security Number.
-
-        Format: 123-45-6789
-        Rules:
-        - Area (first 3 digits): 001-665, 667-899 (not 666)
-        - Group (middle 2 digits): 01-99
-        - Serial (last 4 digits): 0001-9999
-        - No repeating digits (e.g., 111-11-1111)
-        - No sequential digits (e.g., 123-45-6789 if truly sequential)
-        """
-        # Remove non-digits
-        nid = re.sub(r"[^\d]", "", nid)
-
-        if len(nid) < 9:
-            return False
-
-        try:
-            area = int(nid[0:3])
-            group = int(nid[3:5])
-            serial = int(nid[5:9])
-        except ValueError:
-            return False
-
-        # Validate area, group, serial ranges
-        if area == 0 or group == 0 or serial == 0:
-            return False
-        if area >= 740 or area == 666:
-            return False
-
-        # Check for all same digits
-        if len(set(nid[:9])) == 1:
-            return False
-
-        # Check for sequential digits
-        is_sequential = True
-        prev_digit = int(nid[0])
-        for i in range(1, 9):
-            curr_digit = int(nid[i])
-            if curr_digit != prev_digit + 1:
-                is_sequential = False
-                break
-            prev_digit = curr_digit
-
-        return not is_sequential
-
-
 @register_operator("restpath")
 class RestPathOperatorFactory(OperatorFactory):
     """Factory for RestPath operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> RestPathOperator:
+    def create(options: OperatorOptions) -> "RestPathOperator":
         return RestPathOperator(options.arguments)
 
 
@@ -816,7 +665,7 @@ class RestPathOperator(Operator):
 
     def _compile_path_pattern(self, path_pattern: str) -> str:
         """Convert REST path pattern to regex."""
-        import re  # noqa: PLC0415 - Avoids circular import
+        import re
 
         # Escape special regex characters except {}
         escaped = re.escape(path_pattern)
@@ -830,23 +679,12 @@ class RestPathOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if the input matches the REST path pattern."""
-        import re  # noqa: PLC0415 - Avoids circular import
+        import re
 
         match = re.match(self._pattern, value)
         if match:
-            # Populate ARGS_PATH with captured path segments
-            # and add to ARGS for unified access
-            for name, captured_value in match.groupdict().items():
-                if hasattr(tx, "variables"):
-                    # Add to args_path collection (path parameters)
-                    if hasattr(tx.variables, "args_path"):
-                        tx.variables.args_path.add(name, captured_value)
-                    # Also add to general args collection
-                    if hasattr(tx.variables, "args"):
-                        tx.variables.args.add(name, captured_value)
-                    # Add parameter names
-                    if hasattr(tx.variables, "args_names"):
-                        tx.variables.args_names.add(name, name)
+            # TODO: In a full implementation, we would populate ARGS_PATH, ARGS_NAMES, and ARGS
+            # with the captured groups from the match
             return True
         return False
 
@@ -856,7 +694,7 @@ class InspectFileOperatorFactory(OperatorFactory):
     """Factory for InspectFile operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> InspectFileOperator:
+    def create(options: OperatorOptions) -> "InspectFileOperator":
         return InspectFileOperator(options.arguments)
 
 
@@ -867,25 +705,26 @@ class InspectFileOperator(Operator):
         super().__init__(argument)
         self._script_path = argument.strip()
         if not self._script_path:
-            msg = "InspectFile operator requires a script path"
-            raise ValueError(msg)
+            raise ValueError("InspectFile operator requires a script path")
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Execute external script for file inspection."""
-        import os  # noqa: PLC0415 - Avoids circular import
-        import subprocess  # noqa: PLC0415 - Avoids circular import
-        import tempfile  # noqa: PLC0415 - Avoids circular import
+        import subprocess
+        import tempfile
+        import os
 
         # Security check: only allow certain file extensions
         allowed_extensions = [".pl", ".py", ".sh", ".lua"]
         if not any(self._script_path.endswith(ext) for ext in allowed_extensions):
-            msg = f"InspectFile: Script type not allowed: {self._script_path}"
-            raise ValueError(msg)
+            raise ValueError(
+                f"InspectFile: Script type not allowed: {self._script_path}"
+            )
 
         # Security check: prevent path traversal
         if ".." in self._script_path:
-            msg = f"InspectFile: Path traversal not allowed: {self._script_path}"
-            raise ValueError(msg)
+            raise ValueError(
+                f"InspectFile: Path traversal not allowed: {self._script_path}"
+            )
 
         try:
             # Create temporary file with the content to inspect
@@ -907,15 +746,18 @@ class InspectFileOperator(Operator):
                 output = result.stdout.strip()
                 if output.startswith("1 "):
                     return False  # Clean file
-                if output.startswith("0 "):
+                elif output.startswith("0 "):
                     return True  # Threat detected
-                # Unexpected output format, treat as error
-                return True
+                else:
+                    # Unexpected output format, treat as error
+                    return True
 
             finally:
                 # Clean up temporary file
-                with contextlib.suppress(OSError):
+                try:
                     os.unlink(temp_file_path)
+                except OSError:
+                    pass
 
             # If we get here, the script ran but we didn't parse the output correctly
             return True
@@ -933,7 +775,7 @@ class IpMatchFromFileOperatorFactory(OperatorFactory):
     """Factory for IpMatchFromFile operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> IpMatchFromFileOperator:
+    def create(options: OperatorOptions) -> "IpMatchFromFileOperator":
         return IpMatchFromFileOperator(options.arguments)
 
 
@@ -947,35 +789,35 @@ class IpMatchFromFileOperator(Operator):
 
     def _load_ip_list(self) -> list[str]:
         """Load IP addresses and networks from file."""
-        import os  # noqa: PLC0415 - Avoids circular import
+        import os
 
         if not self._file_path:
-            msg = "IpMatchFromFile operator requires a file path"
-            raise ValueError(msg)
+            raise ValueError("IpMatchFromFile operator requires a file path")
 
         # Security check: prevent path traversal
         if ".." in self._file_path:
-            msg = f"IpMatchFromFile: Path traversal not allowed: {self._file_path}"
-            raise ValueError(msg)
+            raise ValueError(
+                f"IpMatchFromFile: Path traversal not allowed: {self._file_path}"
+            )
 
-        ip_list: list[str] = []
+        ip_list = []
         try:
             # Check if file exists
             if not os.path.exists(self._file_path):
                 # For now, just log and continue with empty list
-                import logging  # noqa: PLC0415 - Avoids circular import
+                import logging
 
                 logging.warning(f"IpMatchFromFile: File not found: {self._file_path}")
                 return ip_list
 
-            with open(self._file_path, encoding="utf-8") as f:
+            with open(self._file_path, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     # Skip empty lines and comments
                     if line and not line.startswith("#"):
                         ip_list.append(line)
         except Exception as e:
-            import logging  # noqa: PLC0415 - Avoids circular import
+            import logging
 
             logging.error(f"IpMatchFromFile: Error loading file {self._file_path}: {e}")
 
@@ -983,7 +825,7 @@ class IpMatchFromFileOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if IP address matches any in the file."""
-        import ipaddress  # noqa: PLC0415 - Avoids circular import
+        import ipaddress
 
         if not self._ip_list:
             return False
@@ -1035,7 +877,7 @@ class PmFromDatasetOperatorFactory(OperatorFactory):
     """Factory for PmFromDataset operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> PmFromDatasetOperator:
+    def create(options: OperatorOptions) -> "PmFromDatasetOperator":
         return PmFromDatasetOperator(options.arguments)
 
 
@@ -1046,8 +888,7 @@ class PmFromDatasetOperator(Operator):
         super().__init__(argument)
         self._dataset_name = argument.strip()
         if not self._dataset_name:
-            msg = "PmFromDataset operator requires a dataset name"
-            raise ValueError(msg)
+            raise ValueError("PmFromDataset operator requires a dataset name")
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value contains any patterns from the dataset."""
@@ -1072,7 +913,7 @@ class IpMatchFromDatasetOperatorFactory(OperatorFactory):
     """Factory for IpMatchFromDataset operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> IpMatchFromDatasetOperator:
+    def create(options: OperatorOptions) -> "IpMatchFromDatasetOperator":
         return IpMatchFromDatasetOperator(options.arguments)
 
 
@@ -1083,12 +924,11 @@ class IpMatchFromDatasetOperator(Operator):
         super().__init__(argument)
         self._dataset_name = argument.strip()
         if not self._dataset_name:
-            msg = "IpMatchFromDataset operator requires a dataset name"
-            raise ValueError(msg)
+            raise ValueError("IpMatchFromDataset operator requires a dataset name")
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if IP address matches any in the dataset."""
-        import ipaddress  # noqa: PLC0415 - Avoids circular import
+        import ipaddress
 
         ip_list = get_dataset(self._dataset_name)
         if not ip_list:
@@ -1127,7 +967,7 @@ class GeoLookupOperatorFactory(OperatorFactory):
     """Factory for GeoLookup operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> GeoLookupOperator:
+    def create(options: OperatorOptions) -> "GeoLookupOperator":
         return GeoLookupOperator(options.arguments)
 
 
@@ -1164,7 +1004,7 @@ class GeoLookupOperator(Operator):
         Returns:
             bool: True if geolocation data was successfully populated
         """
-        import ipaddress  # noqa: PLC0415 - Avoids circular import
+        import ipaddress
 
         try:
             # Validate IP address format
@@ -1180,7 +1020,13 @@ class GeoLookupOperator(Operator):
 
             if geo_data:
                 # Populate GEO collection variables in transaction
-                tx.variables.set_geo_data(geo_data)
+                if hasattr(tx, "variables") and hasattr(tx.variables, "set_geo_data"):
+                    tx.variables.set_geo_data(geo_data)
+                elif hasattr(tx, "variables") and hasattr(tx.variables, "geo"):
+                    # Fallback to direct geo collection access
+                    for key, value_data in geo_data.items():
+                        tx.variables.geo.add(key, value_data)
+
                 return True
 
             return False
@@ -1206,7 +1052,7 @@ class GeoLookupOperator(Operator):
         # In production, this would query an actual geolocation database
 
         # Example: Classify some known IP ranges
-        if ip_address.startswith(("8.8.8.", "8.8.4.")):
+        if ip_address.startswith("8.8.8.") or ip_address.startswith("8.8.4."):
             # Google DNS servers - mock as US
             return {
                 "COUNTRY_CODE": "US",
@@ -1219,7 +1065,7 @@ class GeoLookupOperator(Operator):
                 "LATITUDE": "37.4056",
                 "LONGITUDE": "-122.0775",
             }
-        if ip_address.startswith(("1.1.1.", "1.0.0.")):
+        elif ip_address.startswith("1.1.1.") or ip_address.startswith("1.0.0."):
             # Cloudflare DNS - mock as US
             return {
                 "COUNTRY_CODE": "US",
@@ -1232,18 +1078,19 @@ class GeoLookupOperator(Operator):
                 "LATITUDE": "37.7749",
                 "LONGITUDE": "-122.4194",
             }
-        # Default/unknown - mock as generic location
-        return {
-            "COUNTRY_CODE": "XX",
-            "COUNTRY_CODE3": "XXX",
-            "COUNTRY_NAME": "Unknown",
-            "COUNTRY_CONTINENT": "XX",
-            "REGION": "XX",
-            "CITY": "Unknown",
-            "POSTAL_CODE": "",
-            "LATITUDE": "0.0000",
-            "LONGITUDE": "0.0000",
-        }
+        else:
+            # Default/unknown - mock as generic location
+            return {
+                "COUNTRY_CODE": "XX",
+                "COUNTRY_CODE3": "XXX",
+                "COUNTRY_NAME": "Unknown",
+                "COUNTRY_CONTINENT": "XX",
+                "REGION": "XX",
+                "CITY": "Unknown",
+                "POSTAL_CODE": "",
+                "LATITUDE": "0.0000",
+                "LONGITUDE": "0.0000",
+            }
 
 
 @register_operator("rbl")
@@ -1251,7 +1098,7 @@ class RblOperatorFactory(OperatorFactory):
     """Factory for Real-time Blacklist (RBL) operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> RblOperator:
+    def create(options: OperatorOptions) -> "RblOperator":
         return RblOperator(options.arguments)
 
 
@@ -1294,8 +1141,8 @@ class RblOperator(Operator):
         Returns:
             bool: True if IP is found in any RBL
         """
-        import ipaddress  # noqa: PLC0415 - Avoids circular import
-        import socket  # noqa: PLC0415 - Avoids circular import
+        import ipaddress
+        import socket
 
         try:
             # Validate IP address format
@@ -1321,8 +1168,10 @@ class RblOperator(Operator):
                     # Most RBLs return 127.0.0.x for positive matches
                     if result.startswith("127.0.0."):
                         # Log which RBL triggered
-                        tx.variables.tx.add("RBL_MATCH", rbl_host)
-                        tx.variables.tx.add("RBL_RESULT", result)
+                        if hasattr(tx, "variables") and hasattr(tx.variables, "tx"):
+                            tx.variables.tx.add("RBL_MATCH", rbl_host)
+                            tx.variables.tx.add("RBL_RESULT", result)
+
                         return True
 
                 except socket.gaierror:

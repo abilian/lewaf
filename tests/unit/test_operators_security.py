@@ -1,6 +1,6 @@
 """Unit tests for security-focused operators (detectXSS, detectSQLi, etc.)."""
 
-from coraza_poc.primitives.operators import get_operator, OperatorOptions
+from lewaf.primitives.operators import get_operator, OperatorOptions
 
 
 def test_detect_xss_operator():

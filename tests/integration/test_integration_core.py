@@ -2,8 +2,8 @@
 
 import pytest
 
-from coraza_poc.integration import WAF
-from coraza_poc.primitives.operators import RxOperator
+from lewaf.integration import WAF
+from lewaf.primitives.operators import RxOperator
 
 
 def test_waf_initialization_with_rules():

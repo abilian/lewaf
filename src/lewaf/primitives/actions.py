@@ -1,14 +1,12 @@
 from __future__ import annotations
 
-import logging
-import os
 import re
 import time
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    pass
 
 
 class RuleProtocol(Protocol):
@@ -20,37 +18,7 @@ class RuleProtocol(Protocol):
 class TransactionProtocol(Protocol):
     """Protocol defining the minimal transaction interface needed by actions."""
 
-    # State attributes (may not exist initially, dynamically added)
-    chain_state: dict[str, Any]
-    skip_state: dict[str, Any]
-    multimatch_state: dict[str, Any]
-    deprecated_vars: set[str]
-    var_expiration: dict[str, float]
-    ctl_directives: dict[str, Any]
-    collection_manager: Any  # PersistentCollectionManager (optional, added dynamically)
-
-    # Engine control attributes
-    rule_engine_enabled: bool
-    rule_engine_mode: str
-    body_processor: str
-    body_limit: int
-
-    # Audit logging control
-    audit_log_enabled: bool
-    force_audit_log: bool
-
-    # Skip rules counter (for skip action)
-    skip_rules_count: int
-
-    # Variables (required)
-    variables: Any  # TransactionVariables object
-
-    def interrupt(
-        self,
-        rule: RuleProtocol,
-        action: str = "deny",
-        redirect_url: str | None = None,
-    ) -> None:
+    def interrupt(self, rule: RuleProtocol) -> None:
         """Interrupt the transaction with the given rule."""
         ...
 
@@ -96,37 +64,37 @@ class MacroExpander:
         # Handle special variables
         if var_spec == "MATCHED_VAR":
             return getattr(transaction, "matched_var", "0")
-        if var_spec == "MATCHED_VAR_NAME":
+        elif var_spec == "MATCHED_VAR_NAME":
             return getattr(transaction, "matched_var_name", "")
-        if var_spec == "TIME":
+        elif var_spec == "TIME":
             return str(int(time.time() * 1000))  # Milliseconds
-        if var_spec == "TIME_SEC":
+        elif var_spec == "TIME_SEC":
             return str(int(time.time()))  # Seconds
-        if var_spec == "UNIQUE_ID":
+        elif var_spec == "UNIQUE_ID":
             return (
                 transaction.variables.unique_id.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        if var_spec == "REQUEST_URI":
+        elif var_spec == "REQUEST_URI":
             return (
                 transaction.variables.request_uri.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        if var_spec == "REQUEST_METHOD":
+        elif var_spec == "REQUEST_METHOD":
             return (
                 transaction.variables.request_method.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        if var_spec == "REMOTE_ADDR":
+        elif var_spec == "REMOTE_ADDR":
             return (
                 transaction.variables.remote_addr.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        if var_spec == "SERVER_NAME":
+        elif var_spec == "SERVER_NAME":
             return (
                 transaction.variables.server_name.get()
                 if hasattr(transaction, "variables")
@@ -151,30 +119,31 @@ class MacroExpander:
         if collection_name == "TX":
             values = transaction.variables.tx.get(member_key)
             return values[0] if values else ""
-        if collection_name == "REQUEST_HEADERS":
+        elif collection_name == "REQUEST_HEADERS":
             values = transaction.variables.request_headers.get(member_key)
             return values[0] if values else ""
-        if collection_name == "RESPONSE_HEADERS":
+        elif collection_name == "RESPONSE_HEADERS":
             values = transaction.variables.response_headers.get(member_key)
             return values[0] if values else ""
-        if collection_name == "ARGS":
+        elif collection_name == "ARGS":
             values = transaction.variables.args.get(member_key)
             return values[0] if values else ""
-        if collection_name == "REQUEST_COOKIES":
+        elif collection_name == "REQUEST_COOKIES":
             values = transaction.variables.request_cookies.get(member_key)
             return values[0] if values else ""
-        if collection_name == "ENV":
+        elif collection_name == "ENV":
             # Environment variables
+            import os
 
             return os.environ.get(member_key.upper(), "")
-        if collection_name == "GEO":
+        elif collection_name == "GEO":
             values = transaction.variables.geo.get(member_key)
             return values[0] if values else ""
 
         return ""
 
 
-ACTIONS: dict[str, type[Action]] = {}
+ACTIONS = {}
 
 
 class ActionType(IntEnum):
@@ -196,8 +165,7 @@ class Action:
     def init(self, rule_metadata: dict, data: str) -> None:
         """Initialize the action with rule metadata and data."""
         if data and len(data) > 0:
-            msg = f"Unexpected arguments for {self.__class__.__name__}"
-            raise ValueError(msg)
+            raise ValueError(f"Unexpected arguments for {self.__class__.__name__}")
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Evaluate the action."""
@@ -208,7 +176,7 @@ class Action:
         raise NotImplementedError
 
 
-def register_action(name: str) -> Callable:
+def register_action(name: str):
     """Register an action by name."""
 
     def decorator(cls):
@@ -226,6 +194,8 @@ class LogAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.info(f"Rule {rule.id} matched and logged.")
 
 
@@ -237,6 +207,8 @@ class DenyAction(Action):
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.warning(f"Executing DENY action from rule {rule.id}")
         transaction.interrupt(rule)
 
@@ -249,6 +221,8 @@ class AllowAction(Action):
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.info(f"Rule {rule.id} allowing request")
         # Allow doesn't interrupt, it just permits
 
@@ -261,6 +235,8 @@ class BlockAction(Action):
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.warning(f"Blocking request due to rule {rule.id}")
         transaction.interrupt(rule)
 
@@ -275,13 +251,11 @@ class IdAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """ID action requires an argument."""
         if not data:
-            msg = "ID action requires an ID argument"
-            raise ValueError(msg)
+            raise ValueError("ID action requires an ID argument")
         try:
             self.rule_id = int(data)
         except ValueError as e:
-            msg = f"ID must be a valid integer: {data}"
-            raise ValueError(msg) from e
+            raise ValueError(f"ID must be a valid integer: {data}") from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # ID is metadata, no runtime behavior
@@ -297,17 +271,14 @@ class PhaseAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Phase action requires a phase number."""
         if not data:
-            msg = "Phase action requires a phase number"
-            raise ValueError(msg)
+            raise ValueError("Phase action requires a phase number")
         try:
             phase = int(data)
-            if phase not in {1, 2, 3, 4, 5}:
-                msg = f"Phase must be 1-5, got {phase}"
-                raise ValueError(msg)
+            if phase not in (1, 2, 3, 4, 5):
+                raise ValueError(f"Phase must be 1-5, got {phase}")
             self.phase = phase
         except ValueError as e:
-            msg = f"Phase must be a valid integer 1-5: {data}"
-            raise ValueError(msg) from e
+            raise ValueError(f"Phase must be a valid integer 1-5: {data}") from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Phase is metadata, no runtime behavior
@@ -323,8 +294,7 @@ class MsgAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Message action requires a message."""
         if not data:
-            msg = "Message action requires a message"
-            raise ValueError(msg)
+            raise ValueError("Message action requires a message")
         self.message = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -341,8 +311,7 @@ class SeverityAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Severity action requires a severity level."""
         if not data:
-            msg = "Severity action requires a severity level"
-            raise ValueError(msg)
+            raise ValueError("Severity action requires a severity level")
         valid_severities = [
             "emergency",
             "alert",
@@ -354,8 +323,9 @@ class SeverityAction(Action):
             "debug",
         ]
         if data.lower() not in valid_severities:
-            msg = f"Invalid severity '{data}', must be one of: {valid_severities}"
-            raise ValueError(msg)
+            raise ValueError(
+                f"Invalid severity '{data}', must be one of: {valid_severities}"
+            )
         self.severity = data.lower()
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -370,6 +340,8 @@ class PassAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.debug(f"Rule {rule.id} matched but allowed to pass")
         # Pass action does nothing - just allows the request to continue
 
@@ -423,8 +395,7 @@ class TagAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Tag action requires a tag name."""
         if not data:
-            msg = "Tag action requires a tag name"
-            raise ValueError(msg)
+            raise ValueError("Tag action requires a tag name")
         self.tag_name = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -441,13 +412,11 @@ class MaturityAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Maturity action requires a maturity level."""
         if not data:
-            msg = "Maturity action requires a maturity level"
-            raise ValueError(msg)
+            raise ValueError("Maturity action requires a maturity level")
         try:
             self.maturity = int(data)
         except ValueError as e:
-            msg = f"Maturity must be an integer: {data}"
-            raise ValueError(msg) from e
+            raise ValueError(f"Maturity must be an integer: {data}") from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Maturity is metadata only
@@ -463,13 +432,11 @@ class AccuracyAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Accuracy action requires an accuracy level."""
         if not data:
-            msg = "Accuracy action requires an accuracy level"
-            raise ValueError(msg)
+            raise ValueError("Accuracy action requires an accuracy level")
         try:
             self.accuracy = int(data)
         except ValueError as e:
-            msg = f"Accuracy must be an integer: {data}"
-            raise ValueError(msg) from e
+            raise ValueError(f"Accuracy must be an integer: {data}") from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Accuracy is metadata only
@@ -499,43 +466,27 @@ class ChainAction(Action):
 
 @register_action("skipafter")
 class SkipAfterAction(Action):
-    """Skip all rules after a specified rule ID, tag, or marker.
+    """Skip all rules after a specified rule ID or tag.
 
     This action causes rule processing to skip all rules that come after
-    the specified rule ID, tag, or SecMarker within the current phase.
-
-    This is commonly used in CRS for paranoia level filtering:
-        SecRule TX:DETECTION_PARANOIA_LEVEL "@lt 2" "skipAfter:END-SECTION"
-        SecMarker "END-SECTION"
+    the specified rule ID or tag within the current phase.
     """
 
     def action_type(self) -> ActionType:
         return ActionType.FLOW
 
-    def init(self, rule_metadata: dict, data: str) -> None:
-        """Initialize skipAfter with target.
-
-        Args:
-            rule_metadata: Rule metadata dict
-            data: Rule ID, tag, or marker name
-        """
-        self.target = data.strip()
-
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         if not hasattr(transaction, "skip_state"):
             transaction.skip_state = {}
 
-        # Support both self.target (new) and self.argument (old)
-        target = getattr(self, "target", None) or getattr(self, "argument", None)
-
-        if target:
-            if target.isdigit():
+        # The argument can be a rule ID or tag
+        if hasattr(self, "argument") and self.argument:
+            if self.argument.isdigit():
                 # Numeric rule ID
-                transaction.skip_state["skip_after_id"] = int(target)
+                transaction.skip_state["skip_after_id"] = int(self.argument)
             else:
-                # Marker name or tag - use skip_after_tag
-                # SecMarker creates rules with tags, so this handles both cases
-                transaction.skip_state["skip_after_tag"] = target
+                # Tag-based skipping
+                transaction.skip_state["skip_after_tag"] = self.argument
         else:
             # Skip all remaining rules in current phase
             transaction.skip_state["skip_remaining"] = True
@@ -587,13 +538,11 @@ class StatusAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Status action requires a status code."""
         if not data:
-            msg = "Status action requires a status code"
-            raise ValueError(msg)
+            raise ValueError("Status action requires a status code")
         try:
             self.status_code = int(data)
         except ValueError as e:
-            msg = f"Status must be an integer: {data}"
-            raise ValueError(msg) from e
+            raise ValueError(f"Status must be an integer: {data}") from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Status is metadata only
@@ -607,8 +556,10 @@ class AuditLogAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.info(f"Rule {rule.id} marked transaction for audit logging")
-        transaction.force_audit_log = True
+        # TODO: In full implementation, mark transaction for audit logging
 
 
 @register_action("noauditlog")
@@ -619,8 +570,10 @@ class NoAuditLogAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.debug(f"Rule {rule.id} disabled audit logging for transaction")
-        transaction.audit_log_enabled = False
+        # TODO: In full implementation, disable audit logging for transaction
 
 
 @register_action("redirect")
@@ -633,13 +586,15 @@ class RedirectAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Redirect action requires a URL."""
         if not data:
-            msg = "Redirect action requires a URL"
-            raise ValueError(msg)
+            raise ValueError("Redirect action requires a URL")
         self.redirect_url = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.warning(f"Rule {rule.id} redirecting to {self.redirect_url}")
-        transaction.interrupt(rule, action="redirect", redirect_url=self.redirect_url)
+        transaction.interrupt(rule)
+        # TODO: In full implementation, set redirect response
 
 
 @register_action("skip")
@@ -652,21 +607,17 @@ class SkipAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Skip action requires number of rules to skip."""
         if not data:
-            msg = "Skip action requires number of rules to skip"
-            raise ValueError(msg)
+            raise ValueError("Skip action requires number of rules to skip")
         try:
             self.skip_count = int(data)
         except ValueError as e:
-            msg = f"Skip count must be an integer: {data}"
-            raise ValueError(msg) from e
+            raise ValueError(f"Skip count must be an integer: {data}") from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
         logging.debug(f"Rule {rule.id} skipping {self.skip_count} rules")
-        # Use skip_state mechanism for rule skipping
-        if hasattr(transaction, "skip_state"):
-            transaction.skip_state["skip_next_count"] = self.skip_count
-        else:
-            transaction.skip_rules_count = self.skip_count
+        # TODO: In full implementation, skip the specified number of rules
 
 
 @register_action("rev")
@@ -679,8 +630,7 @@ class RevAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Rev action requires a revision number."""
         if not data:
-            msg = "Rev action requires a revision number"
-            raise ValueError(msg)
+            raise ValueError("Rev action requires a revision number")
         self.revision = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -689,44 +639,22 @@ class RevAction(Action):
 
 @register_action("drop")
 class DropAction(Action):
-    """Drop action terminates connection.
-
-    LIMITATION: True TCP connection termination requires low-level socket access
-    that is not available in Python WSGI/ASGI middleware. This action behaves
-    identically to 'deny' - it interrupts the transaction and returns an error
-    response. The actual TCP connection may remain open depending on the server.
-
-    For true connection dropping, you need:
-    - Native server integration (nginx, Apache modules)
-    - Low-level socket access not available in middleware
-
-    In practice, 'deny' achieves the same security outcome in most cases.
-    """
+    """Drop action terminates connection."""
 
     def action_type(self) -> ActionType:
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        logging.warning(f"Rule {rule.id} dropping connection (via deny)")
-        transaction.interrupt(rule, action="drop")
+        import logging
+
+        logging.warning(f"Rule {rule.id} dropping connection")
+        transaction.interrupt(rule)
+        # TODO: In full implementation, terminate the connection
 
 
 @register_action("exec")
 class ExecAction(Action):
-    """Exec action executes external command.
-
-    SECURITY: This action is INTENTIONALLY DISABLED. Executing arbitrary shell
-    commands from WAF rules is a significant security risk that can lead to:
-    - Remote code execution vulnerabilities
-    - Privilege escalation
-    - System compromise
-
-    This action is rarely needed in production. If you require external command
-    execution, implement it through a secure, audited hook mechanism outside
-    the WAF rule engine.
-
-    The action is recognized for CRS compatibility but will only log a warning.
-    """
+    """Exec action executes external command (SECURITY RISK)."""
 
     def action_type(self) -> ActionType:
         return ActionType.NONDISRUPTIVE
@@ -734,13 +662,18 @@ class ExecAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Exec action requires a command."""
         if not data:
-            msg = "Exec action requires a command"
-            raise ValueError(msg)
+            raise ValueError("Exec action requires a command")
         self.command = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        logging.warning(f"Rule {rule.id} exec action disabled: {self.command}")
-        logging.warning("SECURITY: exec action is intentionally disabled in LeWAF")
+        import logging
+
+        # WARNING: exec action is a significant security risk
+        # In production, this should be heavily restricted or disabled
+        logging.warning(f"Rule {rule.id} would execute: {self.command}")
+        logging.warning("SECURITY WARNING: exec action disabled for safety")
+        # TODO: In full implementation with proper security controls:
+        # subprocess.run(self.command, shell=True, timeout=10)
 
 
 @register_action("setenv")
@@ -753,15 +686,37 @@ class SetEnvAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """SetEnv action requires var=value format."""
         if not data or "=" not in data:
-            msg = "SetEnv action requires var=value format"
-            raise ValueError(msg)
+            raise ValueError("SetEnv action requires var=value format")
         parts = data.split("=", 1)
         self.var_name = parts[0].strip()
         self.var_value = parts[1].strip()
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import os
+        import logging
+
         logging.debug(f"Rule {rule.id} setting env {self.var_name}={self.var_value}")
         os.environ[self.var_name] = self.var_value
+
+
+@register_action("initcol")
+class InitColAction(Action):
+    """InitCol action initializes persistent collection."""
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """InitCol action requires collection specification."""
+        if not data:
+            raise ValueError("InitCol action requires collection specification")
+        self.collection_spec = data
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        import logging
+
+        logging.debug(f"Rule {rule.id} initializing collection: {self.collection_spec}")
+        # TODO: In full implementation, initialize persistent collection
 
 
 @register_action("setvar")
@@ -781,8 +736,7 @@ class SetVarAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse setvar expression."""
         if not data:
-            msg = "SetVar action requires variable specification"
-            raise ValueError(msg)
+            raise ValueError("SetVar action requires variable specification")
         self.var_spec = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -820,62 +774,48 @@ class SetVarAction(Action):
         """Resolve variable references and macros in expressions."""
         return MacroExpander.expand(expression, transaction)
 
-    def _get_collection(self, var_name: str, transaction: TransactionProtocol):
-        """Get collection from variable name (e.g., 'tx.score' -> tx collection)."""
-        if "." not in var_name:
-            return None, None
-
-        collection_name, var_key = var_name.split(".", 1)
-        collection_attr = collection_name.lower()
-
-        # Get collection from transaction.variables
-        if hasattr(transaction.variables, collection_attr):
-            return getattr(transaction.variables, collection_attr), var_key.lower()
-
-        return None, None
-
     def _set_variable(
         self, var_name: str, value: str, transaction: TransactionProtocol
     ) -> None:
-        """Set a variable in any collection (tx, ip, session, etc.)."""
-        collection, var_key = self._get_collection(var_name, transaction)
-        if collection:
-            collection.remove(var_key)  # Clear existing
-            collection.add(var_key, value)
+        """Set a transaction variable."""
+        if var_name.startswith("tx."):
+            tx_var = var_name[3:].lower()
+            transaction.variables.tx.remove(tx_var)  # Clear existing
+            transaction.variables.tx.add(tx_var, value)
 
     def _increment_variable(
         self, var_name: str, increment: str, transaction: TransactionProtocol
     ) -> None:
-        """Increment a numeric variable in any collection."""
-        collection, var_key = self._get_collection(var_name, transaction)
-        if collection:
-            current_values = collection.get(var_key)
+        """Increment a numeric transaction variable."""
+        if var_name.startswith("tx."):
+            tx_var = var_name[3:].lower()
+            current_values = transaction.variables.tx.get(tx_var)
             current_value = int(current_values[0]) if current_values else 0
             increment_value = int(increment) if increment.isdigit() else 0
             new_value = current_value + increment_value
 
-            collection.remove(var_key)
-            collection.add(var_key, str(new_value))
+            transaction.variables.tx.remove(tx_var)
+            transaction.variables.tx.add(tx_var, str(new_value))
 
     def _decrement_variable(
         self, var_name: str, decrement: str, transaction: TransactionProtocol
     ) -> None:
-        """Decrement a numeric variable in any collection."""
-        collection, var_key = self._get_collection(var_name, transaction)
-        if collection:
-            current_values = collection.get(var_key)
+        """Decrement a numeric transaction variable."""
+        if var_name.startswith("tx."):
+            tx_var = var_name[3:].lower()
+            current_values = transaction.variables.tx.get(tx_var)
             current_value = int(current_values[0]) if current_values else 0
             decrement_value = int(decrement) if decrement.isdigit() else 0
             new_value = current_value - decrement_value
 
-            collection.remove(var_key)
-            collection.add(var_key, str(new_value))
+            transaction.variables.tx.remove(tx_var)
+            transaction.variables.tx.add(tx_var, str(new_value))
 
     def _delete_variable(self, var_name: str, transaction: TransactionProtocol) -> None:
-        """Delete a variable from any collection."""
-        collection, var_key = self._get_collection(var_name, transaction)
-        if collection:
-            collection.remove(var_key)
+        """Delete a transaction variable."""
+        if var_name.startswith("tx."):
+            tx_var = var_name[3:].lower()
+            transaction.variables.tx.remove(tx_var)
 
 
 @register_action("deprecatevar")
@@ -888,8 +828,7 @@ class DeprecateVarAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse deprecation specification."""
         if not data:
-            msg = "DeprecateVar action requires variable specification"
-            raise ValueError(msg)
+            raise ValueError("DeprecateVar action requires variable specification")
         self.var_spec = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -909,19 +848,17 @@ class ExpireVarAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse expiration specification."""
         if not data or "=" not in data:
-            msg = "ExpireVar action requires var=seconds format"
-            raise ValueError(msg)
+            raise ValueError("ExpireVar action requires var=seconds format")
 
         parts = data.split("=", 1)
         self.var_name = parts[0].strip()
         try:
             self.expire_seconds = int(parts[1].strip())
         except ValueError as e:
-            msg = f"ExpireVar seconds must be integer: {parts[1]}"
-            raise ValueError(msg) from e
+            raise ValueError(f"ExpireVar seconds must be integer: {parts[1]}") from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import time  # noqa: PLC0415 - Avoids circular import
+        import time
 
         # Store expiration info
         if not hasattr(transaction, "var_expiration"):
@@ -946,8 +883,7 @@ class ConditionalAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse conditional specification."""
         if not data or "," not in data:
-            msg = "Conditional action requires condition,action format"
-            raise ValueError(msg)
+            raise ValueError("Conditional action requires condition,action format")
 
         condition, actions_str = data.split(",", 1)
         self.condition = condition.strip()
@@ -973,7 +909,7 @@ class ConditionalAction(Action):
             actual_value = self._get_variable_value(var_name, transaction)
             return actual_value == expected_value
 
-        if ">" in condition:
+        elif ">" in condition:
             var_name, threshold = condition.split(">", 1)
             var_name = var_name.strip()
             threshold = threshold.strip()
@@ -1006,16 +942,16 @@ class ConditionalAction(Action):
             tx_var = var_name[3:].lower()
             values = transaction.variables.tx.get(tx_var)
             return values[0] if values else ""
-        if var_name.startswith("GEO."):
+        elif var_name.startswith("GEO."):
             geo_var = var_name[4:].lower()
             values = transaction.variables.geo.get(geo_var)
             return values[0] if values else ""
-        if var_name.startswith("REMOTE_ADDR"):
+        elif var_name.startswith("REMOTE_ADDR"):
             values = transaction.variables.remote_addr.get()
             return values[0] if values else ""
-        if var_name == "MATCHED_VAR":
+        elif var_name == "MATCHED_VAR":
             return getattr(transaction, "matched_var", "")
-        if var_name == "MATCHED_VAR_NAME":
+        elif var_name == "MATCHED_VAR_NAME":
             return getattr(transaction, "matched_var_name", "")
         # Add more variable types as needed
         return ""
@@ -1026,8 +962,9 @@ class ConditionalAction(Action):
         """Execute the conditional actions."""
         # This is a simplified implementation
         # In a full implementation, this would parse and execute actual actions
+        import logging
 
-        logging.debug("Conditional actions triggered: %s", actions_str)
+        logging.debug(f"Conditional actions triggered: {actions_str}")
 
 
 @register_action("ctl")
@@ -1047,8 +984,7 @@ class CtlAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse control specification."""
         if not data or "=" not in data:
-            msg = "Ctl action requires property=value format"
-            raise ValueError(msg)
+            raise ValueError("Ctl action requires property=value format")
 
         property_name, value = data.split("=", 1)
         self.property_name = property_name.strip()
@@ -1087,8 +1023,7 @@ class CtlAction(Action):
 
     def _handle_body_limit_control(self, transaction: TransactionProtocol) -> None:
         """Handle request body limit control."""
-        # FIXME: is it safe to ignore invalid values here?
-        try:  # noqa: SIM105
+        try:
             transaction.body_limit = int(self.value)
         except ValueError:
             pass  # Invalid limit value
@@ -1107,233 +1042,9 @@ class VerAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Store version requirement."""
         if not data:
-            msg = "Ver action requires version specification"
-            raise ValueError(msg)
+            raise ValueError("Ver action requires version specification")
         self.required_version = data.strip()
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Version checking is metadata only."""
-
-
-@register_action("t")
-class TransformationAction(Action):
-    """Transformation action specifies the transformation pipeline for rule variables.
-
-    The 't' action is used to specify the transformation pipeline to use to transform
-    the value of each variable used in the rule before matching. Any transformation
-    functions specified in a SecRule will be added to previous ones specified in
-    SecDefaultAction.
-
-    Special case: t:none removes all previous transformations, preventing rules from
-    depending on the default configuration.
-
-    Example:
-        SecRule ARGS "attack" "id:1,t:none,t:lowercase,t:removeNulls"
-    """
-
-    def action_type(self) -> ActionType:
-        return ActionType.NONDISRUPTIVE
-
-    def init(self, rule_metadata: dict, data: str) -> None:
-        """Add or clear transformations in the rule."""
-        from lewaf.primitives.transformations import (  # noqa: PLC0415 - Avoids circular import
-            TRANSFORMATIONS,
-        )
-
-        if not data:
-            msg = "Transformation action requires a transformation name"
-            raise ValueError(msg)
-
-        transformation_name = data.strip().lower()
-
-        # Initialize transformations list if not present
-        if "transformations" not in rule_metadata:
-            rule_metadata["transformations"] = []
-
-        # Special case: "none" clears all previous transformations
-        if transformation_name == "none":
-            rule_metadata["transformations"] = []
-            return
-
-        # Validate transformation exists
-        if transformation_name not in TRANSFORMATIONS:
-            msg = (
-                f"Unknown transformation '{transformation_name}'. "
-                f"Available: {', '.join(sorted(TRANSFORMATIONS.keys()))}"
-            )
-            raise ValueError(msg)
-
-        # Add transformation to the list
-        rule_metadata["transformations"].append(transformation_name)
-
-    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        """Transformation is applied during rule evaluation, not as an action."""
-
-
-@register_action("initcol")
-class InitColAction(Action):
-    """
-    Initialize a persistent collection.
-
-    Loads a persistent collection from storage and associates it with a
-    transaction variable. Used for cross-request tracking like:
-    - Rate limiting per IP
-    - Session-based anomaly scores
-    - User behavior tracking
-
-    Syntax:
-        initcol:collection=key
-        initcol:ip=%{REMOTE_ADDR}
-        initcol:session=%{TX.session_id}
-        initcol:user=%{ARGS.username},ttl=3600
-
-    Examples:
-        # Track per-IP data
-        SecAction "id:1,phase:1,nolog,pass,initcol:ip=%{REMOTE_ADDR}"
-
-        # Track per-session with custom TTL
-        SecAction "id:2,phase:1,nolog,pass,initcol:session=%{TX.sessionid},ttl=1800"
-
-        # After initcol, you can use the collection:
-        SecAction "id:3,phase:1,pass,setvar:ip.request_count=+1"
-        SecRule IP:request_count "@gt 100" "id:4,deny,msg:'Rate limit exceeded'"
-    """
-
-    def action_type(self) -> ActionType:
-        return ActionType.NONDISRUPTIVE
-
-    def init(self, rule_metadata: dict, data: str) -> None:
-        """Parse initcol specification."""
-        if not data or "=" not in data:
-            msg = "InitCol action requires format: collection=key or collection=key,ttl=seconds"
-            raise ValueError(msg)
-
-        # Parse collection=key,ttl=seconds
-        parts = data.split(",")
-        collection_spec = parts[0]
-
-        # Extract collection name and key expression
-        if "=" not in collection_spec:
-            msg = "InitCol requires collection=key format"
-            raise ValueError(msg)
-
-        collection_name, key_expression = collection_spec.split("=", 1)
-        self.collection_name = collection_name.strip()
-        self.key_expression = key_expression.strip()
-
-        # Parse optional TTL
-        self.ttl = 0  # 0 = use default
-        for part in parts[1:]:
-            if "=" in part:
-                param_name, param_value = part.split("=", 1)
-                if param_name.strip().lower() == "ttl":
-                    try:
-                        self.ttl = int(param_value.strip())
-                    except ValueError:
-                        msg = f"Invalid TTL value: {param_value}"
-                        raise ValueError(msg)
-
-    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        """Load persistent collection for this transaction."""
-        # Import here to avoid circular dependencies
-        from lewaf.primitives.variable_expansion import (  # noqa: PLC0415 - Avoids circular import
-            VariableExpander,
-        )
-        from lewaf.storage import (  # noqa: PLC0415 - Avoids circular import
-            get_storage_backend,
-        )
-        from lewaf.storage.collections import (  # noqa: PLC0415 - Avoids circular import
-            PersistentCollectionManager,
-        )
-
-        # Expand key expression to get actual key
-        key = VariableExpander.expand(self.key_expression, transaction.variables)
-
-        if not key:
-            # Empty key, cannot initialize collection
-            return
-
-        # Ensure transaction has collection manager
-        if not hasattr(transaction, "collection_manager") or not isinstance(
-            getattr(transaction, "collection_manager", None),
-            PersistentCollectionManager,
-        ):
-            storage_backend = get_storage_backend()
-            transaction.collection_manager = PersistentCollectionManager(
-                storage_backend
-            )
-
-        # Create or get collection for this type
-        # Collections are added as attributes to transaction.variables
-        # e.g., initcol:ip=... creates transaction.variables.ip
-        from lewaf.primitives.collections import (  # noqa: PLC0415 - Avoids circular import
-            MapCollection,
-        )
-
-        collection_attr = self.collection_name.lower()
-
-        # Create collection if it doesn't exist
-        if not hasattr(transaction.variables, collection_attr):
-            collection = MapCollection(self.collection_name.upper())
-            setattr(transaction.variables, collection_attr, collection)
-        else:
-            collection = getattr(transaction.variables, collection_attr)
-
-        # Load persistent data into collection
-        transaction.collection_manager.init_collection(
-            self.collection_name,
-            key,
-            collection,
-            self.ttl,
-        )
-
-
-@register_action("setsid")
-class SetSidAction(Action):
-    """
-    Set session ID for session-based collections.
-
-    Sets the session identifier that will be used for session-based
-    persistent collections. Typically used before initcol:session.
-
-    Syntax:
-        setsid:expression
-
-    Examples:
-        # Set session ID from cookie
-        SecAction "id:10,phase:1,nolog,pass,setsid:%{REQUEST_COOKIES.PHPSESSID}"
-
-        # Set session ID from custom header
-        SecAction "id:11,phase:1,nolog,pass,setsid:%{REQUEST_HEADERS.X-Session-ID}"
-
-        # Then use session collection
-        SecAction "id:12,phase:1,nolog,pass,initcol:session=%{TX.sessionid}"
-    """
-
-    def action_type(self) -> ActionType:
-        return ActionType.NONDISRUPTIVE
-
-    def init(self, rule_metadata: dict, data: str) -> None:
-        """Parse setsid expression."""
-        if not data:
-            msg = "SetSid action requires an expression"
-            raise ValueError(msg)
-
-        self.session_id_expression = data.strip()
-
-    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        """Set session ID in transaction."""
-        # Import here to avoid circular dependencies
-        from lewaf.primitives.variable_expansion import (  # noqa: PLC0415 - Avoids circular import
-            VariableExpander,
-        )
-
-        # Expand expression to get session ID
-        session_id = VariableExpander.expand(
-            self.session_id_expression, transaction.variables
-        )
-
-        # Store in TX.sessionid for use with initcol
-        transaction.variables.tx.remove("sessionid")
-        if session_id:
-            transaction.variables.tx.add("sessionid", session_id)
+        pass

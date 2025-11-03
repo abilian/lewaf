@@ -1,6 +1,6 @@
 """Unit tests for core regex compilation functionality."""
 
-from coraza_poc.core import compile_regex
+from lewaf.core import compile_regex
 
 
 def test_compile_regex_basic_pattern():

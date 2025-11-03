@@ -1,4 +1,4 @@
-"""Command-line interface for LeWAF reverse proxy."""
+"""Command-line interface for Coraza reverse proxy."""
 
 from __future__ import annotations
 
@@ -30,19 +30,19 @@ def load_rules_from_file(file_path: str) -> list[str]:
                 if line and not line.startswith("#"):
                     rules.append(line)
     except FileNotFoundError:
-        logging.error("Rules file not found: %s", file_path)
+        logging.error(f"Rules file not found: {file_path}")
         sys.exit(1)
     except Exception as e:
-        logging.error("Error loading rules from %s: %s", file_path, e)
+        logging.error(f"Error loading rules from {file_path}: {e}")
         sys.exit(1)
 
     return rules
 
 
 def main() -> None:
-    """Main entry point for the LeWAF reverse proxy CLI."""
+    """Main entry point for the Coraza reverse proxy CLI."""
     parser = argparse.ArgumentParser(
-        description="LeWAF Reverse Proxy",
+        description="Coraza WAF Reverse Proxy",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -121,7 +121,7 @@ Examples:
     setup_logging(args.log_level)
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting LeWAF reverse proxy")
+    logger.info("Starting Coraza reverse proxy")
     logger.info(f"Upstream: {args.upstream}")
     logger.info(f"Listening on: {args.host}:{args.port}")
 
@@ -157,7 +157,7 @@ Examples:
     except KeyboardInterrupt:
         logger.info("Shutting down proxy server...")
     except Exception as e:
-        logger.error("Error starting server: %s", e)
+        logger.error(f"Error starting server: {e}")
         sys.exit(1)
 
 

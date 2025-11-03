@@ -6,8 +6,8 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from coraza_poc.integration import WAF
-from coraza_poc.integrations.starlette import CorazaMiddleware, create_waf_app
+from lewaf.integration import WAF
+from lewaf.integrations.starlette import CorazaMiddleware, create_waf_app
 
 
 def create_test_app():

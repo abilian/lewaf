@@ -3,16 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from collections.abc import AsyncIterator
 from urllib.parse import urljoin, urlparse
 
 import httpx
+from starlette.requests import Request
 from starlette.responses import StreamingResponse
-
-if TYPE_CHECKING:
-    from collections.abc import AsyncIterator
-
-    from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +75,7 @@ class ProxyClient:
 
         # Read request body if present
         body = None
-        if request.method in {"POST", "PUT", "PATCH"}:
+        if request.method in ("POST", "PUT", "PATCH"):
             body = await request.body()
 
         try:
@@ -107,14 +103,14 @@ class ProxyClient:
             )
 
         except httpx.RequestError as e:
-            logger.error("Error proxying request to %s: %s", upstream_url, e)
+            logger.error(f"Error proxying request to {upstream_url}: {e}")
             return StreamingResponse(
                 content=iter([b"Bad Gateway"]),
                 status_code=502,
                 media_type="text/plain",
             )
         except httpx.HTTPStatusError as e:
-            logger.error("HTTP error from upstream %s: %s", upstream_url, e)
+            logger.error(f"HTTP error from upstream {upstream_url}: {e}")
             # Return the error response from upstream
             response_headers = self._filter_response_headers(dict(e.response.headers))
             return StreamingResponse(
