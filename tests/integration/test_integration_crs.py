@@ -96,9 +96,9 @@ def test_crs_rule_id_ranges():
         file_path = rules_dir / filename
         if file_path.exists():
             content = file_path.read_text(encoding="utf-8")
-            assert f"id:{id_prefix}" in content, (
-                f"Missing {id_prefix}xxx IDs in {filename}"
-            )
+            assert (
+                f"id:{id_prefix}" in content
+            ), f"Missing {id_prefix}xxx IDs in {filename}"
 
 
 def test_crs_rule_phases():
