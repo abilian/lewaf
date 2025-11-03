@@ -1,12 +1,12 @@
 """Unit tests for basic transformations (lowercase, uppercase, trim, etc.)."""
 
 from lewaf.primitives.transformations import (
-    lowercase,
-    uppercase,
-    length,
-    trim,
     compress_whitespace,
+    length,
+    lowercase,
     remove_whitespace,
+    trim,
+    uppercase,
 )
 
 

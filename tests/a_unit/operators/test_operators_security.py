@@ -1,6 +1,6 @@
 """Unit tests for security-focused operators (detectXSS, detectSQLi, etc.)."""
 
-from lewaf.primitives.operators import get_operator, OperatorOptions
+from lewaf.primitives.operators import OperatorOptions, get_operator
 
 
 def test_detect_xss_operator():

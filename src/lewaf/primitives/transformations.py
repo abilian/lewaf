@@ -5,8 +5,8 @@ import hashlib
 import html
 import os
 import re
-from urllib.parse import unquote, unquote_plus, quote
 from typing import Callable
+from urllib.parse import quote, unquote, unquote_plus
 
 TRANSFORMATIONS = {}
 

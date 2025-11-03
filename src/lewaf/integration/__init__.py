@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from lewaf.engine import RuleGroup
-from lewaf.primitives.actions import ACTIONS
-from lewaf.primitives.operators import OperatorOptions, get_operator, Operator
-from lewaf.rules import Rule
-from lewaf.transaction import Transaction
+from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
-from dataclasses import dataclass
+from lewaf.engine import RuleGroup
+from lewaf.primitives.actions import ACTIONS
+from lewaf.primitives.operators import Operator, OperatorOptions, get_operator
+from lewaf.rules import Rule
+from lewaf.transaction import Transaction
 
 
 @dataclass(frozen=True)

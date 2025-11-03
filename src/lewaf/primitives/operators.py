@@ -3,7 +3,7 @@ from __future__ import annotations
 import fnmatch
 import ipaddress
 import re
-from typing import Callable, TYPE_CHECKING, Protocol, Any
+from typing import TYPE_CHECKING, Any, Callable, Protocol
 from urllib.parse import unquote
 
 from lewaf.core import compile_regex
@@ -861,9 +861,9 @@ class InspectFileOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Execute external script for file inspection."""
+        import os
         import subprocess
         import tempfile
-        import os
 
         # Security check: only allow certain file extensions
         allowed_extensions = [".pl", ".py", ".sh", ".lua"]

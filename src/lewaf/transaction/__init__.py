@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 from urllib.parse import parse_qs
 
 from lewaf.primitives.collections import TransactionVariables
-from typing import Any, Dict, Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from lewaf.integration import WAF

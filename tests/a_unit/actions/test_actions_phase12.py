@@ -5,16 +5,16 @@ import os
 from lewaf.primitives.actions import (
     ACTIONS,
     ActionType,
-    RedirectAction,
-    SkipAction,
-    RevAction,
     AuditLogAction,
-    NoAuditLogAction,
     DropAction,
     ExecAction,
-    SetEnvAction,
     ExpireVarAction,
     InitColAction,
+    NoAuditLogAction,
+    RedirectAction,
+    RevAction,
+    SetEnvAction,
+    SkipAction,
 )
 
 

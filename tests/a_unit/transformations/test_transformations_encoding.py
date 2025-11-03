@@ -1,13 +1,13 @@
 """Unit tests for encoding/decoding transformations."""
 
 from lewaf.primitives.transformations import (
-    url_decode,
-    url_decode_uni,
+    base64_decode,
+    css_js_decode,
+    hex_decode,
     html_entity_decode,
     js_decode,
-    css_js_decode,
-    base64_decode,
-    hex_decode,
+    url_decode,
+    url_decode_uni,
 )
 
 

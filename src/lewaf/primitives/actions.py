@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import time
 from enum import IntEnum
-from typing import Callable, TYPE_CHECKING, Any, Protocol
+from typing import TYPE_CHECKING, Any, Callable, Protocol
 
 if TYPE_CHECKING:
     pass
@@ -709,8 +709,8 @@ class SetEnvAction(Action):
         self.var_value = parts[1].strip()
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import os
         import logging
+        import os
 
         logging.debug(f"Rule {rule.id} setting env {self.var_name}={self.var_value}")
         os.environ[self.var_name] = self.var_value

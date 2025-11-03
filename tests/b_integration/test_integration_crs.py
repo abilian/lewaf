@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from lewaf.engine import RuleGroup
-from lewaf.integration import SecLangParser, WAF
+from lewaf.integration import WAF, SecLangParser
 from lewaf.transaction import Transaction
 
 

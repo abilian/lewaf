@@ -9,13 +9,13 @@ This module handles parsing of SecRule directives, including:
 
 from __future__ import annotations
 
+import logging
+import random
 from typing import TYPE_CHECKING, Any
 
 from lewaf.primitives.actions import ACTIONS
-from lewaf.primitives.operators import get_operator, OperatorOptions
+from lewaf.primitives.operators import OperatorOptions, get_operator
 from lewaf.rules import Rule
-import random
-import logging
 
 if TYPE_CHECKING:
     from lewaf.seclang.parser import SecLangParser
