@@ -1,17 +1,15 @@
 """Unit tests for basic actions (log, deny, allow, block, etc.)."""
 
-from __future__ import annotations
-
 from lewaf.primitives.actions import (
     ACTIONS,
     ActionType,
+    LogAction,
+    DenyAction,
     AllowAction,
     BlockAction,
-    DenyAction,
     IdAction,
-    LogAction,
-    MsgAction,
     PhaseAction,
+    MsgAction,
     SeverityAction,
 )
 
@@ -28,45 +26,101 @@ def test_action_registry():
     assert "severity" in ACTIONS
 
 
-def test_log_action(mock_rule, mock_transaction):
+def test_log_action():
     """Test log action functionality."""
     action = LogAction()
 
     assert action.action_type() == ActionType.NONDISRUPTIVE
 
+    # Mock rule and transaction
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        pass
+
+    rule = MockRule()
+    tx = MockTransaction()
+
     # Should not raise exception
-    action.evaluate(mock_rule, mock_transaction)
+    action.evaluate(rule, tx)
 
 
-def test_deny_action(mock_rule, mock_transaction):
+def test_deny_action():
     """Test deny action functionality."""
     action = DenyAction()
 
     assert action.action_type() == ActionType.DISRUPTIVE
 
-    action.evaluate(mock_rule, mock_transaction)
-    assert mock_transaction._interrupted is True
+    class MockRule:
+        def __init__(self):
+            self.id = 456
+
+    class MockTransaction:
+        def __init__(self):
+            self.interruption = None
+
+        def interrupt(self, rule):
+            self.interruption = {"rule_id": rule.id, "action": "deny"}
+
+    rule = MockRule()
+    tx = MockTransaction()
+
+    action.evaluate(rule, tx)
+    assert tx.interruption is not None
+    assert tx.interruption["rule_id"] == 456
+    assert tx.interruption["action"] == "deny"
 
 
-def test_allow_action(mock_rule, mock_transaction):
+def test_allow_action():
     """Test allow action functionality."""
     action = AllowAction()
 
     assert action.action_type() == ActionType.DISRUPTIVE
 
-    action.evaluate(mock_rule, mock_transaction)
+    class MockRule:
+        def __init__(self):
+            self.id = 789
+
+    class MockTransaction:
+        def __init__(self):
+            self.interruption = None
+
+        def interrupt(self, rule):
+            self.interruption = {"rule_id": rule.id, "action": "allow"}
+
+    rule = MockRule()
+    tx = MockTransaction()
+
+    action.evaluate(rule, tx)
     # Allow action doesn't interrupt - it just permits the request
-    assert mock_transaction._interrupted is False
+    assert tx.interruption is None
 
 
-def test_block_action(mock_rule, mock_transaction):
+def test_block_action():
     """Test block action functionality."""
     action = BlockAction()
 
     assert action.action_type() == ActionType.DISRUPTIVE
 
-    action.evaluate(mock_rule, mock_transaction)
-    assert mock_transaction._interrupted is True
+    class MockRule:
+        def __init__(self):
+            self.id = 999
+
+    class MockTransaction:
+        def __init__(self):
+            self.interruption = None
+
+        def interrupt(self, rule):
+            self.interruption = {"rule_id": rule.id, "action": "block"}
+
+    rule = MockRule()
+    tx = MockTransaction()
+
+    action.evaluate(rule, tx)
+    assert tx.interruption is not None
+    assert tx.interruption["action"] == "block"
 
 
 def test_id_action():
@@ -82,8 +136,7 @@ def test_id_action():
     # Test with empty data should raise error
     try:
         action.init({}, "")
-        msg = "Should raise ValueError for empty ID"
-        raise AssertionError(msg)
+        assert False, "Should raise ValueError for empty ID"
     except ValueError:
         pass
 
@@ -102,15 +155,13 @@ def test_phase_action():
     # Test invalid phase
     try:
         action.init({}, "0")
-        msg = "Should raise ValueError for invalid phase"
-        raise AssertionError(msg)
+        assert False, "Should raise ValueError for invalid phase"
     except ValueError:
         pass
 
     try:
         action.init({}, "6")
-        msg = "Should raise ValueError for invalid phase"
-        raise AssertionError(msg)
+        assert False, "Should raise ValueError for invalid phase"
     except ValueError:
         pass
 
@@ -128,8 +179,7 @@ def test_msg_action():
     # Test with empty message should raise error
     try:
         action.init({}, "")
-        msg = "Should raise ValueError for empty message"
-        raise AssertionError(msg)
+        assert False, "Should raise ValueError for empty message"
     except ValueError:
         pass
 
@@ -158,8 +208,7 @@ def test_severity_action():
     # Test invalid severity
     try:
         action.init({}, "INVALID")
-        msg = "Should raise ValueError for invalid severity"
-        raise AssertionError(msg)
+        assert False, "Should raise ValueError for invalid severity"
     except ValueError:
         pass
 
@@ -200,8 +249,8 @@ def test_action_inheritance():
 
         # Action type should be one of the valid types
         action_type = action.action_type()
-        assert action_type in {
+        assert action_type in [
             ActionType.DISRUPTIVE,
             ActionType.NONDISRUPTIVE,
             ActionType.METADATA,
-        }
+        ]

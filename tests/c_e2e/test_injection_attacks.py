@@ -3,9 +3,6 @@
 This module tests protection against Local File Inclusion (LFI), Remote File Inclusion (RFI),
 Command Injection, and other common injection attack vectors using CRS rules.
 """
-# ruff: noqa: ISC004 - Multi-line SecLang rules use implicit string concatenation for readability
-
-from __future__ import annotations
 
 import pytest
 

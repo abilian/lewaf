@@ -3,9 +3,6 @@
 This module tests that the WAF successfully detects attacks using real CRS rules
 that are known to parse correctly.
 """
-# ruff: noqa: ISC004 - Multi-line SecLang rules use implicit string concatenation for readability
-
-from __future__ import annotations
 
 from lewaf.integration import WAF
 

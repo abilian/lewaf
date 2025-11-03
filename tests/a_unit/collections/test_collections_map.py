@@ -1,7 +1,5 @@
 """Unit tests for MapCollection functionality."""
 
-from __future__ import annotations
-
 import re
 
 from lewaf.primitives.collections import MapCollection

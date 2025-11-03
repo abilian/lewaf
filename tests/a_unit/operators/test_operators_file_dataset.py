@@ -1,17 +1,14 @@
 """Unit tests for file and dataset operators (Phase 2 features)."""
 
-from __future__ import annotations
-
 import os
 import tempfile
 
 from lewaf.primitives.operators import (
-    OperatorOptions,
-    get_dataset,
     get_operator,
+    OperatorOptions,
     register_dataset,
+    get_dataset,
 )
-from tests.utils import StubOperatorTransaction, stub_tx
 
 
 def test_register_and_get_dataset():
@@ -37,7 +34,14 @@ def test_pm_from_dataset_operator():
     options = OperatorOptions("attack_patterns")
     operator = get_operator("pmfromdataset", options)
 
-    tx = StubOperatorTransaction()
+    class MockTransaction:
+        def capturing(self):
+            return False
+
+        def capture_field(self, index, value):
+            pass
+
+    tx = MockTransaction()
 
     # Should match patterns in dataset
     assert operator.evaluate(tx, "detected malware in file") is True
@@ -53,7 +57,14 @@ def test_pm_from_dataset_empty():
     options = OperatorOptions("empty_dataset")
     operator = get_operator("pmfromdataset", options)
 
-    tx = StubOperatorTransaction()
+    class MockTransaction:
+        def capturing(self):
+            return False
+
+        def capture_field(self, index, value):
+            pass
+
+    tx = MockTransaction()
 
     # Should not match anything with empty dataset
     assert operator.evaluate(tx, "any content") is False
@@ -67,7 +78,14 @@ def test_ip_match_from_dataset_operator():
     options = OperatorOptions("bad_ips")
     operator = get_operator("ipmatchfromdataset", options)
 
-    tx = StubOperatorTransaction()
+    class MockTransaction:
+        def capturing(self):
+            return False
+
+        def capture_field(self, index, value):
+            pass
+
+    tx = MockTransaction()
 
     # Should match exact IPs
     assert operator.evaluate(tx, "192.168.1.100") is True
@@ -97,7 +115,7 @@ def test_ip_match_from_file_operator():
         options = OperatorOptions(temp_file)
         operator = get_operator("ipmatchfromfile", options)
 
-        tx = stub_tx()
+        tx = None
 
         # Should match exact IP
         assert operator.evaluate(tx, "192.168.1.100") is True
@@ -122,7 +140,7 @@ def test_ip_match_from_nonexistent_file():
     options = OperatorOptions("nonexistent_file.txt")
     operator = get_operator("ipmatchfromfile", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Should return False for nonexistent file
     assert operator.evaluate(tx, "192.168.1.1") is False
@@ -134,7 +152,7 @@ def test_inspect_file_operator_validation():
     try:
         options = OperatorOptions("malicious.exe")
         operator = get_operator("inspectfile", options)
-        tx = stub_tx()
+        tx = None
         # This should raise during evaluation, not creation
         result = operator.evaluate(tx, "test content")
         assert result is True  # Should return True on security rejection
@@ -151,14 +169,13 @@ def test_inspect_file_operator_allowed_extensions():
         try:
             options = OperatorOptions(script)
             operator = get_operator("inspectfile", options)
-            tx = stub_tx()
+            tx = None
             # Script doesn't exist, so should return True (safe default)
             result = operator.evaluate(tx, "test content")
             assert result is True
         except ValueError as e:
             if "Script type not allowed" in str(e):
-                msg = f"Script {script} should be allowed but was rejected"
-                raise AssertionError(msg)
+                assert False, f"Script {script} should be allowed but was rejected"
 
 
 def test_inspect_file_operator_path_traversal():
@@ -166,7 +183,7 @@ def test_inspect_file_operator_path_traversal():
     try:
         options = OperatorOptions("../../../malicious.py")
         operator = get_operator("inspectfile", options)
-        tx = stub_tx()
+        tx = None
         result = operator.evaluate(tx, "test content")
         assert result is True  # Should return True on security rejection
     except ValueError:
