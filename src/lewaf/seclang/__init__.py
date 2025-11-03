@@ -11,6 +11,6 @@ Key components:
 
 from __future__ import annotations
 
-__all__ = ["ParseError", "SecLangParser"]
+__all__ = ["SecLangParser", "ParseError"]
 
 from lewaf.seclang.parser import ParseError, SecLangParser
