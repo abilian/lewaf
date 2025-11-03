@@ -659,7 +659,7 @@ def remove_comments(value: str) -> tuple[str, bool]:
 def parity_even_7bit(value: str) -> tuple[str, bool]:
     """Set even parity on 7-bit characters."""
     original_value = value
-    result = []
+    result: list[str] = []
 
     for char in value:
         byte_val = ord(char)
@@ -681,7 +681,7 @@ def parity_even_7bit(value: str) -> tuple[str, bool]:
 def parity_odd_7bit(value: str) -> tuple[str, bool]:
     """Set odd parity on 7-bit characters."""
     original_value = value
-    result = []
+    result: list[str] = []
 
     for char in value:
         byte_val = ord(char)
@@ -703,7 +703,7 @@ def parity_odd_7bit(value: str) -> tuple[str, bool]:
 def parity_zero_7bit(value: str) -> tuple[str, bool]:
     """Clear parity bit (high bit) on all characters."""
     original_value = value
-    result = []
+    result: list[str] = []
 
     for char in value:
         byte_val = ord(char) & 0x7F  # Clear high bit

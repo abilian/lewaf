@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import time
 from enum import IntEnum
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     pass
@@ -17,6 +17,23 @@ class RuleProtocol(Protocol):
 
 class TransactionProtocol(Protocol):
     """Protocol defining the minimal transaction interface needed by actions."""
+
+    # State attributes (may not exist initially, dynamically added)
+    chain_state: dict[str, Any]
+    skip_state: dict[str, Any]
+    multimatch_state: dict[str, Any]
+    deprecated_vars: set[str]
+    var_expiration: dict[str, float]
+    ctl_directives: dict[str, Any]
+
+    # Engine control attributes
+    rule_engine_enabled: bool
+    rule_engine_mode: str
+    body_processor: str
+    body_limit: int
+
+    # Variables (required)
+    variables: Any  # TransactionVariables object
 
     def interrupt(self, rule: RuleProtocol) -> None:
         """Interrupt the transaction with the given rule."""
