@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+from typing import cast
+
 from lewaf.rules import Rule
 from lewaf.transaction import Transaction
 
@@ -10,8 +12,9 @@ class RuleGroup:
         self.rules_by_phase = {1: [], 2: [], 3: [], 4: [], 5: []}
 
     def add(self, rule: Rule):
-        self.rules_by_phase[rule.phase].append(rule)
-        logging.debug("Added rule %s to phase %s", rule.id, rule.phase)
+        phase = cast(int, rule.phase)  # Phase is always int in practice
+        self.rules_by_phase[phase].append(rule)
+        logging.debug("Added rule %s to phase %s", rule.id, phase)
 
     def evaluate(self, phase: int, transaction: Transaction):
         logging.info("--- Executing Phase %s ---", phase)
