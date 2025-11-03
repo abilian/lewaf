@@ -1,5 +1,5 @@
 """
-LeWAF application example.
+Production-ready LeWAF application example.
 
 This example shows how to deploy LeWAF with:
 - CRS rules loaded (594 rules)
@@ -9,17 +9,16 @@ This example shows how to deploy LeWAF with:
 - Error handling
 """
 
-from __future__ import annotations
-
 import logging
 import time
+from pathlib import Path
 
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.routing import Route
 
-from lewaf.integrations.starlette import LeWAFMiddleware
+from lewaf.integrations.starlette import WAFMiddleware
 
 # Setup logging
 logging.basicConfig(
@@ -33,15 +32,21 @@ START_TIME = time.time()
 
 # WAF Configuration
 WAF_CONFIG = {
-    # Rules
-    "rules": [
+    # Rule engine mode
+    # "DetectionOnly" - Log only, don't block
+    # "On" - Block malicious requests
+    "engine": "DetectionOnly",  # Start in detection mode for testing
+    # Load CRS rules (594 rules)
+    "rule_files": [
+        str(Path(__file__).parent.parent.parent / "coraza.conf"),
+    ],
+    # Request limits
+    "request_body_limit": 13107200,  # 12.5 MB
+    # Custom rules (optional)
+    "custom_rules": [
         # Example: Block admin parameter
         'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
-        # XSS Protection
-        'SecRule ARGS "@rx <script" "id:9002,phase:2,deny,msg:\'XSS Attack\'"',
     ],
-    # Rule files (if needed)
-    "rule_files": [],
 }
 
 
@@ -53,24 +58,28 @@ async def homepage(request):
 
 async def api_users(request):
     """Example API endpoint."""
-    return JSONResponse({
-        "users": [
-            {"id": 1, "name": "Alice"},
-            {"id": 2, "name": "Bob"},
-        ]
-    })
+    return JSONResponse(
+        {
+            "users": [
+                {"id": 1, "name": "Alice"},
+                {"id": 2, "name": "Bob"},
+            ]
+        }
+    )
 
 
 async def health_check(request):
     """Health check endpoint for monitoring."""
     uptime = time.time() - START_TIME
 
-    return JSONResponse({
-        "status": "healthy",
-        "service": "lewaf-protected-app",
-        "uptime_seconds": uptime,
-        "waf_status": "active",
-    })
+    return JSONResponse(
+        {
+            "status": "healthy",
+            "service": "lewaf-protected-app",
+            "uptime_seconds": uptime,
+            "waf_status": "active",
+        }
+    )
 
 
 async def metrics_endpoint(request):
@@ -87,19 +96,21 @@ async def metrics_endpoint(request):
         "avg_processing_time_ms": "N/A",
     }
 
-    return JSONResponse({
-        "uptime_seconds": uptime,
-        "waf": waf_stats,
-        "app": {
-            "version": "1.0.0",
-            "environment": "production",
-        },
-    })
+    return JSONResponse(
+        {
+            "uptime_seconds": uptime,
+            "waf": waf_stats,
+            "app": {
+                "version": "1.0.0",
+                "environment": "production",
+            },
+        }
+    )
 
 
 # Create application with WAF middleware
 middleware = [
-    Middleware(LeWAFMiddleware, rules=WAF_CONFIG["rules"]),
+    Middleware(WAFMiddleware, config=WAF_CONFIG),
 ]
 
 routes = [
@@ -116,8 +127,8 @@ app = Starlette(
 
 # Log startup
 logger.info("LeWAF application started")
-logger.info(f"WAF rules loaded: {len(WAF_CONFIG['rules'])}")
-logger.info("WAF protection enabled")
+logger.info(f"WAF mode: {WAF_CONFIG['engine']}")
+logger.info(f"Loading rules from: {WAF_CONFIG['rule_files']}")
 
 
 if __name__ == "__main__":

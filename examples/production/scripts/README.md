@@ -412,9 +412,9 @@ curl http://localhost:8000/metrics
 ## Additional Resources
 
 - [Deployment Guide](../../DEPLOYMENT_GUIDE.md) - Full deployment documentation
-- [CHANGELOG.md](../../../CHANGELOG.md) - Release history and features
+- [ROADMAP.md](../../../ROADMAP.md) - Project status and features
 - [OWASP CRS](https://coreruleset.org/) - Core Rule Set documentation
-- [ModSecurity](https://github.com/owasp-modsecurity/ModSecurity) - ModSecurity documentation
+- [Coraza](https://coraza.io/) - WAF engine documentation
 
 ---
 

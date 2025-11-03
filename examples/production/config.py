@@ -4,8 +4,6 @@ Production configuration for LeWAF.
 This module provides environment-specific configurations.
 """
 
-from __future__ import annotations
-
 import os
 from pathlib import Path
 

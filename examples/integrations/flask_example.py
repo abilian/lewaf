@@ -5,26 +5,29 @@ This example shows how to integrate LeWAF with Flask using before_request
 and after_request hooks.
 """
 
-from __future__ import annotations
+from pathlib import Path
 
 from flask import Flask, g, jsonify, request
 
-from lewaf.integration import WAF
+from lewaf.engine import WAF
 
 # Flask application
 app = Flask(__name__)
 
 # WAF Configuration
 WAF_CONFIG = {
-    "rules": [
-        'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
-        'SecRule ARGS "@rx <script" "id:9002,phase:2,deny,msg:\'XSS Attack\'"',
+    "engine": "DetectionOnly",
+    "rule_files": [
+        str(Path(__file__).parent.parent.parent / "coraza.conf"),
     ],
-    "rule_files": [],
+    "request_body_limit": 13107200,
+    "custom_rules": [
+        'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
+    ],
 }
 
 # Initialize WAF
-waf = WAF(WAF_CONFIG)
+waf = WAF(**WAF_CONFIG)
 
 
 @app.before_request
@@ -39,15 +42,14 @@ def lewaf_before_request():
     tx = waf.new_transaction()
     g.lewaf_tx = tx
 
-    # Set URI and method
-    tx.process_uri(request.full_path, request.method)
-
-    # Add request headers
-    for key, value in request.headers:
-        tx.variables.request_headers.add(key.lower(), value)
-
-    # Process Phase 1 (request headers)
-    tx.process_request_headers()
+    # Process request headers
+    headers = dict(request.headers)
+    tx.process_request_headers(
+        method=request.method,
+        uri=request.full_path,
+        protocol=request.environ.get("SERVER_PROTOCOL", "HTTP/1.1"),
+        headers=headers,
+    )
 
     # Check for interruption after headers
     if tx.interruption:
@@ -55,9 +57,7 @@ def lewaf_before_request():
 
     # Process request body if present
     if request.data:
-        content_type = request.headers.get("Content-Type", "")
-        tx.add_request_body(request.data, content_type)
-        tx.process_request_body()
+        tx.process_request_body(request.data)
 
         # Check for interruption after body
         if tx.interruption:
@@ -80,20 +80,16 @@ def lewaf_after_request(response):
     if not tx:
         return response
 
-    # Add response status
-    tx.add_response_status(response.status_code)
-
-    # Add response headers
-    for key, value in response.headers:
-        tx.add_response_headers({key.lower(): value})
-
-    # Process Phase 3 (response headers)
-    tx.process_response_headers()
+    # Process response headers
+    response_headers = dict(response.headers)
+    tx.process_response_headers(
+        status=response.status_code,
+        headers=response_headers,
+    )
 
     # Process response body
     if response.data:
-        tx.add_response_body(response.data)
-        tx.process_response_body()
+        tx.process_response_body(response.data)
 
     # Check for interruption after response
     if tx.interruption:
@@ -104,15 +100,13 @@ def lewaf_after_request(response):
 
 def _blocked_response(tx):
     """Generate a blocked response."""
-    response = jsonify({
-        "error": "Request blocked by WAF",
-        "rule_id": tx.interruption.get("rule_id") if tx.interruption else None,
-        "message": tx.interruption.get("action", "Unknown")
-        if tx.interruption
-        else "Unknown",
-    })
-    response.status_code = 403
-    return response
+    return jsonify(
+        {
+            "error": "Request blocked by WAF",
+            "rule_id": tx.interruption.rule_id if tx.interruption else None,
+            "message": tx.interruption.action if tx.interruption else "Unknown",
+        }
+    ), 403
 
 
 # Routes
@@ -125,31 +119,37 @@ def home():
 @app.route("/api/users")
 def api_users():
     """Example API endpoint."""
-    return jsonify({
-        "users": [
-            {"id": 1, "name": "Alice"},
-            {"id": 2, "name": "Bob"},
-        ]
-    })
+    return jsonify(
+        {
+            "users": [
+                {"id": 1, "name": "Alice"},
+                {"id": 2, "name": "Bob"},
+            ]
+        }
+    )
 
 
 @app.route("/health")
 def health():
     """Health check endpoint."""
-    return jsonify({
-        "status": "healthy",
-        "service": "flask-lewaf",
-    })
+    return jsonify(
+        {
+            "status": "healthy",
+            "service": "flask-lewaf",
+        }
+    )
 
 
 @app.route("/api/search")
 def search():
     """Search endpoint (to test query parameters)."""
     query = request.args.get("q", "")
-    return jsonify({
-        "query": query,
-        "results": ["result1", "result2"],
-    })
+    return jsonify(
+        {
+            "query": query,
+            "results": ["result1", "result2"],
+        }
+    )
 
 
 if __name__ == "__main__":
