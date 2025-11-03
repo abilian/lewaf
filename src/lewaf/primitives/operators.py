@@ -3,7 +3,7 @@ from __future__ import annotations
 import fnmatch
 import ipaddress
 import re
-from typing import TYPE_CHECKING, Protocol, Any
+from typing import Callable, TYPE_CHECKING, Protocol, Any
 from urllib.parse import unquote
 
 from lewaf.core import compile_regex
@@ -60,7 +60,7 @@ class OperatorFactory:
         raise NotImplementedError
 
 
-def register_operator(name: str):
+def register_operator(name: str) -> Callable:
     """Register an operator factory by name."""
 
     def decorator(factory_cls):

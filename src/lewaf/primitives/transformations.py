@@ -6,11 +6,12 @@ import html
 import os
 import re
 from urllib.parse import unquote, unquote_plus, quote
+from typing import Callable
 
 TRANSFORMATIONS = {}
 
 
-def register_transformation(name: str):
+def register_transformation(name: str) -> Callable:
     """Register a transformation function by name."""
 
     def decorator(fn):

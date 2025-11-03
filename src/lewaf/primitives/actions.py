@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 import time
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Protocol
+from typing import Callable, TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     pass
@@ -193,7 +193,7 @@ class Action:
         raise NotImplementedError
 
 
-def register_action(name: str):
+def register_action(name: str) -> Callable:
     """Register an action by name."""
 
     def decorator(cls):
