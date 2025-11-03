@@ -8,14 +8,15 @@ This example shows advanced FastAPI integration with:
 - OpenAPI documentation
 """
 
-from __future__ import annotations
+from pathlib import Path
+from typing import List
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from lewaf.integration import WAF
+from lewaf.engine import WAF
 
 
 # Pydantic models
@@ -32,17 +33,20 @@ class SearchRequest(BaseModel):
 
 class SearchResponse(BaseModel):
     query: str
-    results: list[str]
+    results: List[str]
     total: int
 
 
 # WAF Configuration
 WAF_CONFIG = {
-    "rules": [
-        'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
-        'SecRule ARGS "@rx <script" "id:9002,phase:2,deny,msg:\'XSS Attack\'"',
+    "engine": "DetectionOnly",
+    "rule_files": [
+        str(Path(__file__).parent.parent.parent / "coraza.conf"),
     ],
-    "rule_files": [],
+    "request_body_limit": 13107200,
+    "custom_rules": [
+        'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
+    ],
 }
 
 
@@ -56,36 +60,31 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
 
     def __init__(self, app, waf_config: dict):
         super().__init__(app)
-        self.waf = WAF(waf_config)
+        self.waf = WAF(**waf_config)
 
     async def dispatch(self, request: Request, call_next):
         # Create WAF transaction
         tx = self.waf.new_transaction()
 
-        # Set URI and method
-        uri = str(request.url.path) + (
-            "?" + str(request.url.query) if request.url.query else ""
+        # Process request headers
+        headers = dict(request.headers)
+        tx.process_request_headers(
+            method=request.method,
+            uri=str(request.url.path)
+            + ("?" + str(request.url.query) if request.url.query else ""),
+            protocol="HTTP/1.1",
+            headers=headers,
         )
-        tx.process_uri(uri, request.method)
-
-        # Add request headers
-        for key, value in request.headers.items():
-            tx.variables.request_headers.add(key.lower(), value)
-
-        # Process Phase 1 (request headers)
-        tx.process_request_headers()
 
         # Check for interruption after headers
         if tx.interruption:
             return self._blocked_response(tx)
 
         # Process request body if present
-        if request.method in {"POST", "PUT", "PATCH"}:
+        if request.method in ["POST", "PUT", "PATCH"]:
             body = await request.body()
             if body:
-                content_type = request.headers.get("content-type", "")
-                tx.add_request_body(body, content_type)
-                tx.process_request_body()
+                tx.process_request_body(body)
 
                 # Check for interruption after body
                 if tx.interruption:
@@ -94,15 +93,12 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
         # Get response
         response = await call_next(request)
 
-        # Add response status
-        tx.add_response_status(response.status_code)
-
-        # Add response headers
-        for key, value in response.headers.items():
-            tx.add_response_headers({key.lower(): value})
-
-        # Process Phase 3 (response headers)
-        tx.process_response_headers()
+        # Process response headers
+        response_headers = dict(response.headers)
+        tx.process_response_headers(
+            status=response.status_code,
+            headers=response_headers,
+        )
 
         # Note: Processing response body in middleware is tricky with streaming responses
         # For production, consider implementing response body inspection differently
@@ -114,10 +110,8 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
         return JSONResponse(
             {
                 "error": "Request blocked by WAF",
-                "rule_id": tx.interruption.get("rule_id") if tx.interruption else None,
-                "message": tx.interruption.get("action", "Unknown")
-                if tx.interruption
-                else "Unknown",
+                "rule_id": tx.interruption.rule_id if tx.interruption else None,
+                "message": tx.interruption.action if tx.interruption else "Unknown",
             },
             status_code=403,
         )
@@ -153,7 +147,7 @@ async def home():
     return {"message": "Hello from FastAPI with LeWAF protection!"}
 
 
-@app.get("/api/users", response_model=list[User])
+@app.get("/api/users", response_model=List[User])
 async def get_users():
     """
     Get list of users.
