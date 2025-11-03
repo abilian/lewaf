@@ -1,13 +1,10 @@
 """Tests for SecLang parser with real CRS .conf files."""
 
-from __future__ import annotations
-
+import pytest
 from pathlib import Path
 
-import pytest
-
 from lewaf.engine import RuleGroup
-from lewaf.seclang import ParseError, SecLangParser
+from lewaf.seclang import SecLangParser, ParseError
 
 
 class StubWAF:
@@ -130,7 +127,15 @@ class TestSecLangParserCRS:
 
     def test_parse_includes_testdata(self):
         """Test parsing files with Include directives from Go testdata."""
-        parent_path = self.project_root / "tests" / "data" / "includes" / "parent.conf"
+        parent_path = (
+            self.project_root
+            / "coraza-go"
+            / "internal"
+            / "seclang"
+            / "testdata"
+            / "includes"
+            / "parent.conf"
+        )
 
         if not parent_path.exists():
             pytest.skip("Go testdata not available")
@@ -147,7 +152,7 @@ class TestSecLangParserCRS:
     def test_parse_includes_with_relative_paths(self):
         """Test Include directive with relative paths."""
         # Create temp files for testing
-        import tempfile  # noqa: PLC0415 - Avoids circular import
+        import tempfile
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create main config
@@ -167,8 +172,8 @@ class TestSecLangParserCRS:
 
     def test_parse_includes_with_subdirectories(self):
         """Test Include directive with subdirectory paths."""
-        import tempfile  # noqa: PLC0415 - Avoids circular import
-        from pathlib import Path  # noqa: PLC0415 - Avoids circular import
+        import tempfile
+        from pathlib import Path
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)

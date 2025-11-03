@@ -1,14 +1,11 @@
 """Basic tests for SecLang parser functionality."""
 
-from __future__ import annotations
-
-import tempfile
-from pathlib import Path
-
 import pytest
+from pathlib import Path
+import tempfile
 
 from lewaf.engine import RuleGroup
-from lewaf.seclang import ParseError, SecLangParser
+from lewaf.seclang import SecLangParser, ParseError
 
 
 class StubWAF:
@@ -174,8 +171,8 @@ class TestSecLangParserVariables:
 
         rule = self.waf.rule_group.rules_by_phase[1][0]
         assert len(rule.variables) == 1
-        assert rule.variables[0].name == "ARGS"
-        assert rule.variables[0].key is None
+        assert rule.variables[0][0] == "ARGS"
+        assert rule.variables[0][1] is None
 
     def test_parse_variable_with_key(self):
         """Test parsing variable with specific key."""
@@ -185,8 +182,8 @@ class TestSecLangParserVariables:
         self.parser.from_string(content)
 
         rule = self.waf.rule_group.rules_by_phase[1][0]
-        assert rule.variables[0].name == "REQUEST_HEADERS"
-        assert rule.variables[0].key == "User-Agent"
+        assert rule.variables[0][0] == "REQUEST_HEADERS"
+        assert rule.variables[0][1] == "User-Agent"
 
     def test_parse_multiple_variables(self):
         """Test parsing multiple variables with pipe."""
@@ -197,8 +194,8 @@ class TestSecLangParserVariables:
 
         rule = self.waf.rule_group.rules_by_phase[1][0]
         assert len(rule.variables) == 2
-        assert rule.variables[0].name == "ARGS"
-        assert rule.variables[1].name == "REQUEST_COOKIES"
+        assert rule.variables[0][0] == "ARGS"
+        assert rule.variables[1][0] == "REQUEST_COOKIES"
 
 
 class TestSecLangParserOperators:
