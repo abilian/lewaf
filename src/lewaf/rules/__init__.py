@@ -61,6 +61,9 @@ class Rule:
                     )
             elif isinstance(collection, SingleValueCollection):
                 values_to_test.append(collection.get())
+            elif hasattr(collection, "find_all"):
+                # Handle other collection types (FilesCollection, etc.)
+                values_to_test.extend(match.value for match in collection.find_all())
 
         for value in values_to_test:
             transformed_value = value
