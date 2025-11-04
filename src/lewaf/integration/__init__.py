@@ -106,6 +106,7 @@ class SecLangParser:
         parsed_actions = {}
         parsed_transformations = []
         parsed_metadata = {}
+        tags = []
 
         # Split actions properly, respecting quoted values
         actions = self._split_actions(actions_str)
@@ -124,6 +125,8 @@ class SecLangParser:
                 parsed_actions[key] = action_class(value)
                 if key in ["id", "phase"]:
                     parsed_metadata[key] = int(value)
+                if key == "tag":
+                    tags.append(value)
 
         rule = Rule(
             parsed_vars,
@@ -131,6 +134,7 @@ class SecLangParser:
             parsed_transformations,
             parsed_actions,
             parsed_metadata,
+            tags,
         )
         self.rule_group.add(rule)
 

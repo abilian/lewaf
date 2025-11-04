@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field as dataclass_field
 from typing import TYPE_CHECKING, Any, cast
 
 from lewaf.primitives.actions import Action, RuleProtocol, TransactionProtocol
@@ -23,6 +23,7 @@ class Rule:
         transformations: List of transformation names to apply before matching
         actions: Dictionary of action name to Action instances
         metadata: Rule metadata including id and phase
+        tags: List of tag strings for rule categorization and targeting
     """
 
     variables: list[tuple[str, str | None]]
@@ -30,6 +31,7 @@ class Rule:
     transformations: list[Any | str]
     actions: dict[str, Action]
     metadata: dict[str, int | str]
+    tags: list[str] = dataclass_field(default_factory=list)
 
     @property
     def id(self) -> int | str:
