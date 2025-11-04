@@ -5,8 +5,7 @@ from __future__ import annotations
 import logging
 from urllib.parse import parse_qs
 
-from lewaf.bodyprocessors.base import BaseBodyProcessor
-from lewaf.exceptions import BodyProcessorError
+from lewaf.bodyprocessors.base import BaseBodyProcessor, BodyProcessorError
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +41,7 @@ class URLEncodedProcessor(BaseBodyProcessor):
             # Decode body to string
             body_str = body.decode("utf-8")
         except UnicodeDecodeError as e:
-            msg = f"Invalid UTF-8 in URL-encoded body: {e}"
-            snippet = body[:100].decode("utf-8", errors="replace")
-            raise BodyProcessorError(
-                msg, content_type=content_type, body_snippet=snippet, cause=e
-            ) from e
+            raise BodyProcessorError(f"Invalid UTF-8 in request body: {e}") from e
 
         # Store raw body
         self.raw_body = body
@@ -64,12 +59,8 @@ class URLEncodedProcessor(BaseBodyProcessor):
 
         except Exception as e:
             # parse_qs is lenient, but catch any unexpected errors
-            logger.warning("Error parsing URL-encoded body: %s", e)
-            msg = f"Failed to parse URL-encoded body: {e}"
-            snippet = body_str[:100] if len(body_str) > 100 else body_str
-            raise BodyProcessorError(
-                msg, content_type=content_type, body_snippet=snippet, cause=e
-            ) from e
+            logger.warning(f"Error parsing URL-encoded body: {e}")
+            raise BodyProcessorError(f"Failed to parse URL-encoded body: {e}") from e
 
         # Populate collections
         self._set_collection("args_post", args_post)

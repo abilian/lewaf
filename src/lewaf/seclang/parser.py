@@ -344,7 +344,9 @@ class SecLangParser:
         """
         marker_name = args.strip()
         if not marker_name:
-            logger.warning(f"SecMarker with empty name at {self.current_file}:{self.current_line}")
+            logger.warning(
+                f"SecMarker with empty name at {self.current_file}:{self.current_line}"
+            )
             return
 
         # Create a marker "rule" - a pass-through rule with the marker name
@@ -377,5 +379,5 @@ class SecLangParser:
         signature = args.strip()
         logger.info(f"Component signature: {signature}")
         # Store in WAF metadata if needed
-        if not hasattr(self.waf, 'component_signature'):
+        if not hasattr(self.waf, "component_signature"):
             self.waf.component_signature = signature

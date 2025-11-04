@@ -4,8 +4,18 @@ from __future__ import annotations
 
 from typing import Any
 
-# Re-export for backward compatibility
-from lewaf.exceptions import BodyProcessorError  # noqa: F401
+
+class BodyProcessorError(Exception):
+    """Exception raised when body processing fails.
+
+    This includes:
+    - Malformed JSON/XML
+    - Invalid multipart boundaries
+    - Size limit violations
+    - Encoding errors
+    """
+
+    pass
 
 
 class BaseBodyProcessor:
@@ -32,8 +42,9 @@ class BaseBodyProcessor:
         Raises:
             BodyProcessorError: If body cannot be parsed
         """
-        msg = f"{self.__class__.__name__} must implement read() method"
-        raise NotImplementedError(msg)
+        raise NotImplementedError(
+            f"{self.__class__.__name__} must implement read() method"
+        )
 
     def get_collections(self) -> dict[str, Any]:
         """Return populated variable collections.
