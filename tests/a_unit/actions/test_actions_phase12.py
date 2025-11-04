@@ -297,7 +297,8 @@ def test_initcol_action():
 
     # Test initialization
     action.init({}, "ip=%{REMOTE_ADDR}")
-    assert action.collection_spec == "ip=%{REMOTE_ADDR}"
+    assert action.collection_name == "ip"
+    assert action.key_expression == "%{REMOTE_ADDR}"
 
     # Test with empty spec should raise error
     try:
@@ -307,18 +308,25 @@ def test_initcol_action():
         pass
 
     # Test evaluation
+    from lewaf.primitives.collections import TransactionVariables
+
     class MockRule:
         def __init__(self):
             self.id = 123
 
     class MockTransaction:
-        pass
+        def __init__(self):
+            self.variables = TransactionVariables()
+            self.variables.remote_addr.set("192.168.1.100")
 
     rule = MockRule()
     tx = MockTransaction()
 
-    # Should not interrupt transaction
+    # Should not interrupt transaction (creates collection manager and IP collection)
     action.evaluate(rule, tx)
+
+    # Verify IP collection was created
+    assert hasattr(tx.variables, "ip")
 
 
 def test_action_error_handling():

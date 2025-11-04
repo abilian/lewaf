@@ -5,8 +5,6 @@ This module provides persistent storage backends and collection management
 for features like rate limiting, session tracking, and user profiling.
 """
 
-from __future__ import annotations
-
 from lewaf.storage.backends import (
     FileStorage,
     MemoryStorage,
@@ -17,10 +15,10 @@ from lewaf.storage.backends import (
 )
 
 __all__ = [
-    "FileStorage",
-    "MemoryStorage",
-    "RedisStorage",
     "StorageBackend",
+    "MemoryStorage",
+    "FileStorage",
+    "RedisStorage",
     "get_storage_backend",
     "set_storage_backend",
 ]

@@ -25,6 +25,7 @@ class TransactionProtocol(Protocol):
     deprecated_vars: set[str]
     var_expiration: dict[str, float]
     ctl_directives: dict[str, Any]
+    collection_manager: Any  # PersistentCollectionManager (optional, added dynamically)
 
     # Engine control attributes
     rule_engine_enabled: bool
@@ -716,26 +717,6 @@ class SetEnvAction(Action):
         os.environ[self.var_name] = self.var_value
 
 
-@register_action("initcol")
-class InitColAction(Action):
-    """InitCol action initializes persistent collection."""
-
-    def action_type(self) -> ActionType:
-        return ActionType.NONDISRUPTIVE
-
-    def init(self, rule_metadata: dict, data: str) -> None:
-        """InitCol action requires collection specification."""
-        if not data:
-            raise ValueError("InitCol action requires collection specification")
-        self.collection_spec = data
-
-    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
-        logging.debug(f"Rule {rule.id} initializing collection: {self.collection_spec}")
-        # TODO: In full implementation, initialize persistent collection
-
-
 @register_action("setvar")
 class SetVarAction(Action):
     """Set or modify transaction variables.
@@ -791,48 +772,62 @@ class SetVarAction(Action):
         """Resolve variable references and macros in expressions."""
         return MacroExpander.expand(expression, transaction)
 
+    def _get_collection(self, var_name: str, transaction: TransactionProtocol):
+        """Get collection from variable name (e.g., 'tx.score' -> tx collection)."""
+        if "." not in var_name:
+            return None, None
+
+        collection_name, var_key = var_name.split(".", 1)
+        collection_attr = collection_name.lower()
+
+        # Get collection from transaction.variables
+        if hasattr(transaction.variables, collection_attr):
+            return getattr(transaction.variables, collection_attr), var_key.lower()
+
+        return None, None
+
     def _set_variable(
         self, var_name: str, value: str, transaction: TransactionProtocol
     ) -> None:
-        """Set a transaction variable."""
-        if var_name.startswith("tx."):
-            tx_var = var_name[3:].lower()
-            transaction.variables.tx.remove(tx_var)  # Clear existing
-            transaction.variables.tx.add(tx_var, value)
+        """Set a variable in any collection (tx, ip, session, etc.)."""
+        collection, var_key = self._get_collection(var_name, transaction)
+        if collection:
+            collection.remove(var_key)  # Clear existing
+            collection.add(var_key, value)
 
     def _increment_variable(
         self, var_name: str, increment: str, transaction: TransactionProtocol
     ) -> None:
-        """Increment a numeric transaction variable."""
-        if var_name.startswith("tx."):
-            tx_var = var_name[3:].lower()
-            current_values = transaction.variables.tx.get(tx_var)
+        """Increment a numeric variable in any collection."""
+        collection, var_key = self._get_collection(var_name, transaction)
+        if collection:
+            current_values = collection.get(var_key)
             current_value = int(current_values[0]) if current_values else 0
             increment_value = int(increment) if increment.isdigit() else 0
             new_value = current_value + increment_value
 
-            transaction.variables.tx.remove(tx_var)
-            transaction.variables.tx.add(tx_var, str(new_value))
+            collection.remove(var_key)
+            collection.add(var_key, str(new_value))
 
     def _decrement_variable(
         self, var_name: str, decrement: str, transaction: TransactionProtocol
     ) -> None:
-        """Decrement a numeric transaction variable."""
-        if var_name.startswith("tx."):
-            tx_var = var_name[3:].lower()
-            current_values = transaction.variables.tx.get(tx_var)
+        """Decrement a numeric variable in any collection."""
+        collection, var_key = self._get_collection(var_name, transaction)
+        if collection:
+            current_values = collection.get(var_key)
             current_value = int(current_values[0]) if current_values else 0
             decrement_value = int(decrement) if decrement.isdigit() else 0
             new_value = current_value - decrement_value
 
-            transaction.variables.tx.remove(tx_var)
-            transaction.variables.tx.add(tx_var, str(new_value))
+            collection.remove(var_key)
+            collection.add(var_key, str(new_value))
 
     def _delete_variable(self, var_name: str, transaction: TransactionProtocol) -> None:
-        """Delete a transaction variable."""
-        if var_name.startswith("tx."):
-            tx_var = var_name[3:].lower()
-            transaction.variables.tx.remove(tx_var)
+        """Delete a variable from any collection."""
+        collection, var_key = self._get_collection(var_name, transaction)
+        if collection:
+            collection.remove(var_key)
 
 
 @register_action("deprecatevar")
@@ -1117,3 +1112,160 @@ class TransformationAction(Action):
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Transformation is applied during rule evaluation, not as an action."""
         pass
+
+
+@register_action("initcol")
+class InitColAction(Action):
+    """
+    Initialize a persistent collection.
+
+    Loads a persistent collection from storage and associates it with a
+    transaction variable. Used for cross-request tracking like:
+    - Rate limiting per IP
+    - Session-based anomaly scores
+    - User behavior tracking
+
+    Syntax:
+        initcol:collection=key
+        initcol:ip=%{REMOTE_ADDR}
+        initcol:session=%{TX.session_id}
+        initcol:user=%{ARGS.username},ttl=3600
+
+    Examples:
+        # Track per-IP data
+        SecAction "id:1,phase:1,nolog,pass,initcol:ip=%{REMOTE_ADDR}"
+
+        # Track per-session with custom TTL
+        SecAction "id:2,phase:1,nolog,pass,initcol:session=%{TX.sessionid},ttl=1800"
+
+        # After initcol, you can use the collection:
+        SecAction "id:3,phase:1,pass,setvar:ip.request_count=+1"
+        SecRule IP:request_count "@gt 100" "id:4,deny,msg:'Rate limit exceeded'"
+    """
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """Parse initcol specification."""
+        if not data or "=" not in data:
+            raise ValueError(
+                "InitCol action requires format: collection=key or collection=key,ttl=seconds"
+            )
+
+        # Parse collection=key,ttl=seconds
+        parts = data.split(",")
+        collection_spec = parts[0]
+
+        # Extract collection name and key expression
+        if "=" not in collection_spec:
+            raise ValueError("InitCol requires collection=key format")
+
+        collection_name, key_expression = collection_spec.split("=", 1)
+        self.collection_name = collection_name.strip()
+        self.key_expression = key_expression.strip()
+
+        # Parse optional TTL
+        self.ttl = 0  # 0 = use default
+        for part in parts[1:]:
+            if "=" in part:
+                param_name, param_value = part.split("=", 1)
+                if param_name.strip().lower() == "ttl":
+                    try:
+                        self.ttl = int(param_value.strip())
+                    except ValueError:
+                        raise ValueError(f"Invalid TTL value: {param_value}")
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        """Load persistent collection for this transaction."""
+        # Import here to avoid circular dependencies
+        from lewaf.primitives.variable_expansion import VariableExpander
+        from lewaf.storage.collections import PersistentCollectionManager
+        from lewaf.storage import get_storage_backend
+
+        # Expand key expression to get actual key
+        key = VariableExpander.expand(self.key_expression, transaction.variables)
+
+        if not key:
+            # Empty key, cannot initialize collection
+            return
+
+        # Ensure transaction has collection manager
+        if not hasattr(transaction, "collection_manager") or not isinstance(
+            getattr(transaction, "collection_manager", None),
+            PersistentCollectionManager,
+        ):
+            storage_backend = get_storage_backend()
+            transaction.collection_manager = PersistentCollectionManager(
+                storage_backend
+            )
+
+        # Create or get collection for this type
+        # Collections are added as attributes to transaction.variables
+        # e.g., initcol:ip=... creates transaction.variables.ip
+        from lewaf.primitives.collections import MapCollection
+
+        collection_attr = self.collection_name.lower()
+
+        # Create collection if it doesn't exist
+        if not hasattr(transaction.variables, collection_attr):
+            collection = MapCollection(self.collection_name.upper())
+            setattr(transaction.variables, collection_attr, collection)
+        else:
+            collection = getattr(transaction.variables, collection_attr)
+
+        # Load persistent data into collection
+        transaction.collection_manager.init_collection(
+            self.collection_name,
+            key,
+            collection,
+            self.ttl,
+        )
+
+
+@register_action("setsid")
+class SetSidAction(Action):
+    """
+    Set session ID for session-based collections.
+
+    Sets the session identifier that will be used for session-based
+    persistent collections. Typically used before initcol:session.
+
+    Syntax:
+        setsid:expression
+
+    Examples:
+        # Set session ID from cookie
+        SecAction "id:10,phase:1,nolog,pass,setsid:%{REQUEST_COOKIES.PHPSESSID}"
+
+        # Set session ID from custom header
+        SecAction "id:11,phase:1,nolog,pass,setsid:%{REQUEST_HEADERS.X-Session-ID}"
+
+        # Then use session collection
+        SecAction "id:12,phase:1,nolog,pass,initcol:session=%{TX.sessionid}"
+    """
+
+    def action_type(self) -> ActionType:
+        return ActionType.NONDISRUPTIVE
+
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """Parse setsid expression."""
+        if not data:
+            raise ValueError("SetSid action requires an expression")
+
+        self.session_id_expression = data.strip()
+
+    def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
+        """Set session ID in transaction."""
+        # Import here to avoid circular dependencies
+        from lewaf.primitives.variable_expansion import VariableExpander
+
+        # Expand expression to get session ID
+        session_id = VariableExpander.expand(
+            self.session_id_expression, transaction.variables
+        )
+
+        # Store in TX.sessionid for use with initcol
+        transaction.variables.tx.remove("sessionid")
+        if session_id:
+            transaction.variables.tx.add("sessionid", session_id)

@@ -8,7 +8,6 @@ and persist across requests for tracking user behavior, rate limiting, etc.
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -93,7 +92,9 @@ class PersistentCollectionManager:
         """
         for loaded in self.loaded_collections.values():
             # Convert collection to storable format
-            data = dict(loaded.collection._data.items())
+            data = {}
+            for key, values in loaded.collection._data.items():
+                data[key] = values
 
             # Save to storage with TTL
             self.storage.set(
@@ -120,23 +121,36 @@ class PersistentCollectionManager:
         return self.loaded_collections.get(full_key)
 
 
-@dataclass(frozen=True, slots=True)
 class LoadedCollection:
     """
     Represents a persistent collection that has been loaded.
 
     Tracks metadata needed for saving the collection back to storage.
-
-    Attributes:
-        collection_name: Collection type name
-        key: Collection key
-        collection: The MapCollection instance
-        ttl: Time-to-live in seconds
-        loaded_at: Timestamp when collection was loaded
     """
 
-    collection_name: str
-    key: str
-    collection: MapCollection
-    ttl: int
-    loaded_at: float
+    def __init__(
+        self,
+        collection_name: str,
+        key: str,
+        collection: MapCollection,
+        ttl: int,
+        loaded_at: float,
+    ):
+        """
+        Initialize loaded collection.
+
+        Args:
+            collection_name: Collection type name
+            key: Collection key
+            collection: The MapCollection instance
+            ttl: Time-to-live in seconds
+            loaded_at: Timestamp when collection was loaded
+        """
+        self.collection_name = collection_name
+        self.key = key
+        self.collection = collection
+        self.ttl = ttl
+        self.loaded_at = loaded_at
+
+    def __repr__(self):
+        return f"LoadedCollection(name={self.collection_name}, key={self.key}, ttl={self.ttl})"
