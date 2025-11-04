@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from lewaf.bodyprocessors.protocol import BodyProcessorProtocol
 
 logger = logging.getLogger(__name__)
@@ -30,7 +28,7 @@ def register_body_processor(
     """
     name_upper = name.upper()
     _BODY_PROCESSORS[name_upper] = factory
-    logger.debug("Registered body processor: %s", name_upper)
+    logger.debug(f"Registered body processor: {name_upper}")
 
 
 def get_body_processor(name: str) -> BodyProcessorProtocol:
@@ -50,8 +48,9 @@ def get_body_processor(name: str) -> BodyProcessorProtocol:
 
     if factory is None:
         available = ", ".join(sorted(_BODY_PROCESSORS.keys()))
-        msg = f"Unknown body processor: {name}. Available processors: {available}"
-        raise ValueError(msg)
+        raise ValueError(
+            f"Unknown body processor: {name}. Available processors: {available}"
+        )
 
     return factory()
 

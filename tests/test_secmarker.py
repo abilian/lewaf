@@ -25,13 +25,13 @@ def test_skipafter_with_marker():
     parser = SecLangParser(waf)
 
     # Create rules with skipAfter and marker
-    parser.from_string('''
+    parser.from_string("""
         SecRule ARGS:test "@rx pattern1" "id:1,phase:1,pass,log"
         SecRule REQUEST_URI "@unconditional" "id:2,phase:1,pass,skipAfter:END_TEST"
         SecRule ARGS:test "@rx pattern2" "id:3,phase:1,deny,log"
         SecMarker "END_TEST"
         SecRule ARGS:test "@rx pattern3" "id:4,phase:1,pass,log"
-    ''')
+    """)
 
     # Should create 5 rules (3 regular + 1 skipAfter + 1 marker)
     rules = waf.rule_group.rules_by_phase[1]
@@ -39,6 +39,7 @@ def test_skipafter_with_marker():
 
     # Test that skip logic works
     from lewaf.transaction import Transaction
+
     tx = Transaction(waf, "test-1")
     tx.variables.request_headers.add("Host", "example.com")
     tx.process_uri("/test", "GET")
@@ -59,16 +60,17 @@ def test_skipafter_paranoia_level_pattern():
     parser = SecLangParser(waf)
 
     # Simulate CRS paranoia level pattern
-    parser.from_string('''
+    parser.from_string("""
         SecAction "id:1,phase:1,nolog,pass,setvar:tx.paranoia_level=1"
         SecRule TX:paranoia_level "@lt 2" "id:2,phase:1,pass,nolog,skipAfter:END_CHECKS"
         SecRule ARGS:test "@rx high_paranoia" "id:3,phase:1,deny,log"
         SecMarker "END_CHECKS"
         SecRule ARGS:test "@rx normal" "id:4,phase:1,pass,log"
-    ''')
+    """)
 
     # Paranoia level 1 should skip rule 3 but execute rule 4
     from lewaf.transaction import Transaction
+
     tx = Transaction(waf, "test-2")
     tx.variables.request_headers.add("Host", "example.com")
     tx.process_uri("/test", "GET")
@@ -89,5 +91,5 @@ def test_seccomponentsignature():
     parser.from_string('SecComponentSignature "OWASP_CRS/3.3.4"')
 
     # Should set component signature
-    assert hasattr(waf, 'component_signature')
+    assert hasattr(waf, "component_signature")
     assert waf.component_signature == "OWASP_CRS/3.3.4"
