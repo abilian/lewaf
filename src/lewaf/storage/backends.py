@@ -12,7 +12,6 @@ for features like:
 
 from __future__ import annotations
 
-import contextlib
 import json
 import pickle
 import time
@@ -37,6 +36,7 @@ class StorageBackend(ABC):
         Returns:
             Dictionary containing collection data, or None if not found
         """
+        pass
 
     @abstractmethod
     def set(
@@ -51,6 +51,7 @@ class StorageBackend(ABC):
             data: Collection data to store
             ttl: Time-to-live in seconds (0 = no expiration)
         """
+        pass
 
     @abstractmethod
     def delete(self, collection_name: str, key: str) -> None:
@@ -61,6 +62,7 @@ class StorageBackend(ABC):
             collection_name: Name of the collection type
             key: Unique key within the collection
         """
+        pass
 
     @abstractmethod
     def clear_expired(self) -> int:
@@ -70,6 +72,7 @@ class StorageBackend(ABC):
         Returns:
             Number of collections removed
         """
+        pass
 
 
 class MemoryStorage(StorageBackend):
@@ -223,7 +226,7 @@ class FileStorage(StorageBackend):
 
             try:
                 if self.use_json:
-                    with open(file_path) as f:
+                    with open(file_path, "r") as f:
                         stored = json.load(f)
                 else:
                     with open(file_path, "rb") as f:
@@ -278,8 +281,10 @@ class FileStorage(StorageBackend):
 
         with self._lock:
             if file_path.exists():
-                with contextlib.suppress(Exception):
+                try:
                     file_path.unlink()
+                except Exception:
+                    pass
 
     def clear_expired(self) -> int:
         """Remove expired collection files."""
@@ -296,7 +301,7 @@ class FileStorage(StorageBackend):
                 for file_path in collection_dir.glob("*.dat"):
                     try:
                         if self.use_json:
-                            with open(file_path) as f:
+                            with open(file_path, "r") as f:
                                 stored = json.load(f)
                         else:
                             with open(file_path, "rb") as f:
@@ -342,10 +347,11 @@ class RedisStorage(StorageBackend):
             **kwargs: Additional redis.Redis arguments
         """
         try:
-            import redis  # noqa: PLC0415 - Avoids circular import
+            import redis
         except ImportError as e:
-            msg = "Redis storage requires redis-py: pip install redis"
-            raise ImportError(msg) from e
+            raise ImportError(
+                "Redis storage requires redis-py: pip install redis"
+            ) from e
 
         self.redis = redis.Redis(host=host, port=port, db=db, **kwargs)
         self.key_prefix = "lewaf:collection:"
@@ -388,8 +394,10 @@ class RedisStorage(StorageBackend):
         """Delete a collection from Redis."""
         redis_key = self._get_redis_key(collection_name, key)
 
-        with contextlib.suppress(Exception):
+        try:
             self.redis.delete(redis_key)
+        except Exception:
+            pass
 
     def clear_expired(self) -> int:
         """

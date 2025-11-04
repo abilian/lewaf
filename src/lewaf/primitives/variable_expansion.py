@@ -121,107 +121,107 @@ class VariableExpander:
         # Special computed variables
         if var_name == "TIME":
             return str(int(time.time() * 1000))  # Milliseconds
-        if var_name == "TIME_SEC":
+        elif var_name == "TIME_SEC":
             return str(int(time.time()))  # Seconds
-        if var_name == "TIME_YEAR":
+        elif var_name == "TIME_YEAR":
             return time.strftime("%Y")
-        if var_name == "TIME_MON":
+        elif var_name == "TIME_MON":
             return time.strftime("%m")
-        if var_name == "TIME_DAY":
+        elif var_name == "TIME_DAY":
             return time.strftime("%d")
-        if var_name == "TIME_HOUR":
+        elif var_name == "TIME_HOUR":
             return time.strftime("%H")
-        if var_name == "TIME_MIN":
+        elif var_name == "TIME_MIN":
             return time.strftime("%M")
-        if var_name == "TIME_SEC":
+        elif var_name == "TIME_SEC":
             return time.strftime("%S")
-        if var_name == "TIME_WDAY":
+        elif var_name == "TIME_WDAY":
             return time.strftime("%w")  # Day of week (0-6)
 
         # Request variables
-        if var_name == "REQUEST_URI":
+        elif var_name == "REQUEST_URI":
             return variables.request_uri.get()
-        if var_name == "REQUEST_URI_RAW":
+        elif var_name == "REQUEST_URI_RAW":
             return variables.request_uri_raw.get()
-        if var_name == "REQUEST_METHOD":
+        elif var_name == "REQUEST_METHOD":
             return variables.request_method.get()
-        if var_name == "REQUEST_PROTOCOL":
+        elif var_name == "REQUEST_PROTOCOL":
             return variables.request_protocol.get()
-        if var_name == "REQUEST_LINE":
+        elif var_name == "REQUEST_LINE":
             return variables.request_line.get()
-        if var_name == "REQUEST_BASENAME":
+        elif var_name == "REQUEST_BASENAME":
             return variables.request_basename.get()
-        if var_name == "REQUEST_FILENAME":
+        elif var_name == "REQUEST_FILENAME":
             return variables.request_filename.get()
-        if var_name == "REQUEST_BODY":
+        elif var_name == "REQUEST_BODY":
             return variables.request_body.get()
-        if var_name == "REQUEST_BODY_LENGTH":
+        elif var_name == "REQUEST_BODY_LENGTH":
             return variables.request_body_length.get()
-        if var_name == "QUERY_STRING":
+        elif var_name == "QUERY_STRING":
             return variables.query_string.get()
 
         # Response variables
-        if var_name == "RESPONSE_STATUS":
+        elif var_name == "RESPONSE_STATUS":
             return variables.response_status.get()
-        if var_name == "RESPONSE_PROTOCOL":
+        elif var_name == "RESPONSE_PROTOCOL":
             return variables.response_protocol.get()
-        if var_name == "RESPONSE_BODY":
+        elif var_name == "RESPONSE_BODY":
             return variables.response_body.get()
-        if var_name == "RESPONSE_CONTENT_LENGTH":
+        elif var_name == "RESPONSE_CONTENT_LENGTH":
             return variables.response_content_length.get()
-        if var_name == "RESPONSE_CONTENT_TYPE":
+        elif var_name == "RESPONSE_CONTENT_TYPE":
             return variables.response_content_type.get()
-        if var_name == "STATUS_LINE":
+        elif var_name == "STATUS_LINE":
             return variables.status_line.get()
 
         # Network variables
-        if var_name == "REMOTE_ADDR":
+        elif var_name == "REMOTE_ADDR":
             return variables.remote_addr.get()
-        if var_name == "REMOTE_HOST":
+        elif var_name == "REMOTE_HOST":
             return variables.remote_host.get()
-        if var_name == "REMOTE_PORT":
+        elif var_name == "REMOTE_PORT":
             return variables.remote_port.get()
-        if var_name == "SERVER_ADDR":
+        elif var_name == "SERVER_ADDR":
             return variables.server_addr.get()
-        if var_name == "SERVER_PORT":
+        elif var_name == "SERVER_PORT":
             return variables.server_port.get()
-        if var_name == "SERVER_NAME":
+        elif var_name == "SERVER_NAME":
             return variables.server_name.get()
 
         # Match variables
-        if var_name == "MATCHED_VAR":
+        elif var_name == "MATCHED_VAR":
             return variables.matched_var.get()
-        if var_name == "MATCHED_VAR_NAME":
+        elif var_name == "MATCHED_VAR_NAME":
             return variables.matched_var_name.get()
 
         # Performance variables
-        if var_name == "DURATION":
+        elif var_name == "DURATION":
             return variables.duration.get()
-        if var_name == "HIGHEST_SEVERITY":
+        elif var_name == "HIGHEST_SEVERITY":
             return variables.highest_severity.get()
-        if var_name == "UNIQUE_ID":
+        elif var_name == "UNIQUE_ID":
             return variables.unique_id.get()
 
         # Size variables
-        if var_name == "FILES_COMBINED_SIZE":
+        elif var_name == "FILES_COMBINED_SIZE":
             return variables.files_combined_size.get()
-        if var_name == "ARGS_COMBINED_SIZE":
+        elif var_name == "ARGS_COMBINED_SIZE":
             return variables.args_combined_size.get()
 
         # Error variables
-        if var_name == "REQBODY_ERROR":
+        elif var_name == "REQBODY_ERROR":
             return variables.reqbody_error.get()
-        if var_name == "REQBODY_ERROR_MSG":
+        elif var_name == "REQBODY_ERROR_MSG":
             return variables.reqbody_error_msg.get()
-        if var_name == "REQBODY_PROCESSOR":
+        elif var_name == "REQBODY_PROCESSOR":
             return variables.reqbody_processor.get()
-        if var_name == "REQBODY_PROCESSOR_ERROR":
+        elif var_name == "REQBODY_PROCESSOR_ERROR":
             return variables.reqbody_processor_error.get()
-        if var_name == "REQBODY_PROCESSOR_ERROR_MSG":
+        elif var_name == "REQBODY_PROCESSOR_ERROR_MSG":
             return variables.reqbody_processor_error_msg.get()
-        if var_name == "INBOUND_DATA_ERROR":
+        elif var_name == "INBOUND_DATA_ERROR":
             return variables.inbound_data_error.get()
-        if var_name == "OUTBOUND_DATA_ERROR":
+        elif var_name == "OUTBOUND_DATA_ERROR":
             return variables.outbound_data_error.get()
 
         # Unknown variable
@@ -240,54 +240,54 @@ class VariableExpander:
             return values[0] if values else ""
 
         # Handle ARGS collection
-        if collection_name == "ARGS":
+        elif collection_name == "ARGS":
             values = variables.args.get(member_key)
             return values[0] if values else ""
 
         # Handle REQUEST_HEADERS collection
-        if collection_name == "REQUEST_HEADERS":
+        elif collection_name == "REQUEST_HEADERS":
             values = variables.request_headers.get(member_key.lower())
             return values[0] if values else ""
 
         # Handle RESPONSE_HEADERS collection
-        if collection_name == "RESPONSE_HEADERS":
+        elif collection_name == "RESPONSE_HEADERS":
             values = variables.response_headers.get(member_key.lower())
             return values[0] if values else ""
 
         # Handle REQUEST_COOKIES collection
-        if collection_name == "REQUEST_COOKIES":
+        elif collection_name == "REQUEST_COOKIES":
             values = variables.request_cookies.get(member_key)
             return values[0] if values else ""
 
         # Handle RESPONSE_COOKIES collection
-        if collection_name == "RESPONSE_COOKIES":
+        elif collection_name == "RESPONSE_COOKIES":
             values = variables.response_cookies.get(member_key)
             return values[0] if values else ""
 
         # Handle GEO collection
-        if collection_name == "GEO":
+        elif collection_name == "GEO":
             values = variables.geo.get(member_key.upper())
             return values[0] if values else ""
 
         # Handle ENV collection (environment variables)
-        if collection_name == "ENV":
+        elif collection_name == "ENV":
             return os.environ.get(member_key.upper(), "")
 
         # Handle FILES collections
-        if collection_name == "FILES_NAMES":
+        elif collection_name == "FILES_NAMES":
             values = variables.files_names.get(member_key)
             return values[0] if values else ""
-        if collection_name == "FILES_SIZES":
+        elif collection_name == "FILES_SIZES":
             values = variables.files_sizes.get(member_key)
             return values[0] if values else ""
 
         # Handle XML collection
-        if collection_name == "XML":
+        elif collection_name == "XML":
             values = variables.xml.get(member_key)
             return values[0] if values else ""
 
         # Handle JSON collection
-        if collection_name == "JSON":
+        elif collection_name == "JSON":
             values = variables.json.get(member_key)
             return values[0] if values else ""
 
