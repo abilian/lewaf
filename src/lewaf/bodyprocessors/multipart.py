@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass, field
 from email import message_from_bytes
 
-from lewaf.bodyprocessors.base import BaseBodyProcessor
-from lewaf.exceptions import BodySizeLimitError, InvalidMultipartError
+from lewaf.bodyprocessors.base import BaseBodyProcessor, BodyProcessorError
 
 logger = logging.getLogger(__name__)
 
@@ -64,10 +62,8 @@ class MultipartProcessor(BaseBodyProcessor):
         """
         # Check size limit
         if len(body) > self.max_size:
-            raise BodySizeLimitError(
-                actual_size=len(body),
-                limit=self.max_size,
-                content_type=content_type,
+            raise BodyProcessorError(
+                f"Multipart body too large: {len(body)} bytes (max: {self.max_size})"
             )
 
         # Store raw body
@@ -77,16 +73,15 @@ class MultipartProcessor(BaseBodyProcessor):
         # Extract boundary from Content-Type
         boundary = self._extract_boundary(content_type)
         if not boundary:
-            msg = "Missing boundary in Content-Type header"
-            raise InvalidMultipartError(msg)
+            raise BodyProcessorError(
+                "Missing boundary in multipart Content-Type header"
+            )
 
         # Parse multipart body
         try:
             self.parts = self._parse_multipart(body, boundary)
         except Exception as e:
-            snippet = body[:100].decode("utf-8", errors="replace")
-            msg = f"Failed to parse multipart body: {e}"
-            raise InvalidMultipartError(msg, body_snippet=snippet, cause=e) from e
+            raise BodyProcessorError(f"Failed to parse multipart body: {e}") from e
 
         # Populate collections
         args_post = {}
@@ -112,21 +107,12 @@ class MultipartProcessor(BaseBodyProcessor):
                     # Binary data in form field - store as hex
                     args_post[part.name] = part.content.hex()
 
-        # Collect all part headers for MULTIPART_PART_HEADERS
-        # Key format: "partname:headername" -> header value
-        multipart_part_headers: dict[str, str] = {}
-        for part in self.parts:
-            for header_name, header_value in part.headers.items():
-                key = f"{part.name}:{header_name}"
-                multipart_part_headers[key] = header_value
-
         self._set_collection("args_post", args_post)
         self._set_collection("files", files_dict)
         self._set_collection("files_names", files_names)
         self._set_collection("files_sizes", files_sizes)
         self._set_collection("multipart_filename", multipart_filenames)
         self._set_collection("multipart_name", multipart_names)
-        self._set_collection("multipart_part_headers", multipart_part_headers)
         self._set_collection("request_body", body.decode("utf-8", errors="replace"))
         self.body_parsed = True
 
@@ -232,7 +218,7 @@ class MultipartProcessor(BaseBodyProcessor):
             msg_bytes = header_data + b"\r\n\r\n"
             msg = message_from_bytes(msg_bytes)
         except Exception as e:
-            logger.warning("Failed to parse multipart headers: %s", e)
+            logger.warning(f"Failed to parse multipart headers: {e}")
             return None
 
         # Extract Content-Disposition
@@ -250,15 +236,11 @@ class MultipartProcessor(BaseBodyProcessor):
         # Get Content-Type
         content_type = msg.get("Content-Type", "text/plain")
 
-        # Extract all headers as dict for MULTIPART_PART_HEADERS
-        headers = {key: str(value) for key, value in msg.items()}
-
         return MultipartPart(
             name=name,
             filename=filename,
             content_type=content_type,
             content=content,
-            headers=headers,
         )
 
     def _extract_param(self, header: str, param: str) -> str:
@@ -284,7 +266,7 @@ class MultipartProcessor(BaseBodyProcessor):
         if match.group(2) is not None:
             # Quoted value - use the content inside quotes
             return match.group(2)
-        if match.group(3) is not None:
+        elif match.group(3) is not None:
             # Unquoted value
             return match.group(3)
 
@@ -327,7 +309,6 @@ class MultipartProcessor(BaseBodyProcessor):
         return []
 
 
-@dataclass(frozen=True, slots=True, repr=False)
 class MultipartPart:
     """Represents a single part in a multipart body.
 
@@ -336,14 +317,27 @@ class MultipartPart:
         filename: Filename if this is a file upload
         content_type: Content-Type of the part
         content: Raw content bytes
-        headers: Raw headers as dict
     """
 
-    name: str
-    filename: str
-    content_type: str
-    content: bytes
-    headers: dict[str, str] = field(default_factory=dict)
+    def __init__(
+        self,
+        name: str,
+        filename: str,
+        content_type: str,
+        content: bytes,
+    ):
+        """Initialize multipart part.
+
+        Args:
+            name: Field name
+            filename: Filename (empty string if not a file)
+            content_type: Content-Type
+            content: Raw content bytes
+        """
+        self.name = name
+        self.filename = filename
+        self.content_type = content_type
+        self.content = content
 
     def __repr__(self) -> str:
         """Return string representation."""
