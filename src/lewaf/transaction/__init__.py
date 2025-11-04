@@ -188,6 +188,11 @@ class Transaction:
                     self.variables.args.add(key, value)
 
     def process_request_headers(self) -> Optional[Dict[str, Union[str, int]]]:
+        """Process request headers and evaluate Phase 1 rules.
+
+        Returns:
+            Interruption dict if rules triggered, None otherwise
+        """
         self.current_phase = 1
         self.waf.rule_group.evaluate(1, self)
         return self.interruption
@@ -204,6 +209,116 @@ class Transaction:
         # Evaluate Phase 2 rules
         self.current_phase = 2
         self.waf.rule_group.evaluate(2, self)
+        return self.interruption
+
+    def add_response_headers(self, headers: dict[str, str]) -> None:
+        """Add response headers to transaction.
+
+        Args:
+            headers: Response headers as dict (name -> value)
+        """
+        for name, value in headers.items():
+            self.variables.response_headers.add(name.lower(), value)
+
+        # Populate derived variables
+        self.variables.populate_header_names()
+
+        # Extract Content-Type if present
+        content_type_values = self.variables.response_headers.get("content-type")
+        if content_type_values:
+            self.variables.response_content_type.set(content_type_values[0])
+
+        # Extract Content-Length if present
+        content_length_values = self.variables.response_headers.get("content-length")
+        if content_length_values:
+            try:
+                length = int(content_length_values[0])
+                self.variables.response_content_length.set(str(length))
+            except ValueError:
+                pass
+
+    def add_response_status(self, status: int, protocol: str = "HTTP/1.1") -> None:
+        """Add response status to transaction.
+
+        Args:
+            status: HTTP status code
+            protocol: HTTP protocol version
+        """
+        self.variables.set_response_variables(status=status, protocol=protocol)
+
+    def process_response_headers(self) -> Optional[Dict[str, Union[str, int]]]:
+        """Process response headers and evaluate Phase 3 rules.
+
+        Returns:
+            Interruption dict if rules triggered, None otherwise
+        """
+        self.current_phase = 3
+        self.waf.rule_group.evaluate(3, self)
+        return self.interruption
+
+    def add_response_body(self, body: bytes, content_type: str = "") -> None:
+        """Add response body content to transaction.
+
+        Args:
+            body: Response body bytes
+            content_type: Content-Type header value
+        """
+        # Set body content
+        self.variables.set_response_variables(
+            body=body, content_type=content_type, content_length=len(body)
+        )
+
+    def _parse_response_body(self) -> None:
+        """Parse response body using appropriate processor."""
+        # Get body content
+        body = self.variables.response_body.get_raw()
+        if not body:
+            return
+
+        # Get Content-Type
+        content_type = self.variables.response_content_type.get()
+        if not content_type:
+            # Try from response headers
+            content_type_values = self.variables.response_headers.get("content-type")
+            content_type = content_type_values[0] if content_type_values else ""
+
+        # Select processor (reuse request processor logic)
+        processor_name = self._select_body_processor(content_type)
+        if not processor_name:
+            return
+
+        # Store processor name in TX collection (response-specific)
+        self.variables.tx.add("response_body_processor", processor_name)
+
+        try:
+            processor = get_body_processor(processor_name)
+            processor.read(body, content_type)
+
+            # Merge collections (same as request body)
+            # Note: This populates ARGS_POST with response data
+            # Real implementation might use different collection names
+            self._merge_processor_collections(processor)
+
+        except BodyProcessorError as e:
+            # Set error variables for response body
+            self.variables.tx.add("response_body_error", "1")
+            self.variables.tx.add("response_body_error_msg", str(e))
+        except Exception as e:
+            self.variables.tx.add("response_body_error", "1")
+            self.variables.tx.add("response_body_error_msg", f"Unexpected error: {e}")
+
+    def process_response_body(self) -> Optional[Dict[str, Union[str, int]]]:
+        """Process response body and evaluate Phase 4 rules.
+
+        Returns:
+            Interruption dict if rules triggered, None otherwise
+        """
+        # Parse body before evaluating rules
+        self._parse_response_body()
+
+        # Evaluate Phase 4 rules
+        self.current_phase = 4
+        self.waf.rule_group.evaluate(4, self)
         return self.interruption
 
     def interrupt(self, rule: Rule):
