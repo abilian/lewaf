@@ -484,27 +484,43 @@ class ChainAction(Action):
 
 @register_action("skipafter")
 class SkipAfterAction(Action):
-    """Skip all rules after a specified rule ID or tag.
+    """Skip all rules after a specified rule ID, tag, or marker.
 
     This action causes rule processing to skip all rules that come after
-    the specified rule ID or tag within the current phase.
+    the specified rule ID, tag, or SecMarker within the current phase.
+
+    This is commonly used in CRS for paranoia level filtering:
+        SecRule TX:DETECTION_PARANOIA_LEVEL "@lt 2" "skipAfter:END-SECTION"
+        SecMarker "END-SECTION"
     """
 
     def action_type(self) -> ActionType:
         return ActionType.FLOW
 
+    def init(self, rule_metadata: dict, data: str) -> None:
+        """Initialize skipAfter with target.
+
+        Args:
+            rule_metadata: Rule metadata dict
+            data: Rule ID, tag, or marker name
+        """
+        self.target = data.strip()
+
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         if not hasattr(transaction, "skip_state"):
             transaction.skip_state = {}
 
-        # The argument can be a rule ID or tag
-        if hasattr(self, "argument") and self.argument:
-            if self.argument.isdigit():
+        # Support both self.target (new) and self.argument (old)
+        target = getattr(self, "target", None) or getattr(self, "argument", None)
+
+        if target:
+            if target.isdigit():
                 # Numeric rule ID
-                transaction.skip_state["skip_after_id"] = int(self.argument)
+                transaction.skip_state["skip_after_id"] = int(target)
             else:
-                # Tag-based skipping
-                transaction.skip_state["skip_after_tag"] = self.argument
+                # Marker name or tag - use skip_after_tag
+                # SecMarker creates rules with tags, so this handles both cases
+                transaction.skip_state["skip_after_tag"] = target
         else:
             # Skip all remaining rules in current phase
             transaction.skip_state["skip_remaining"] = True

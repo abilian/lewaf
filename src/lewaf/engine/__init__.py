@@ -81,9 +81,13 @@ class RuleGroup:
 
         # Check skip_after_tag
         skip_after_tag = skip_state.get("skip_after_tag")
-        if skip_after_tag and hasattr(rule, "tags") and skip_after_tag in rule.tags:
-            skip_state["skip_remaining"] = True
-            return False  # Don't skip this rule, but skip all after it
+        if skip_after_tag:
+            # If current rule has the target tag, clear skip state and don't skip this rule
+            if hasattr(rule, "tags") and skip_after_tag in rule.tags:
+                del skip_state["skip_after_tag"]
+                return False  # Don't skip this rule, and stop skipping after it
+            # Otherwise skip this rule (we haven't reached the target yet)
+            return True
 
         return False
 

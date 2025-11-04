@@ -394,6 +394,12 @@ class SecRuleParser:
             op=operator_instance,
         )
 
+        # Collect tags from TagAction instances
+        tags = []
+        for action_name, action_instance in self.actions.items():
+            if action_name == "tag" and hasattr(action_instance, "tag_name"):
+                tags.append(action_instance.tag_name)
+
         # Create the Rule
         rule = Rule(
             variables=self.variables,
@@ -401,6 +407,7 @@ class SecRuleParser:
             transformations=self.transformations,
             actions=self.actions,
             metadata=self.metadata,
+            tags=tags,
         )
 
         # Add to WAF

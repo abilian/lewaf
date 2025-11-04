@@ -60,6 +60,9 @@ class SecLangParser:
             2: "phase:2,log,auditlog,pass",
         }
 
+        # Markers for skipAfter flow control
+        self.markers: dict[str, int] = {}  # marker_name -> rule_index
+
     def from_file(self, file_path: str | Path) -> None:
         """Load and parse a SecLang configuration file.
 
@@ -324,3 +327,55 @@ class SecLangParser:
             logger.info(f"Set default actions for phase {phase}: {args}")
         else:
             logger.warning(f"SecDefaultAction without phase specification: {args}")
+
+    def _handle_secmarker(self, args: str) -> None:
+        """Handle SecMarker directive.
+
+        SecMarker defines a named location in the rule set that can be used
+        as a target for skipAfter actions. This is commonly used in CRS for
+        paranoia level filtering.
+
+        Args:
+            args: Marker name (e.g., "END-REQUEST-920-PROTOCOL-ENFORCEMENT")
+
+        Example:
+            SecMarker "END-HOST-CHECK"
+            SecRule TX:PARANOIA_LEVEL "@lt 2" "skipAfter:END-HOST-CHECK"
+        """
+        marker_name = args.strip()
+        if not marker_name:
+            logger.warning(f"SecMarker with empty name at {self.current_file}:{self.current_line}")
+            return
+
+        # Create a marker "rule" - a pass-through rule with the marker name
+        # This allows skipAfter to find it during rule evaluation
+        from lewaf.seclang.rule_parser import SecRuleParser
+
+        # Create a dummy rule that always passes and has the marker name as a tag
+        marker_rule_str = f'REQUEST_URI "@unconditional" "id:marker_{marker_name},phase:1,nolog,pass,tag:{marker_name}"'
+
+        parser = SecRuleParser(self)
+        try:
+            parser.parse_rule(marker_rule_str)
+        except Exception as e:
+            logger.warning(f"Failed to create marker rule for '{marker_name}': {e}")
+
+        logger.debug(f"Registered marker '{marker_name}' as rule")
+
+    def _handle_seccomponentsignature(self, args: str) -> None:
+        """Handle SecComponentSignature directive.
+
+        SecComponentSignature identifies the WAF component and version.
+        This is informational only and doesn't affect rule processing.
+
+        Args:
+            args: Component signature string
+
+        Example:
+            SecComponentSignature "OWASP_CRS/3.3.4"
+        """
+        signature = args.strip()
+        logger.info(f"Component signature: {signature}")
+        # Store in WAF metadata if needed
+        if not hasattr(self.waf, 'component_signature'):
+            self.waf.component_signature = signature
