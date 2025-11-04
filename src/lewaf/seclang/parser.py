@@ -378,6 +378,5 @@ class SecLangParser:
         """
         signature = args.strip()
         logger.info(f"Component signature: {signature}")
-        # Store in WAF metadata if needed
-        if not hasattr(self.waf, "component_signature"):
-            self.waf.component_signature = signature
+        # Store in WAF metadata
+        self.waf.component_signature = signature
