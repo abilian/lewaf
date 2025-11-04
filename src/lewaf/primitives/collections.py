@@ -218,6 +218,7 @@ class TransactionVariables:
     def __init__(self):
         # Core collections from original implementation
         self.args = MapCollection("ARGS")
+        self.args_post = MapCollection("ARGS_POST")
         self.request_headers = MapCollection("REQUEST_HEADERS")
         self.tx = MapCollection("TX", case_insensitive=False)
         self.request_uri = SingleValueCollection("REQUEST_URI")
@@ -282,6 +283,7 @@ class TransactionVariables:
         self.response_headers_names = MapCollection("RESPONSE_HEADERS_NAMES")
         self.request_cookies_names = MapCollection("REQUEST_COOKIES_NAMES")
         self.args_names = MapCollection("ARGS_NAMES")
+        self.args_post_names = MapCollection("ARGS_POST_NAMES")
         self.args_combined_size = SingleValueCollection("ARGS_COMBINED_SIZE")
 
         # Performance and monitoring variables
