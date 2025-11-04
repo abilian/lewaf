@@ -143,6 +143,7 @@ class WAF:
     def __init__(self, config: Dict[str, Union[List[Any], List[str]]]):
         self.rule_group = RuleGroup()
         self.parser = SecLangParser(self.rule_group)
+        self.component_signature: str = ""
         for rule_str in config["rules"]:
             self.parser.from_string(rule_str)
         self._tx_counter = 0
