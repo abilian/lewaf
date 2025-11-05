@@ -25,7 +25,9 @@ def test_response_headers_phase3():
     assert result is None
 
     # Verify headers populated
-    assert tx.variables.response_headers.get("content-type") == ["text/html; charset=utf-8"]
+    assert tx.variables.response_headers.get("content-type") == [
+        "text/html; charset=utf-8"
+    ]
     assert tx.variables.response_headers.get("server") == ["nginx/1.18.0"]
     assert tx.variables.response_content_type.get() == "text/html; charset=utf-8"
     assert tx.variables.response_content_length.get() == "1234"
@@ -48,11 +50,13 @@ def test_response_status_variables():
 
 def test_response_headers_rule_matching():
     """Test CRS-style rule matching on response headers."""
-    waf = WAF({
-        "rules": [
-            'SecRule RESPONSE_HEADERS:Server "@rx (?i:apache)" "id:2001,phase:3,deny,msg:\'Server Header Disclosure\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule RESPONSE_HEADERS:Server "@rx (?i:apache)" "id:2001,phase:3,deny,msg:\'Server Header Disclosure\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Add response with Apache server header
@@ -132,11 +136,13 @@ def test_response_body_json():
 
 def test_response_data_leakage_detection():
     """Test data leakage detection in response body."""
-    waf = WAF({
-        "rules": [
-            'SecRule RESPONSE_BODY "@rx (?i:password|secret)" "id:2003,phase:4,deny,msg:\'Data Leakage Detected\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule RESPONSE_BODY "@rx (?i:password|secret)" "id:2003,phase:4,deny,msg:\'Data Leakage Detected\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Response with leaked credentials
@@ -152,11 +158,13 @@ def test_response_data_leakage_detection():
 
 def test_response_sql_error_detection():
     """Test SQL error message detection in response."""
-    waf = WAF({
-        "rules": [
-            'SecRule RESPONSE_BODY "@rx (?i:sql error|mysql|syntax error)" "id:2004,phase:4,deny,msg:\'SQL Error Exposed\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule RESPONSE_BODY "@rx (?i:sql error|mysql|syntax error)" "id:2004,phase:4,deny,msg:\'SQL Error Exposed\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Response with SQL error
@@ -172,11 +180,13 @@ def test_response_sql_error_detection():
 
 def test_response_5xx_status_detection():
     """Test detection of 5xx server errors."""
-    waf = WAF({
-        "rules": [
-            'SecRule RESPONSE_STATUS "@rx ^5\\d{2}$" "id:2005,phase:3,log,msg:\'Server Error\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule RESPONSE_STATUS "@rx ^5\\d{2}$" "id:2005,phase:3,log,msg:\'Server Error\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Add 500 error response
@@ -196,7 +206,7 @@ def test_response_xml_body():
     tx = waf.new_transaction()
 
     # Add XML response
-    body = b"<response><status>success</status><user id=\"123\">admin</user></response>"
+    body = b'<response><status>success</status><user id="123">admin</user></response>'
     tx.add_response_body(body, "text/xml")
 
     # Process response body
@@ -256,12 +266,14 @@ def test_response_malformed_json():
 
 def test_full_transaction_flow():
     """Test complete transaction flow with request and response."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx attack" "id:3001,phase:2,deny,msg:\'Request Attack\'"',
-            'SecRule RESPONSE_BODY "@rx sensitive" "id:3002,phase:4,deny,msg:\'Response Leak\'"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx attack" "id:3001,phase:2,deny,msg:\'Request Attack\'"',
+                'SecRule RESPONSE_BODY "@rx sensitive" "id:3002,phase:4,deny,msg:\'Response Leak\'"',
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Process request (clean)
@@ -281,11 +293,13 @@ def test_full_transaction_flow():
 
 def test_response_no_interruption_on_safe_content():
     """Test that safe responses don't trigger rules."""
-    waf = WAF({
-        "rules": [
-            'SecRule RESPONSE_BODY "@rx (?i:password|secret)" "id:3003,phase:4,deny,msg:\'Data Leak\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule RESPONSE_BODY "@rx (?i:password|secret)" "id:3003,phase:4,deny,msg:\'Data Leak\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Safe response
