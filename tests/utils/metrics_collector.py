@@ -1,7 +1,5 @@
 """Performance metrics collection for load testing."""
 
-from __future__ import annotations
-
 import statistics
 import time
 from typing import Any
