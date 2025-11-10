@@ -1,8 +1,5 @@
 """Real-world attack simulation tests."""
 
-from __future__ import annotations
-
-import time
 from pathlib import Path
 
 import pytest
@@ -42,9 +39,7 @@ class AttackSimulator:
             elif vector == "body":
                 tx.process_uri("/test", "POST")
                 body = f'{{"data": "{payload}"}}'
-                tx.add_request_body(
-                    body.encode("utf-8", errors="ignore"), "application/json"
-                )
+                tx.add_request_body(body.encode("utf-8", errors="ignore"), "application/json")
                 result = tx.process_request_body()
             elif vector == "header":
                 tx.process_uri("/test", "GET")
@@ -93,30 +88,32 @@ class AttackSimulator:
 @pytest.fixture
 def comprehensive_waf():
     """WAF with comprehensive OWASP Top 10 rules."""
-    return WAF({
-        "rules": [
-            # SQL Injection (A03:2021)
-            'SecRule ARGS "@rx (?i:select.*from)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"',
-            'SecRule ARGS "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"',
-            'SecRule ARGS "@rx (?i:insert.*into)" "id:1003,phase:2,deny,msg:\'SQL Injection\'"',
-            'SecRule REQUEST_BODY "@rx (?i:select.*from)" "id:1011,phase:2,deny,msg:\'SQL Injection in body\'"',
-            # XSS (A03:2021)
-            'SecRule ARGS "@rx <script" "id:2001,phase:2,deny,msg:\'XSS\'"',
-            'SecRule ARGS "@rx (?i:onerror\\s*=)" "id:2002,phase:2,deny,msg:\'XSS\'"',
-            'SecRule ARGS "@rx (?i:javascript:)" "id:2003,phase:2,deny,msg:\'XSS\'"',
-            'SecRule REQUEST_BODY "@rx <script" "id:2011,phase:2,deny,msg:\'XSS in body\'"',
-            # Path Traversal (A01:2021)
-            'SecRule ARGS "@rx \\.\\./\\.\\." "id:3001,phase:2,deny,msg:\'Path Traversal\'"',
-            'SecRule ARGS "@rx /etc/passwd" "id:3002,phase:2,deny,msg:\'File Access\'"',
-            'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:3011,phase:1,deny,msg:\'Path Traversal in URI\'"',
-            # Command Injection (A03:2021)
-            'SecRule ARGS "@rx (?i:;\\s*(?:cat|ls|whoami|id|pwd))" "id:4001,phase:2,deny,msg:\'Command Injection\'"',
-            'SecRule ARGS "@rx (?i:\\|\\s*(?:cat|ls|whoami))" "id:4002,phase:2,deny,msg:\'Command Injection\'"',
-            # Header Injection
-            'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:<script)" "id:5001,phase:1,deny,msg:\'Header XSS\'"',
-            'SecRule REQUEST_HEADERS "@rx (?i:\\r\\n)" "id:5002,phase:1,deny,msg:\'CRLF Injection\'"',
-        ]
-    })
+    return WAF(
+        {
+            "rules": [
+                # SQL Injection (A03:2021)
+                'SecRule ARGS "@rx (?i:select.*from)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"',
+                'SecRule ARGS "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"',
+                'SecRule ARGS "@rx (?i:insert.*into)" "id:1003,phase:2,deny,msg:\'SQL Injection\'"',
+                'SecRule REQUEST_BODY "@rx (?i:select.*from)" "id:1011,phase:2,deny,msg:\'SQL Injection in body\'"',
+                # XSS (A03:2021)
+                'SecRule ARGS "@rx <script" "id:2001,phase:2,deny,msg:\'XSS\'"',
+                'SecRule ARGS "@rx (?i:onerror\\s*=)" "id:2002,phase:2,deny,msg:\'XSS\'"',
+                'SecRule ARGS "@rx (?i:javascript:)" "id:2003,phase:2,deny,msg:\'XSS\'"',
+                'SecRule REQUEST_BODY "@rx <script" "id:2011,phase:2,deny,msg:\'XSS in body\'"',
+                # Path Traversal (A01:2021)
+                'SecRule ARGS "@rx \\.\\./\\.\\." "id:3001,phase:2,deny,msg:\'Path Traversal\'"',
+                'SecRule ARGS "@rx /etc/passwd" "id:3002,phase:2,deny,msg:\'File Access\'"',
+                'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:3011,phase:1,deny,msg:\'Path Traversal in URI\'"',
+                # Command Injection (A03:2021)
+                'SecRule ARGS "@rx (?i:;\\s*(?:cat|ls|whoami|id|pwd))" "id:4001,phase:2,deny,msg:\'Command Injection\'"',
+                'SecRule ARGS "@rx (?i:\\|\\s*(?:cat|ls|whoami))" "id:4002,phase:2,deny,msg:\'Command Injection\'"',
+                # Header Injection
+                'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:<script)" "id:5001,phase:1,deny,msg:\'Header XSS\'"',
+                'SecRule REQUEST_HEADERS "@rx (?i:\\r\\n)" "id:5002,phase:1,deny,msg:\'CRLF Injection\'"',
+            ]
+        }
+    )
 
 
 @pytest.fixture
@@ -140,11 +137,11 @@ def test_simulate_sql_injection_attacks(comprehensive_waf, payloads_dir):
     # Simulate via query parameters
     result = simulator.simulate_attack("sqli_query", sqli_payloads[:20], vector="query")
 
-    print("\nSQL Injection Attack Simulation:")
+    print(f"\nSQL Injection Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
 
     # Should detect reasonable portion
     assert result["detection_rate"] >= 0.30
@@ -165,11 +162,11 @@ def test_simulate_xss_attacks(comprehensive_waf, payloads_dir):
     # Simulate via query parameters
     result = simulator.simulate_attack("xss_query", xss_payloads[:25], vector="query")
 
-    print("\nXSS Attack Simulation:")
+    print(f"\nXSS Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
 
     # Should detect good portion
     assert result["detection_rate"] >= 0.50
@@ -190,11 +187,11 @@ def test_simulate_path_traversal_attacks(comprehensive_waf, payloads_dir):
     # Simulate via query parameters
     result = simulator.simulate_attack("lfi_query", lfi_payloads[:20], vector="query")
 
-    print("\nPath Traversal Attack Simulation:")
+    print(f"\nPath Traversal Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
 
     # Many use encoding, so lower threshold
     assert result["detection_rate"] >= 0.25
@@ -222,11 +219,11 @@ def test_simulate_command_injection_attacks(comprehensive_waf):
 
     result = simulator.simulate_attack("cmdi", payloads, vector="query")
 
-    print("\nCommand Injection Attack Simulation:")
+    print(f"\nCommand Injection Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
 
     # Should detect most command injection
     assert result["detection_rate"] >= 0.50
@@ -247,11 +244,11 @@ def test_simulate_header_injection_attacks(comprehensive_waf):
 
     result = simulator.simulate_attack("header_injection", payloads, vector="header")
 
-    print("\nHeader Injection Attack Simulation:")
+    print(f"\nHeader Injection Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
 
     # Should detect some header attacks
     assert result["detection_rate"] >= 0.20
@@ -259,13 +256,15 @@ def test_simulate_header_injection_attacks(comprehensive_waf):
 
 def test_simulate_multi_vector_attack():
     """Simulate attack across multiple vectors."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
-            'SecRule REQUEST_BODY "@rx (?i:attack)" "id:2,phase:2,deny"',
-            'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:attack)" "id:3,phase:1,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
+                'SecRule REQUEST_BODY "@rx (?i:attack)" "id:2,phase:2,deny"',
+                'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:attack)" "id:3,phase:1,deny"',
+            ]
+        }
+    )
 
     simulator = AttackSimulator(waf)
 
@@ -304,13 +303,15 @@ def test_simulate_owasp_top10_campaign(comprehensive_waf, payloads_dir):
                         all_payloads.append(line)
 
     # Take sample from each
-    result = simulator.simulate_attack("owasp_top10", all_payloads[:50], vector="query")
+    result = simulator.simulate_attack(
+        "owasp_top10", all_payloads[:50], vector="query"
+    )
 
-    print("\nOWSAP Top 10 Campaign Simulation:")
+    print(f"\nOWSAP Top 10 Campaign Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
 
     # Mixed attacks, lower threshold
     assert result["detection_rate"] >= 0.40
@@ -318,12 +319,14 @@ def test_simulate_owasp_top10_campaign(comprehensive_waf, payloads_dir):
 
 def test_simulate_evasion_techniques():
     """Test detection of evasion techniques."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
-            'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
+                'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
+            ]
+        }
+    )
 
     simulator = AttackSimulator(waf)
 
@@ -343,11 +346,11 @@ def test_simulate_evasion_techniques():
 
     result = simulator.simulate_attack("evasion", evasion_payloads, vector="query")
 
-    print("\nEvasion Technique Detection:")
+    print(f"\nEvasion Technique Detection:")
     print(f"  Total Attempts: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
 
     # Case-insensitive regex should catch most
     assert result["detection_rate"] >= 0.50
@@ -355,13 +358,15 @@ def test_simulate_evasion_techniques():
 
 def test_simulate_attack_chaining():
     """Test detection of chained attacks."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx (?i:select)" "id:1,phase:2,deny"',
-            'SecRule ARGS "@rx (?i:<script)" "id:2,phase:2,deny"',
-            'SecRule ARGS "@rx (?i:\\.\\.)" "id:3,phase:2,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx (?i:select)" "id:1,phase:2,deny"',
+                'SecRule ARGS "@rx (?i:<script)" "id:2,phase:2,deny"',
+                'SecRule ARGS "@rx (?i:\\.\\.)" "id:3,phase:2,deny"',
+            ]
+        }
+    )
 
     # Chained attack attempts
     tx1 = waf.new_transaction()
@@ -412,11 +417,11 @@ def test_attack_detection_rates_summary(comprehensive_waf, payloads_dir):
     # Get summary
     summary = simulator.get_summary()
 
-    print("\n=== Attack Detection Summary ===")
+    print(f"\n=== Attack Detection Summary ===")
     print(f"Total Attacks Simulated: {summary['total_attacks']}")
     print(f"Total Detected: {summary['total_detected']}")
     print(f"Total Missed: {summary['total_missed']}")
-    print(f"Overall Detection Rate: {summary['overall_detection_rate'] * 100:.1f}%")
+    print(f"Overall Detection Rate: {summary['overall_detection_rate']*100:.1f}%")
 
     print("\nBy Category:")
     for category in categories:
@@ -431,12 +436,14 @@ def test_attack_detection_rates_summary(comprehensive_waf, payloads_dir):
 
 def test_simulate_real_world_attack_scenario():
     """Simulate realistic attack scenario."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
-            'SecRule REQUEST_BODY "@rx (?i:password)" "id:2,phase:2,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
+                'SecRule REQUEST_BODY "@rx (?i:password)" "id:2,phase:2,deny"',
+            ]
+        }
+    )
 
     # Scenario: Attacker tries SQL injection in login form
     tx1 = waf.new_transaction()
@@ -459,11 +466,15 @@ def test_simulate_real_world_attack_scenario():
 
 def test_performance_under_attack_load():
     """Test WAF performance under sustained attack."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
+            ]
+        }
+    )
+
+    import time
 
     # Simulate rapid attack attempts
     start = time.time()
@@ -479,11 +490,11 @@ def test_performance_under_attack_load():
 
     elapsed = time.time() - start
 
-    print("\nPerformance Under Attack:")
+    print(f"\nPerformance Under Attack:")
     print(f"  Attacks: {attack_count}")
     print(f"  Blocked: {blocked}")
     print(f"  Time: {elapsed:.2f}s")
-    print(f"  Rate: {attack_count / elapsed:.1f} attacks/sec")
+    print(f"  Rate: {attack_count/elapsed:.1f} attacks/sec")
 
     # Should block all attacks quickly
     assert blocked == attack_count
