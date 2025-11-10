@@ -1,34 +1,14 @@
 """Performance benchmarking suite for regression detection."""
 
-from __future__ import annotations
-
 import json
 import time
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from lewaf.integration import WAF
-from lewaf.primitives import transformations
-from lewaf.primitives.collections import TransactionVariables
 from lewaf.primitives.operators import OperatorOptions, get_operator
-
-
-class StubTransaction:
-    """Minimal stub transaction for benchmarking operators."""
-
-    def __init__(self):
-        self.variables = TransactionVariables()
-
-    def capturing(self) -> bool:
-        return False
-
-    def capture_field(self, index: int, value: str) -> None:
-        pass
-
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from lewaf.primitives import transformations
 
 
 class BenchmarkSuite:
@@ -125,15 +105,17 @@ def test_benchmark_empty_request(benchmark):
 
 def test_benchmark_simple_get_with_rules(benchmark):
     """Benchmark simple GET request with 5 rules."""
-    waf = WAF({
-        "rules": [
-            'SecRule REQUEST_URI "@rx /admin" "id:1,phase:1,deny"',
-            'SecRule ARGS "@rx attack" "id:2,phase:2,deny"',
-            'SecRule REQUEST_HEADERS:User-Agent "@rx bot" "id:3,phase:1,deny"',
-            'SecRule ARGS "@rx <script" "id:4,phase:2,deny"',
-            'SecRule REQUEST_METHOD "@rx POST" "id:5,phase:1,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule REQUEST_URI "@rx /admin" "id:1,phase:1,deny"',
+                'SecRule ARGS "@rx attack" "id:2,phase:2,deny"',
+                'SecRule REQUEST_HEADERS:User-Agent "@rx bot" "id:3,phase:1,deny"',
+                'SecRule ARGS "@rx <script" "id:4,phase:2,deny"',
+                'SecRule REQUEST_METHOD "@rx POST" "id:5,phase:1,deny"',
+            ]
+        }
+    )
 
     def simple_get():
         tx = waf.new_transaction()
@@ -210,10 +192,9 @@ def test_benchmark_regex_operator(benchmark):
     """Benchmark regex operator performance."""
     options = OperatorOptions("(?i:select.*from)")
     operator = get_operator("rx", options)
-    tx = StubTransaction()
 
     def match_regex():
-        operator.evaluate(tx, "SELECT * FROM users")
+        operator.evaluate(None, "SELECT * FROM users")
 
     avg_time = benchmark.benchmark("regex_operator_us", match_regex) * 1000  # to µs
     print(f"\nRegex operator: {avg_time:.1f}µs")
@@ -235,7 +216,6 @@ def test_benchmark_transformation_lowercase(benchmark):
     assert avg_time < 20
 
 
-@pytest.mark.skip(reason="Failing intermittently, needs investigation")
 def test_benchmark_rule_evaluation_scaling():
     """Test rule evaluation performance scaling."""
     rule_counts = [10, 50, 100, 500]
@@ -267,11 +247,13 @@ def test_benchmark_rule_evaluation_scaling():
 
 def test_benchmark_response_processing(benchmark):
     """Benchmark response processing (Phase 3-4)."""
-    waf = WAF({
-        "rules": [
-            'SecRule RESPONSE_BODY "@rx password" "id:1,phase:4,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule RESPONSE_BODY "@rx password" "id:1,phase:4,deny"',
+            ]
+        }
+    )
 
     body = b'{"status": "success", "data": [1, 2, 3]}'
 
@@ -341,11 +323,13 @@ def test_benchmark_multipart_parsing(benchmark):
 
 def test_benchmark_concurrent_transactions():
     """Benchmark concurrent transaction handling."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx attack" "id:1,phase:2,deny"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx attack" "id:1,phase:2,deny"',
+            ]
+        }
+    )
 
     start = time.time()
     iterations = 1000
