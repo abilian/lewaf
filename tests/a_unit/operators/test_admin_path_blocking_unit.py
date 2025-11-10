@@ -4,11 +4,8 @@ This module tests the operator and transformation logic in isolation,
 ensuring that @streq correctly matches paths and t:lowercase normalizes case.
 """
 
-from __future__ import annotations
-
 from lewaf.primitives.operators import OperatorOptions, get_operator
 from lewaf.primitives.transformations import TRANSFORMATIONS
-from tests.utils import stub_tx
 
 
 def test_streq_operator_exact_match():
@@ -16,7 +13,7 @@ def test_streq_operator_exact_match():
     options = OperatorOptions("/admin")
     operator = get_operator("streq", options)
 
-    tx = stub_tx()
+    tx = None  # Not needed for streq operator
 
     # Exact match should succeed
     assert operator.evaluate(tx, "/admin") is True
@@ -24,8 +21,7 @@ def test_streq_operator_exact_match():
     # Non-matches should fail
     assert operator.evaluate(tx, "/user") is False
     assert operator.evaluate(tx, "/admin/users") is False
-    # Case sensitive without transformation
-    assert operator.evaluate(tx, "/ADMIN") is False
+    assert operator.evaluate(tx, "/ADMIN") is False  # Case sensitive without transformation
 
 
 def test_lowercase_transformation():
@@ -67,7 +63,7 @@ def test_streq_with_lowercase_transformation():
     # Setup transformation
     lowercase_fn = TRANSFORMATIONS["lowercase"]
 
-    tx = stub_tx()
+    tx = None
 
     # Test various URI variations with transformation applied
     test_cases = [
@@ -85,9 +81,7 @@ def test_streq_with_lowercase_transformation():
         # Apply transformation first, then evaluate
         transformed_uri, _ = lowercase_fn(uri)
         result = operator.evaluate(tx, transformed_uri)
-        assert result == expected, (
-            f"Failed: {description} (URI: {uri}, transformed: {transformed_uri})"
-        )
+        assert result == expected, f"Failed: {description} (URI: {uri}, transformed: {transformed_uri})"
 
 
 def test_streq_operator_case_sensitivity_without_transformation():
@@ -95,7 +89,7 @@ def test_streq_operator_case_sensitivity_without_transformation():
     options = OperatorOptions("/admin")
     operator = get_operator("streq", options)
 
-    tx = stub_tx()
+    tx = None
 
     # Without transformation, case matters
     assert operator.evaluate(tx, "/admin") is True
@@ -113,7 +107,7 @@ def test_transformation_chain_with_streq():
     lowercase_fn = TRANSFORMATIONS["lowercase"]
     trim_fn = TRANSFORMATIONS["trim"]  # Remove leading/trailing whitespace
 
-    tx = stub_tx()
+    tx = None
 
     # Apply transformation chain
     uri = "  /ADMIN  "  # Whitespace + uppercase
@@ -130,7 +124,7 @@ def test_admin_path_blocking_edge_cases():
     operator = get_operator("streq", options)
     lowercase_fn = TRANSFORMATIONS["lowercase"]
 
-    tx = stub_tx()
+    tx = None
 
     edge_cases = [
         ("", False, "Empty string should not match"),
@@ -139,11 +133,7 @@ def test_admin_path_blocking_edge_cases():
         ("admin", False, "Path without leading slash should not match"),
         ("/ADMIN/", False, "Uppercase with trailing slash should not match"),
         ("//admin", False, "Double slash should not match"),
-        (
-            "/admin/../admin",
-            False,
-            "Path traversal should not match (as literal string)",
-        ),
+        ("/admin/../admin", False, "Path traversal should not match (as literal string)"),
     ]
 
     for uri, expected, description in edge_cases:
@@ -158,7 +148,7 @@ def test_multiple_blocked_paths():
     blocked_paths = ["/admin", "/administrator", "/admin-panel"]
 
     lowercase_fn = TRANSFORMATIONS["lowercase"]
-    tx = stub_tx()
+    tx = None
 
     for path in blocked_paths:
         options = OperatorOptions(path)

@@ -1,21 +1,15 @@
 """JSON formatters for structured logging."""
 
-from __future__ import annotations
-
 import json
 import logging
 import time
-from typing import Any, cast
+from typing import Any
 
 
 class JSONFormatter(logging.Formatter):
     """Format log records as JSON for structured logging."""
 
-    def __init__(
-        self,
-        include_timestamp: bool = True,
-        additional_fields: dict[str, Any] | None = None,
-    ):
+    def __init__(self, include_timestamp: bool = True, additional_fields: dict[str, Any] | None = None):
         """Initialize JSON formatter.
 
         Args:
@@ -43,10 +37,9 @@ class JSONFormatter(logging.Formatter):
 
         # Add timestamp
         if self.include_timestamp:
-            log_data["timestamp"] = (
-                time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(record.created))
-                + f".{int(record.msecs):03d}Z"
-            )
+            log_data["timestamp"] = time.strftime(
+                "%Y-%m-%dT%H:%M:%S", time.gmtime(record.created)
+            ) + f".{int(record.msecs):03d}Z"
 
         # Add additional fields
         log_data.update(self.additional_fields)
@@ -54,35 +47,15 @@ class JSONFormatter(logging.Formatter):
         # Add all custom fields from record (from extra parameter)
         # Skip standard logging attributes
         skip_attrs = {
-            "name",
-            "msg",
-            "args",
-            "created",
-            "filename",
-            "funcName",
-            "levelname",
-            "levelno",
-            "lineno",
-            "module",
-            "msecs",
-            "message",
-            "pathname",
-            "process",
-            "processName",
-            "relativeCreated",
-            "stack_info",
-            "thread",
-            "threadName",
-            "exc_info",
-            "exc_text",
-            "taskName",
+            "name", "msg", "args", "created", "filename", "funcName", "levelname",
+            "levelno", "lineno", "module", "msecs", "message", "pathname", "process",
+            "processName", "relativeCreated", "stack_info", "thread", "threadName",
+            "exc_info", "exc_text", "taskName"
         }
 
-        log_data.update({
-            key: value
-            for key, value in record.__dict__.items()
-            if key not in skip_attrs and not key.startswith("_")
-        })
+        for key, value in record.__dict__.items():
+            if key not in skip_attrs and not key.startswith("_"):
+                log_data[key] = value
 
         # Add exception info if present
         if record.exc_info:
@@ -117,8 +90,7 @@ class CompactJSONFormatter(JSONFormatter):
             log_data["evt"] = record.event_type
 
         if hasattr(record, "rule"):
-            rule = record.rule
-            if isinstance(rule, dict) and "id" in rule:
-                log_data["rule"] = cast("dict[str, Any]", rule)["id"]
+            if isinstance(record.rule, dict) and "id" in record.rule:
+                log_data["rule"] = record.rule["id"]
 
         return json.dumps(log_data)

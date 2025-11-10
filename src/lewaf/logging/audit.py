@@ -1,7 +1,5 @@
 """Audit logging for security events and compliance."""
 
-from __future__ import annotations
-
 import logging
 import time
 from typing import TYPE_CHECKING, Any
@@ -41,14 +39,12 @@ class AuditLogger:
         self.additional_fields = additional_fields or {}
 
         # Configure handler
-        handler: logging.Handler
         if output_file:
             handler = logging.FileHandler(output_file)
         else:
             handler = logging.StreamHandler()
 
         # Set formatter
-        formatter: logging.Formatter
         if format_type == "json":
             formatter = JSONFormatter(additional_fields=self.additional_fields)
         else:
@@ -92,7 +88,7 @@ class AuditLogger:
                 rule = self.masker.mask(rule)
 
         # Create log record with extra fields
-        extra: dict[str, Any] = {
+        extra = {
             "event_type": event_type,
             "transaction_id": transaction_id,
         }
@@ -121,7 +117,7 @@ class AuditLogger:
 
     def log_attack_detected(
         self,
-        transaction: Transaction,
+        transaction: "Transaction",
         rule_id: int,
         rule_msg: str,
         processing_time_ms: float | None = None,
@@ -158,7 +154,7 @@ class AuditLogger:
 
     def log_request_allowed(
         self,
-        transaction: Transaction,
+        transaction: "Transaction",
         processing_time_ms: float | None = None,
     ) -> None:
         """Log allowed request (INFO level).
@@ -225,7 +221,7 @@ class AuditLogger:
         }
         extra.update(kwargs)
 
-        self.logger.info("Configuration change: %s", description, extra=extra)
+        self.logger.info(f"Configuration change: {description}", extra=extra)
 
     def log_performance_metric(
         self,
@@ -253,9 +249,7 @@ class AuditLogger:
 
         extra.update(kwargs)
 
-        self.logger.debug(
-            "Performance: %s = %s", metric_name, metric_value, extra=extra
-        )
+        self.logger.debug(f"Performance: {metric_name} = {metric_value}", extra=extra)
 
 
 # Global audit logger instance
