@@ -1,12 +1,9 @@
 """Tests for Multipart body processor."""
 
-from __future__ import annotations
-
 import pytest
 
-from lewaf.bodyprocessors import get_body_processor
+from lewaf.bodyprocessors import BodyProcessorError, get_body_processor
 from lewaf.bodyprocessors.multipart import MultipartProcessor
-from lewaf.exceptions import BodySizeLimitError, InvalidMultipartError
 
 
 def test_multipart_processor_basic():
@@ -176,7 +173,7 @@ def test_multipart_processor_missing_boundary():
     processor = MultipartProcessor()
     body = b"some data"
 
-    with pytest.raises(InvalidMultipartError, match="Missing boundary"):
+    with pytest.raises(BodyProcessorError, match="Missing boundary"):
         processor.read(body, "multipart/form-data")
 
 
@@ -193,7 +190,7 @@ def test_multipart_processor_too_large():
         b"------WebKitFormBoundary--\r\n"
     )
 
-    with pytest.raises(BodySizeLimitError, match="exceeds limit"):
+    with pytest.raises(BodyProcessorError, match="too large"):
         processor.read(body, f"multipart/form-data; boundary={boundary}")
 
 
