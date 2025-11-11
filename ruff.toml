@@ -1,10 +1,14 @@
 preview = true
 target-version = "py310"
+
 exclude = [
-    "tests/ftw_tests/coreruleset",  # External CRS test suite
-    "wafbench",  # Separate benchmarking tool
-    "benchmarks", # Same
-    "experimental", # One-shot experiments
+    "apps",
+    "scripts",
+    "tasks.py",
+    "docs",
+    "packages/hop3-lib/src/hop3_lib/actors",
+    "packages/hop3-lib/src/hop3_lib/bus",
+    "packages/hop3-cli/src/hop3_cli/commands",
 ]
 
 lint.select = [
@@ -28,57 +32,95 @@ lint.extend-ignore = [
     "S", # flake8-bandit
     "T20", # flake8-print
     "TD", # flake8-todos
-    "PLR", # Complexity
-    # False positives
-    "PLR2004", #	[ ] magic-value-comparison
-    "PLR6301", #	[ ] no-self-use
-    "COM812", # 	[*] missing-trailing-comma
+
+    # False positive, don't remove
+    "A004", # ... is shadowing a Python standard library module
+    "A005", # ... is shadowing a Python builtin module
+    "COM812", # Missing trailing comma
+    "FURB113", # repeated-append
+    "INP001", # implicit-namespace-package
+    "ISC001", # (The following rules may cause conflicts when used with the formatter)
+    "PGH003", # Use specific rule codes when ignoring type issues
+    "PLC0414", # Import alias does not rename original package
+    "PLC1901", # An empty string is falsey; consider using `not s` if this is intended
+    "C901", # Function is too complex
+    "PLR0912", # Too many branches
+    "PLR0913", # Too many arguments
+    "PLR0914", # Too many local variables
+    "PLR0915", # Too many statements
+    "PLR0917", # ...
+    "PLR2004", # Magic number
+    "PLR6301", # Method could be a function
+    "PLR0904", # too-many-public-methods
+    "PLW1514", # `pathlib.Path(...).write_text` without explicit `encoding` argument
+    "RET504", # Unnecessary assignment before `return` statement
+    "S101", # Use of `assert` detected
+    "SIM102", # Use a single `if` statement instead of nested `if` statements
+    "SIM108", # Use ternary operator
+    "TC", # Move import into a type-checking block (conflicts with wireup)
+    # Fix these later
     "E501", #   	[ ] line-too-long
-    "INP001", # 	[ ] implicit-namespace-package
-    "PLC1901", #	[ ] compare-to-empty-string
-    "PLW1514", #	[ ] unspecified-encoding
-    "TRY300", # 	[ ] try-consider-else
-    "TRY400", # 	[ ] error-instead-of-exception
-    "FURB152", #	[*] math-constant
-    "RUF001", # 	[ ] ambiguous-unicode-character-string
-    "RUF022", #
-    # Fix
-    "SLF001", # 	[ ] private-member-access
+    "PLC0415", #	[ ] import-outside-top-level
+    "TRY003", # 	[ ] raise-vanilla-args
     "G004", #   	[ ] logging-f-string
+    "EM102", #  	[ ] f-string-in-exception
+    "EM101", #  	[ ] raw-string-in-exception
     "LOG015", # 	[ ] root-logger-call
-    "RUF029", # 	[ ] unused-async
+    "SLF001", # 	[ ] private-member-access
+    "B011", #   	[ ] assert-false
     "PLW2901", #	[ ] redefined-loop-name
-    "FBT001", # 	[ ] boolean-type-hint-positional-argument
-    "C901", #   	[ ] complex-structure
-    "FBT002", # 	[ ] boolean-default-value-positional-argument
+    "PT015", #  	[ ] pytest-assert-always-false
+    "PLR6201", #	[ ] literal-membership
+    "TRY300", # 	[ ] try-consider-else
+    "RUF029", # 	[ ] unused-async
     "PERF203", #	[ ] try-except-in-loop
+    "FBT001", # 	[ ] boolean-type-hint-positional-argument
     "PERF401", #	[ ] manual-list-comprehension
+    "FBT002", # 	[ ] boolean-default-value-positional-argument
+    "PIE790", # 	[*] unnecessary-placeholder
+    "PLR0911", #	[ ] too-many-return-statements
+    "TRY400", # 	[ ] error-instead-of-exception
+    "UP035", #  	[ ] deprecated-import
     "PLW0603", #	[ ] global-statement
-    "SIM102", # 	[ ] collapsible-if
-    "PT011", #  	[ ] pytest-raises-too-broad
+    "PLR1702", #	[ ] too-many-nested-blocks
+    "SIM105", # 	[ ] suppressible-exception
+    "SIM118", # 	[ ] in-dict-keys
+    "PLW0108", #	[ ] unnecessary-lambda
+    "PT017", #  	[ ] pytest-assert-in-except
     "PLR1714", #	[ ] repeated-equality-comparison
-    "RET504", # 	[ ] unnecessary-assign
+    "PT011", #  	[ ] pytest-raises-too-broad
+    "RET507", # 	[*] superfluous-else-continue
     "RUF003", # 	[ ] ambiguous-unicode-character-comment
-    "B007", #   	[ ] unused-loop-control-variable
-    "B017", #   	[ ] assert-raises-exception
-    "FURB101", #	[ ] read-whole-file
+    "SIM103", # 	[ ] needless-bool
+    "UP015", #  	[*] redundant-open-modes
+    "FURB156", #	[*] hardcoded-string-charset
     "FURB161", #	[ ] bit-count
+    "PERF403", #	[ ] manual-dict-comprehension
+    "PIE810", # 	[ ] multiple-starts-ends-with
     "PT012", #  	[ ] pytest-raises-with-multiple-statements
+    "RUF001", # 	[ ] ambiguous-unicode-character-string
     "SIM110", # 	[ ] reimplemented-builtin
     "A002", #   	[ ] builtin-argument-shadowing
+    "B007", #   	[ ] unused-loop-control-variable
+    "B017", #   	[ ] assert-raises-exception
     "B904", #   	[ ] raise-without-from-inside-except
     "B905", #   	[*] zip-without-explicit-strict
+    "F822", #   	[ ] undefined-export
+    "FURB101", #	[ ] read-whole-file
     "FURB110", #	[*] if-exp-instead-of-or-operator
-    "FURB113", #	[ ] repeated-append
+    "FURB152", #	[*] math-constant
     "FURB188", #	[*] slice-to-remove-prefix-or-suffix
-    "PGH003", # 	[ ] blanket-type-ignore
     "PLW0127", #	[ ] self-assigning-variable
-    "SIM108", # 	[ ] if-else-block-instead-of-if-exp
+    "RUF059", # 	[ ] unused-unpacked-variable
+    "SIM114", # 	[*] if-with-same-arms
     "SIM300", # 	[*] yoda-conditions
     "TRY301", # 	[ ] raise-within-try
     "UP012", #  	[*] unnecessary-encode-utf8
-    "FBT003", #
 ]
+
+#[lint.mccabe]
+## TODO: Set max-complexity = 10
+#max-complexity = 12
 
 [lint.isort]
 combine-as-imports = true
