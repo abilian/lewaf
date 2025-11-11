@@ -1,5 +1,7 @@
 """Tests for Transaction body processor integration."""
 
+from __future__ import annotations
+
 from lewaf.integration import WAF
 
 
@@ -214,13 +216,11 @@ def test_unknown_content_type():
 
 def test_crs_sql_injection_urlencoded():
     """Test CRS-style SQL injection rule with URLEncoded body."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"'
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"'
+        ]
+    })
     tx = waf.new_transaction()
 
     # Malicious URLEncoded payload
@@ -236,13 +236,11 @@ def test_crs_sql_injection_urlencoded():
 
 def test_crs_sql_injection_json():
     """Test CRS-style SQL injection rule with JSON body."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"'
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"'
+        ]
+    })
     tx = waf.new_transaction()
 
     # Malicious JSON payload
@@ -260,13 +258,11 @@ def test_crs_sql_injection_json():
 
 def test_crs_xss_detection_json():
     """Test CRS-style XSS detection in JSON body."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS_POST "@rx <script" "id:1003,phase:2,deny,msg:\'XSS Attack\'"'
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS_POST "@rx <script" "id:1003,phase:2,deny,msg:\'XSS Attack\'"'
+        ]
+    })
     tx = waf.new_transaction()
 
     # XSS payload in JSON
@@ -282,13 +278,11 @@ def test_crs_xss_detection_json():
 
 def test_crs_file_extension_restriction():
     """Test CRS-style file extension restriction."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule FILES "@rx (?i:\\.(?:exe|dll|bat|cmd|sh))$" "id:1004,phase:2,deny,msg:\'Dangerous file extension\'"'
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule FILES "@rx (?i:\\.(?:exe|dll|bat|cmd|sh))$" "id:1004,phase:2,deny,msg:\'Dangerous file extension\'"'
+        ]
+    })
     tx = waf.new_transaction()
 
     # Upload file with dangerous extension

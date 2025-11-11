@@ -1,5 +1,7 @@
 """Load testing for production readiness validation."""
 
+from __future__ import annotations
+
 import pytest
 
 from lewaf.integration import WAF
@@ -9,15 +11,13 @@ from tests.utils.traffic_generator import TrafficGenerator
 @pytest.fixture
 def waf_basic():
     """Create WAF with basic rules for load testing."""
-    return WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:select.*from)" "id:100,phase:2,deny,msg:\'SQL Injection\'"',
-                'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:bot)" "id:101,phase:1,deny,msg:\'Bot Detected\'"',
-                'SecRule REQUEST_URI "@rx \\.\\./" "id:102,phase:1,deny,msg:\'Path Traversal\'"',
-            ]
-        }
-    )
+    return WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:select.*from)" "id:100,phase:2,deny,msg:\'SQL Injection\'"',
+            'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:bot)" "id:101,phase:1,deny,msg:\'Bot Detected\'"',
+            'SecRule REQUEST_URI "@rx \\.\\./" "id:102,phase:1,deny,msg:\'Path Traversal\'"',
+        ]
+    })
 
 
 @pytest.fixture

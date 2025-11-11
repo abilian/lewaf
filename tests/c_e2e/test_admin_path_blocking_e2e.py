@@ -4,6 +4,8 @@ This module tests the complete stack: HTTP server, WAF middleware,
 rule evaluation, and HTTP responses using Starlette TestClient.
 """
 
+from __future__ import annotations
+
 import pytest
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -19,9 +21,10 @@ def create_test_app():
     """Create test application with various endpoints."""
 
     async def homepage(request: Request) -> JSONResponse:
-        return JSONResponse(
-            {"message": "Welcome to homepage", "path": str(request.url.path)}
-        )
+        return JSONResponse({
+            "message": "Welcome to homepage",
+            "path": str(request.url.path),
+        })
 
     async def admin_panel(request: Request) -> JSONResponse:
         return JSONResponse({"message": "Admin panel", "admin": True})

@@ -5,6 +5,8 @@ This example shows how to integrate LeWAF with any WSGI application
 using a WSGI middleware wrapper.
 """
 
+from __future__ import annotations
+
 import json
 from io import BytesIO
 from pathlib import Path

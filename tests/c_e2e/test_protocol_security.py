@@ -4,6 +4,8 @@ This module tests protection against protocol-level attacks, malformed requests,
 and HTTP security violations using CRS rules.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from lewaf.integration import WAF

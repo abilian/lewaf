@@ -4,6 +4,8 @@ This module tests protection against Local File Inclusion (LFI), Remote File Inc
 Command Injection, and other common injection attack vectors using CRS rules.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from lewaf.integration import WAF

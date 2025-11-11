@@ -1,5 +1,7 @@
 """Integration tests for Starlette framework integration."""
 
+from __future__ import annotations
+
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -17,14 +19,12 @@ def create_test_app():
         return JSONResponse({"message": "Hello World"})
 
     async def echo(request: Request) -> JSONResponse:
-        return JSONResponse(
-            {
-                "method": request.method,
-                "path": str(request.url.path),
-                "query": dict(request.query_params),
-                "headers": dict(request.headers),
-            }
-        )
+        return JSONResponse({
+            "method": request.method,
+            "path": str(request.url.path),
+            "query": dict(request.query_params),
+            "headers": dict(request.headers),
+        })
 
     return Starlette(
         routes=[

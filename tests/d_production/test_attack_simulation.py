@@ -1,5 +1,7 @@
 """Real-world attack simulation tests."""
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
@@ -90,32 +92,30 @@ class AttackSimulator:
 @pytest.fixture
 def comprehensive_waf():
     """WAF with comprehensive OWASP Top 10 rules."""
-    return WAF(
-        {
-            "rules": [
-                # SQL Injection (A03:2021)
-                'SecRule ARGS "@rx (?i:select.*from)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"',
-                'SecRule ARGS "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"',
-                'SecRule ARGS "@rx (?i:insert.*into)" "id:1003,phase:2,deny,msg:\'SQL Injection\'"',
-                'SecRule REQUEST_BODY "@rx (?i:select.*from)" "id:1011,phase:2,deny,msg:\'SQL Injection in body\'"',
-                # XSS (A03:2021)
-                'SecRule ARGS "@rx <script" "id:2001,phase:2,deny,msg:\'XSS\'"',
-                'SecRule ARGS "@rx (?i:onerror\\s*=)" "id:2002,phase:2,deny,msg:\'XSS\'"',
-                'SecRule ARGS "@rx (?i:javascript:)" "id:2003,phase:2,deny,msg:\'XSS\'"',
-                'SecRule REQUEST_BODY "@rx <script" "id:2011,phase:2,deny,msg:\'XSS in body\'"',
-                # Path Traversal (A01:2021)
-                'SecRule ARGS "@rx \\.\\./\\.\\." "id:3001,phase:2,deny,msg:\'Path Traversal\'"',
-                'SecRule ARGS "@rx /etc/passwd" "id:3002,phase:2,deny,msg:\'File Access\'"',
-                'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:3011,phase:1,deny,msg:\'Path Traversal in URI\'"',
-                # Command Injection (A03:2021)
-                'SecRule ARGS "@rx (?i:;\\s*(?:cat|ls|whoami|id|pwd))" "id:4001,phase:2,deny,msg:\'Command Injection\'"',
-                'SecRule ARGS "@rx (?i:\\|\\s*(?:cat|ls|whoami))" "id:4002,phase:2,deny,msg:\'Command Injection\'"',
-                # Header Injection
-                'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:<script)" "id:5001,phase:1,deny,msg:\'Header XSS\'"',
-                'SecRule REQUEST_HEADERS "@rx (?i:\\r\\n)" "id:5002,phase:1,deny,msg:\'CRLF Injection\'"',
-            ]
-        }
-    )
+    return WAF({
+        "rules": [
+            # SQL Injection (A03:2021)
+            'SecRule ARGS "@rx (?i:select.*from)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"',
+            'SecRule ARGS "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"',
+            'SecRule ARGS "@rx (?i:insert.*into)" "id:1003,phase:2,deny,msg:\'SQL Injection\'"',
+            'SecRule REQUEST_BODY "@rx (?i:select.*from)" "id:1011,phase:2,deny,msg:\'SQL Injection in body\'"',
+            # XSS (A03:2021)
+            'SecRule ARGS "@rx <script" "id:2001,phase:2,deny,msg:\'XSS\'"',
+            'SecRule ARGS "@rx (?i:onerror\\s*=)" "id:2002,phase:2,deny,msg:\'XSS\'"',
+            'SecRule ARGS "@rx (?i:javascript:)" "id:2003,phase:2,deny,msg:\'XSS\'"',
+            'SecRule REQUEST_BODY "@rx <script" "id:2011,phase:2,deny,msg:\'XSS in body\'"',
+            # Path Traversal (A01:2021)
+            'SecRule ARGS "@rx \\.\\./\\.\\." "id:3001,phase:2,deny,msg:\'Path Traversal\'"',
+            'SecRule ARGS "@rx /etc/passwd" "id:3002,phase:2,deny,msg:\'File Access\'"',
+            'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:3011,phase:1,deny,msg:\'Path Traversal in URI\'"',
+            # Command Injection (A03:2021)
+            'SecRule ARGS "@rx (?i:;\\s*(?:cat|ls|whoami|id|pwd))" "id:4001,phase:2,deny,msg:\'Command Injection\'"',
+            'SecRule ARGS "@rx (?i:\\|\\s*(?:cat|ls|whoami))" "id:4002,phase:2,deny,msg:\'Command Injection\'"',
+            # Header Injection
+            'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:<script)" "id:5001,phase:1,deny,msg:\'Header XSS\'"',
+            'SecRule REQUEST_HEADERS "@rx (?i:\\r\\n)" "id:5002,phase:1,deny,msg:\'CRLF Injection\'"',
+        ]
+    })
 
 
 @pytest.fixture
@@ -258,15 +258,13 @@ def test_simulate_header_injection_attacks(comprehensive_waf):
 
 def test_simulate_multi_vector_attack():
     """Simulate attack across multiple vectors."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
-                'SecRule REQUEST_BODY "@rx (?i:attack)" "id:2,phase:2,deny"',
-                'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:attack)" "id:3,phase:1,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
+            'SecRule REQUEST_BODY "@rx (?i:attack)" "id:2,phase:2,deny"',
+            'SecRule REQUEST_HEADERS:User-Agent "@rx (?i:attack)" "id:3,phase:1,deny"',
+        ]
+    })
 
     simulator = AttackSimulator(waf)
 
@@ -319,14 +317,12 @@ def test_simulate_owasp_top10_campaign(comprehensive_waf, payloads_dir):
 
 def test_simulate_evasion_techniques():
     """Test detection of evasion techniques."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
-                'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
+            'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
+        ]
+    })
 
     simulator = AttackSimulator(waf)
 
@@ -358,15 +354,13 @@ def test_simulate_evasion_techniques():
 
 def test_simulate_attack_chaining():
     """Test detection of chained attacks."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:select)" "id:1,phase:2,deny"',
-                'SecRule ARGS "@rx (?i:<script)" "id:2,phase:2,deny"',
-                'SecRule ARGS "@rx (?i:\\.\\.)" "id:3,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:select)" "id:1,phase:2,deny"',
+            'SecRule ARGS "@rx (?i:<script)" "id:2,phase:2,deny"',
+            'SecRule ARGS "@rx (?i:\\.\\.)" "id:3,phase:2,deny"',
+        ]
+    })
 
     # Chained attack attempts
     tx1 = waf.new_transaction()
@@ -436,14 +430,12 @@ def test_attack_detection_rates_summary(comprehensive_waf, payloads_dir):
 
 def test_simulate_real_world_attack_scenario():
     """Simulate realistic attack scenario."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
-                'SecRule REQUEST_BODY "@rx (?i:password)" "id:2,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
+            'SecRule REQUEST_BODY "@rx (?i:password)" "id:2,phase:2,deny"',
+        ]
+    })
 
     # Scenario: Attacker tries SQL injection in login form
     tx1 = waf.new_transaction()
@@ -466,13 +458,11 @@ def test_simulate_real_world_attack_scenario():
 
 def test_performance_under_attack_load():
     """Test WAF performance under sustained attack."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
+        ]
+    })
 
     import time
 

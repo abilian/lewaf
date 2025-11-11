@@ -1,5 +1,7 @@
 """Unit tests for security-focused operators (detectXSS, detectSQLi, etc.)."""
 
+from __future__ import annotations
+
 from lewaf.primitives.operators import OperatorOptions, get_operator
 
 

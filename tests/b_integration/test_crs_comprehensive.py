@@ -1,5 +1,7 @@
 """End-to-end tests for comprehensive CRS rule compatibility."""
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 
@@ -57,14 +59,12 @@ def extract_rules_from_file(file_path: Path) -> list[dict]:
                 id_match = re.search(r"id:(\d+)", rule_text)
                 rule_id = id_match.group(1) if id_match else "unknown"
 
-                rules.append(
-                    {
-                        "file": file_path.name,
-                        "id": rule_id,
-                        "text": rule_text,
-                        "line_start": line_num - len(current_rule) + 1,
-                    }
-                )
+                rules.append({
+                    "file": file_path.name,
+                    "id": rule_id,
+                    "text": rule_text,
+                    "line_start": line_num - len(current_rule) + 1,
+                })
 
                 in_rule = False
                 current_rule = []
@@ -91,9 +91,11 @@ def test_crs_rules_parsing_comprehensive():
                 WAF(config)
                 parsed_successfully += 1
             except Exception as e:
-                parse_errors.append(
-                    {"file": rule["file"], "rule_id": rule["id"], "error": str(e)[:100]}
-                )
+                parse_errors.append({
+                    "file": rule["file"],
+                    "rule_id": rule["id"],
+                    "error": str(e)[:100],
+                })
 
     # Report results
     success_rate = parsed_successfully / total_rules if total_rules > 0 else 0
@@ -180,9 +182,10 @@ def test_crs_rules_execution_with_attack_vectors():
                         if vector_name not in execution_results["detections"]:
                             execution_results["detections"][vector_name] = []
 
-                        execution_results["detections"][vector_name].append(
-                            {"rule_id": rule["id"], "file": rule["file"]}
-                        )
+                        execution_results["detections"][vector_name].append({
+                            "rule_id": rule["id"],
+                            "file": rule["file"],
+                        })
 
                 except Exception:
                     # Individual vector errors are acceptable

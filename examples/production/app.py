@@ -9,6 +9,8 @@ This example shows how to deploy LeWAF with:
 - Error handling
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from pathlib import Path
@@ -58,28 +60,24 @@ async def homepage(request):
 
 async def api_users(request):
     """Example API endpoint."""
-    return JSONResponse(
-        {
-            "users": [
-                {"id": 1, "name": "Alice"},
-                {"id": 2, "name": "Bob"},
-            ]
-        }
-    )
+    return JSONResponse({
+        "users": [
+            {"id": 1, "name": "Alice"},
+            {"id": 2, "name": "Bob"},
+        ]
+    })
 
 
 async def health_check(request):
     """Health check endpoint for monitoring."""
     uptime = time.time() - START_TIME
 
-    return JSONResponse(
-        {
-            "status": "healthy",
-            "service": "lewaf-protected-app",
-            "uptime_seconds": uptime,
-            "waf_status": "active",
-        }
-    )
+    return JSONResponse({
+        "status": "healthy",
+        "service": "lewaf-protected-app",
+        "uptime_seconds": uptime,
+        "waf_status": "active",
+    })
 
 
 async def metrics_endpoint(request):
@@ -96,16 +94,14 @@ async def metrics_endpoint(request):
         "avg_processing_time_ms": "N/A",
     }
 
-    return JSONResponse(
-        {
-            "uptime_seconds": uptime,
-            "waf": waf_stats,
-            "app": {
-                "version": "1.0.0",
-                "environment": "production",
-            },
-        }
-    )
+    return JSONResponse({
+        "uptime_seconds": uptime,
+        "waf": waf_stats,
+        "app": {
+            "version": "1.0.0",
+            "environment": "production",
+        },
+    })
 
 
 # Create application with WAF middleware

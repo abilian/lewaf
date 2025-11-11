@@ -1,5 +1,7 @@
 """Unit tests for basic transformations (lowercase, uppercase, trim, etc.)."""
 
+from __future__ import annotations
+
 from lewaf.primitives.transformations import (
     compress_whitespace,
     length,

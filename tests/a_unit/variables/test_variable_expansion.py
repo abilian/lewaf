@@ -2,6 +2,8 @@
 Tests for advanced variable expansion and macro system.
 """
 
+from __future__ import annotations
+
 import os
 import time
 from unittest.mock import Mock

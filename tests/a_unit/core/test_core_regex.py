@@ -1,5 +1,7 @@
 """Unit tests for core regex compilation functionality."""
 
+from __future__ import annotations
+
 from lewaf.core import compile_regex
 
 

@@ -1,5 +1,7 @@
 """Unit tests for encoding/decoding transformations."""
 
+from __future__ import annotations
+
 from lewaf.primitives.transformations import (
     base64_decode,
     css_js_decode,

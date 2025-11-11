@@ -1,5 +1,7 @@
 """Unit tests for Phase 6 operators (validatenid, unconditionalmatch alias)."""
 
+from __future__ import annotations
+
 import pytest
 
 from lewaf.primitives.operators import OPERATORS, OperatorOptions

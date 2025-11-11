@@ -1,5 +1,7 @@
 """False positive testing with legitimate traffic."""
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
@@ -41,9 +43,12 @@ class FalsePositiveChecker:
 
         result = tx.process_request_headers()
         if result:
-            self.false_positives.append(
-                {"name": name, "method": method, "uri": uri, "phase": "headers"}
-            )
+            self.false_positives.append({
+                "name": name,
+                "method": method,
+                "uri": uri,
+                "phase": "headers",
+            })
             return False
 
         if body:
@@ -56,15 +61,13 @@ class FalsePositiveChecker:
 
         result = tx.process_request_body()
         if result:
-            self.false_positives.append(
-                {
-                    "name": name,
-                    "method": method,
-                    "uri": uri,
-                    "body": body[:100] if body else None,
-                    "phase": "body",
-                }
-            )
+            self.false_positives.append({
+                "name": name,
+                "method": method,
+                "uri": uri,
+                "body": body[:100] if body else None,
+                "phase": "body",
+            })
             return False
 
         return True
@@ -98,22 +101,20 @@ class FalsePositiveChecker:
 @pytest.fixture
 def production_waf():
     """WAF with production-grade rules."""
-    return WAF(
-        {
-            "rules": [
-                # SQL injection detection (should not trigger on legitimate queries)
-                'SecRule ARGS "@rx (?i:select.*from)" "id:1001,phase:2,deny"',
-                'SecRule ARGS "@rx (?i:union.*select)" "id:1002,phase:2,deny"',
-                'SecRule REQUEST_BODY "@rx (?i:select.*from)" "id:1011,phase:2,deny"',
-                # XSS detection
-                'SecRule ARGS "@rx <script" "id:2001,phase:2,deny"',
-                'SecRule REQUEST_BODY "@rx <script" "id:2011,phase:2,deny"',
-                # Path traversal
-                'SecRule ARGS "@rx \\.\\./\\.\\." "id:3001,phase:2,deny"',
-                'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:3011,phase:1,deny"',
-            ]
-        }
-    )
+    return WAF({
+        "rules": [
+            # SQL injection detection (should not trigger on legitimate queries)
+            'SecRule ARGS "@rx (?i:select.*from)" "id:1001,phase:2,deny"',
+            'SecRule ARGS "@rx (?i:union.*select)" "id:1002,phase:2,deny"',
+            'SecRule REQUEST_BODY "@rx (?i:select.*from)" "id:1011,phase:2,deny"',
+            # XSS detection
+            'SecRule ARGS "@rx <script" "id:2001,phase:2,deny"',
+            'SecRule REQUEST_BODY "@rx <script" "id:2011,phase:2,deny"',
+            # Path traversal
+            'SecRule ARGS "@rx \\.\\./\\.\\." "id:3001,phase:2,deny"',
+            'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:3011,phase:1,deny"',
+        ]
+    })
 
 
 @pytest.fixture

@@ -1,5 +1,7 @@
 """Unit tests for basic actions (log, deny, allow, block, etc.)."""
 
+from __future__ import annotations
+
 from lewaf.primitives.actions import (
     ACTIONS,
     ActionType,
