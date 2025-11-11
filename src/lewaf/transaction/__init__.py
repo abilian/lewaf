@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs
 
 from lewaf.bodyprocessors import BodyProcessorError, get_body_processor
@@ -63,11 +63,11 @@ class Transaction:
 
         if "application/x-www-form-urlencoded" in content_type:
             return "URLENCODED"
-        elif "application/json" in content_type:
+        if "application/json" in content_type:
             return "JSON"
-        elif "xml" in content_type:
+        if "xml" in content_type:
             return "XML"
-        elif "multipart/form-data" in content_type:
+        if "multipart/form-data" in content_type:
             return "MULTIPART"
 
         return None
@@ -187,7 +187,7 @@ class Transaction:
                 for value in values:
                     self.variables.args.add(key, value)
 
-    def process_request_headers(self) -> Optional[Dict[str, Union[str, int]]]:
+    def process_request_headers(self) -> dict[str, str | int] | None:
         """Process request headers and evaluate Phase 1 rules.
 
         Returns:
@@ -197,7 +197,7 @@ class Transaction:
         self.waf.rule_group.evaluate(1, self)
         return self.interruption
 
-    def process_request_body(self) -> Optional[Dict[str, Union[str, int]]]:
+    def process_request_body(self) -> dict[str, str | int] | None:
         """Process request body and evaluate Phase 2 rules.
 
         Returns:
@@ -246,7 +246,7 @@ class Transaction:
         """
         self.variables.set_response_variables(status=status, protocol=protocol)
 
-    def process_response_headers(self) -> Optional[Dict[str, Union[str, int]]]:
+    def process_response_headers(self) -> dict[str, str | int] | None:
         """Process response headers and evaluate Phase 3 rules.
 
         Returns:
@@ -307,7 +307,7 @@ class Transaction:
             self.variables.tx.add("response_body_error", "1")
             self.variables.tx.add("response_body_error_msg", f"Unexpected error: {e}")
 
-    def process_response_body(self) -> Optional[Dict[str, Union[str, int]]]:
+    def process_response_body(self) -> dict[str, str | int] | None:
         """Process response body and evaluate Phase 4 rules.
 
         Returns:

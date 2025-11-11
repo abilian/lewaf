@@ -204,7 +204,7 @@ def simple_wsgi_app(environ, start_response):
         )
         return [body]
 
-    elif path == "/api/users" and method == "GET":
+    if path == "/api/users" and method == "GET":
         response_data = {
             "users": [
                 {"id": 1, "name": "Alice"},
@@ -221,7 +221,7 @@ def simple_wsgi_app(environ, start_response):
         )
         return [body]
 
-    elif path == "/health":
+    if path == "/health":
         response_data = {
             "status": "healthy",
             "service": "wsgi-lewaf",
@@ -236,16 +236,15 @@ def simple_wsgi_app(environ, start_response):
         )
         return [body]
 
-    else:
-        body = b"Not Found"
-        start_response(
-            "404 Not Found",
-            [
-                ("Content-Type", "text/plain"),
-                ("Content-Length", str(len(body))),
-            ],
-        )
-        return [body]
+    body = b"Not Found"
+    start_response(
+        "404 Not Found",
+        [
+            ("Content-Type", "text/plain"),
+            ("Content-Length", str(len(body))),
+        ],
+    )
+    return [body]
 
 
 # Create protected WSGI application

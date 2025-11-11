@@ -28,10 +28,10 @@ register_body_processor("MULTIPART", lambda: MultipartProcessor())
 __all__ = [
     "BodyProcessorError",
     "BodyProcessorProtocol",
-    "get_body_processor",
-    "register_body_processor",
     "JSONProcessor",
     "MultipartProcessor",
     "URLEncodedProcessor",
     "XMLProcessor",
+    "get_body_processor",
+    "register_body_processor",
 ]

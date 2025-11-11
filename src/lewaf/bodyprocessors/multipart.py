@@ -266,7 +266,7 @@ class MultipartProcessor(BaseBodyProcessor):
         if match.group(2) is not None:
             # Quoted value - use the content inside quotes
             return match.group(2)
-        elif match.group(3) is not None:
+        if match.group(3) is not None:
             # Unquoted value
             return match.group(3)
 

@@ -226,7 +226,7 @@ class FileStorage(StorageBackend):
 
             try:
                 if self.use_json:
-                    with open(file_path, "r") as f:
+                    with open(file_path) as f:
                         stored = json.load(f)
                 else:
                     with open(file_path, "rb") as f:
@@ -301,7 +301,7 @@ class FileStorage(StorageBackend):
                 for file_path in collection_dir.glob("*.dat"):
                     try:
                         if self.use_json:
-                            with open(file_path, "r") as f:
+                            with open(file_path) as f:
                                 stored = json.load(f)
                         else:
                             with open(file_path, "rb") as f:

@@ -3,7 +3,8 @@ from __future__ import annotations
 import fnmatch
 import ipaddress
 import re
-from typing import TYPE_CHECKING, Any, Callable, Protocol
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Protocol
 from urllib.parse import unquote
 
 from lewaf.core import compile_regex
@@ -107,8 +108,7 @@ class RxOperator(Operator):
                         tx.capture_field(i + 1, group if group is not None else "")
                 return True
             return False
-        else:
-            return self._regex.search(value) is not None
+        return self._regex.search(value) is not None
 
 
 @register_operator("eq")
@@ -493,10 +493,10 @@ class PmFromFileOperator(Operator):
         if "php-errors" in self._filename:
             php_errors = ["parse error", "fatal error", "warning:", "notice:"]
             return any(error in value.lower() for error in php_errors)
-        elif "sql-errors" in self._filename:
+        if "sql-errors" in self._filename:
             sql_errors = ["syntax error", "mysql error", "ora-", "sqlstate"]
             return any(error in value.lower() for error in sql_errors)
-        elif "unix-shell" in self._filename:
+        if "unix-shell" in self._filename:
             shell_commands = ["bin/sh", "/bin/bash", "wget", "curl"]
             return any(cmd in value.lower() for cmd in shell_commands)
 
@@ -898,11 +898,10 @@ class InspectFileOperator(Operator):
                 output = result.stdout.strip()
                 if output.startswith("1 "):
                     return False  # Clean file
-                elif output.startswith("0 "):
+                if output.startswith("0 "):
                     return True  # Threat detected
-                else:
-                    # Unexpected output format, treat as error
-                    return True
+                # Unexpected output format, treat as error
+                return True
 
             finally:
                 # Clean up temporary file
@@ -962,7 +961,7 @@ class IpMatchFromFileOperator(Operator):
                 logging.warning(f"IpMatchFromFile: File not found: {self._file_path}")
                 return ip_list
 
-            with open(self._file_path, "r", encoding="utf-8") as f:
+            with open(self._file_path, encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
                     # Skip empty lines and comments
@@ -1217,7 +1216,7 @@ class GeoLookupOperator(Operator):
                 "LATITUDE": "37.4056",
                 "LONGITUDE": "-122.0775",
             }
-        elif ip_address.startswith("1.1.1.") or ip_address.startswith("1.0.0."):
+        if ip_address.startswith("1.1.1.") or ip_address.startswith("1.0.0."):
             # Cloudflare DNS - mock as US
             return {
                 "COUNTRY_CODE": "US",
@@ -1230,19 +1229,18 @@ class GeoLookupOperator(Operator):
                 "LATITUDE": "37.7749",
                 "LONGITUDE": "-122.4194",
             }
-        else:
-            # Default/unknown - mock as generic location
-            return {
-                "COUNTRY_CODE": "XX",
-                "COUNTRY_CODE3": "XXX",
-                "COUNTRY_NAME": "Unknown",
-                "COUNTRY_CONTINENT": "XX",
-                "REGION": "XX",
-                "CITY": "Unknown",
-                "POSTAL_CODE": "",
-                "LATITUDE": "0.0000",
-                "LONGITUDE": "0.0000",
-            }
+        # Default/unknown - mock as generic location
+        return {
+            "COUNTRY_CODE": "XX",
+            "COUNTRY_CODE3": "XXX",
+            "COUNTRY_NAME": "Unknown",
+            "COUNTRY_CONTINENT": "XX",
+            "REGION": "XX",
+            "CITY": "Unknown",
+            "POSTAL_CODE": "",
+            "LATITUDE": "0.0000",
+            "LONGITUDE": "0.0000",
+        }
 
 
 @register_operator("rbl")
