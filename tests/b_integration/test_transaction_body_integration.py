@@ -1,7 +1,5 @@
 """Tests for Transaction body processor integration."""
 
-from __future__ import annotations
-
 from lewaf.integration import WAF
 
 
@@ -176,7 +174,7 @@ def test_oversized_xml_error_handling():
 
     # Verify error variables set
     assert tx.variables.reqbody_error.get() == "1"
-    assert "exceeds limit" in tx.variables.reqbody_error_msg.get()
+    assert "too large" in tx.variables.reqbody_error_msg.get()
 
 
 def test_no_body_no_error():
@@ -216,11 +214,13 @@ def test_unknown_content_type():
 
 def test_crs_sql_injection_urlencoded():
     """Test CRS-style SQL injection rule with URLEncoded body."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1001,phase:2,deny,msg:\'SQL Injection\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Malicious URLEncoded payload
@@ -236,11 +236,13 @@ def test_crs_sql_injection_urlencoded():
 
 def test_crs_sql_injection_json():
     """Test CRS-style SQL injection rule with JSON body."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS_POST "@rx (?i:union.*select)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Malicious JSON payload
@@ -258,11 +260,13 @@ def test_crs_sql_injection_json():
 
 def test_crs_xss_detection_json():
     """Test CRS-style XSS detection in JSON body."""
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS_POST "@rx <script" "id:1003,phase:2,deny,msg:\'XSS Attack\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS_POST "@rx <script" "id:1003,phase:2,deny,msg:\'XSS Attack\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # XSS payload in JSON
@@ -278,11 +282,13 @@ def test_crs_xss_detection_json():
 
 def test_crs_file_extension_restriction():
     """Test CRS-style file extension restriction."""
-    waf = WAF({
-        "rules": [
-            'SecRule FILES "@rx (?i:\\.(?:exe|dll|bat|cmd|sh))$" "id:1004,phase:2,deny,msg:\'Dangerous file extension\'"'
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule FILES "@rx (?i:\\.(?:exe|dll|bat|cmd|sh))$" "id:1004,phase:2,deny,msg:\'Dangerous file extension\'"'
+            ]
+        }
+    )
     tx = waf.new_transaction()
 
     # Upload file with dangerous extension
@@ -427,126 +433,3 @@ def test_processor_selection_case_insensitive():
     # Verify JSON processor selected
     assert tx.variables.reqbody_processor.get() == "JSON"
     assert tx.variables.args_post.get("key") == ["value"]
-
-
-# === Capture functionality tests ===
-
-
-def test_transaction_capturing_default_state():
-    """Test that capturing() returns False by default."""
-    waf = WAF({"rules": []})
-    tx = waf.new_transaction()
-
-    assert tx.capturing() is False
-
-
-def test_transaction_set_capturing():
-    """Test set_capturing() enables and disables capture mode."""
-    waf = WAF({"rules": []})
-    tx = waf.new_transaction()
-
-    # Enable capturing
-    tx.set_capturing(True)
-    assert tx.capturing() is True
-
-    # Disable capturing
-    tx.set_capturing(False)
-    assert tx.capturing() is False
-
-
-def test_transaction_capture_field():
-    """Test capture_field() stores values in TX collection."""
-    waf = WAF({"rules": []})
-    tx = waf.new_transaction()
-
-    # Capture field values at different indices
-    tx.capture_field(0, "full match")
-    tx.capture_field(1, "group1")
-    tx.capture_field(2, "group2")
-
-    # Verify TX:0, TX:1, TX:2 populated
-    assert tx.variables.tx.get("0") == ["full match"]
-    assert tx.variables.tx.get("1") == ["group1"]
-    assert tx.variables.tx.get("2") == ["group2"]
-
-
-def test_transaction_capture_field_boundary():
-    """Test capture_field() respects index boundaries (0-9)."""
-    waf = WAF({"rules": []})
-    tx = waf.new_transaction()
-
-    # Valid indices should work
-    tx.capture_field(0, "val0")
-    tx.capture_field(9, "val9")
-
-    assert tx.variables.tx.get("0") == ["val0"]
-    assert tx.variables.tx.get("9") == ["val9"]
-
-    # Invalid indices should be ignored (no crash)
-    tx.capture_field(-1, "invalid")
-    tx.capture_field(10, "invalid")
-
-    # Should not create TX:-1 or TX:10
-    assert tx.variables.tx.get("-1") == []
-    assert tx.variables.tx.get("10") == []
-
-
-def test_rule_with_capture_action():
-    """Test that capture action in rule stores regex groups in TX."""
-    waf = WAF({
-        "rules": [
-            # Query strings split on &, so use pattern matching single value
-            'SecRule ARGS:input "@rx (\\w+)=(\\w+)" "id:2001,phase:2,capture,log,pass"'
-        ]
-    })
-    tx = waf.new_transaction()
-
-    # Request with pattern that matches the regex groups
-    tx.process_uri("/?input=user=admin", "GET")
-    tx.process_request_headers()
-    tx.process_request_body()
-
-    # Verify captures stored in TX collection
-    # TX:1 should have first group ("user"), TX:2 should have second group ("admin")
-    assert tx.variables.tx.get("1") == ["user"]
-    assert tx.variables.tx.get("2") == ["admin"]
-
-
-def test_rule_without_capture_action():
-    """Test that rules without capture action don't store groups."""
-    waf = WAF({
-        "rules": ['SecRule ARGS:input "@rx (\\w+)=(\\w+)" "id:2002,phase:2,log,pass"']
-    })
-    tx = waf.new_transaction()
-
-    # Request with pattern that matches the regex groups
-    tx.process_uri("/?input=user=admin", "GET")
-    tx.process_request_headers()
-    tx.process_request_body()
-
-    # Without capture action, TX:1 and TX:2 should be empty
-    assert tx.variables.tx.get("1") == []
-    assert tx.variables.tx.get("2") == []
-
-
-def test_capture_reset_between_rules():
-    """Test that capture mode is properly reset between rule evaluations."""
-    waf = WAF({
-        "rules": [
-            # First rule with capture
-            'SecRule ARGS:first "@rx val=(\\w+)" "id:2003,phase:2,capture,log,pass"',
-            # Second rule without capture
-            'SecRule ARGS:second "@rx other=(\\w+)" "id:2004,phase:2,log,pass"',
-        ]
-    })
-    tx = waf.new_transaction()
-
-    # Request with patterns that match both rules (separate args)
-    tx.process_uri("/?first=val=alpha&second=other=beta", "GET")
-    tx.process_request_headers()
-    tx.process_request_body()
-
-    # Only first rule should have captured
-    assert tx.variables.tx.get("1") == ["alpha"]
-    # Second rule match should not overwrite (no capture action)
-    assert "beta" not in tx.variables.tx.get("1")

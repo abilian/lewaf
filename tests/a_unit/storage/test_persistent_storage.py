@@ -2,8 +2,6 @@
 Tests for persistent storage backends and collections.
 """
 
-from __future__ import annotations
-
 import tempfile
 import time
 from pathlib import Path
@@ -302,9 +300,7 @@ class TestInitColAction:
 
     def test_initcol_ip(self, transaction):
         """Test initcol for IP-based collection."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            InitColAction,
-        )
+        from lewaf.primitives.actions import InitColAction
 
         # Create action
         action = InitColAction()
@@ -324,9 +320,7 @@ class TestInitColAction:
 
     def test_initcol_session(self, transaction):
         """Test initcol for session-based collection."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            InitColAction,
-        )
+        from lewaf.primitives.actions import InitColAction
 
         action = InitColAction()
         action.init({}, "session=%{TX.sessionid}")
@@ -340,9 +334,7 @@ class TestInitColAction:
 
     def test_initcol_with_ttl(self, transaction):
         """Test initcol with custom TTL."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            InitColAction,
-        )
+        from lewaf.primitives.actions import InitColAction
 
         action = InitColAction()
         action.init({}, "ip=%{REMOTE_ADDR},ttl=1800")
@@ -351,13 +343,8 @@ class TestInitColAction:
 
     def test_initcol_persistence(self, transaction):
         """Test that initcol persists data across 'requests'."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            InitColAction,
-        )
-        from lewaf.storage import (  # noqa: PLC0415 - Avoids circular import
-            MemoryStorage,
-            set_storage_backend,
-        )
+        from lewaf.primitives.actions import InitColAction
+        from lewaf.storage import MemoryStorage, set_storage_backend
 
         # Use clean storage
         storage = MemoryStorage()
@@ -403,9 +390,7 @@ class TestSetSidAction:
 
     def test_setsid_from_cookie(self, transaction):
         """Test setting session ID from cookie."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            SetSidAction,
-        )
+        from lewaf.primitives.actions import SetSidAction
 
         action = SetSidAction()
         action.init({}, "%{REQUEST_COOKIES.phpsessid}")
@@ -419,10 +404,7 @@ class TestSetSidAction:
 
     def test_setsid_then_initcol(self, transaction):
         """Test setsid followed by initcol."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            InitColAction,
-            SetSidAction,
-        )
+        from lewaf.primitives.actions import InitColAction, SetSidAction
 
         # Set session ID
         setsid_action = SetSidAction()
@@ -446,14 +428,8 @@ class TestRealWorldScenarios:
 
     def test_rate_limiting_per_ip(self):
         """Test rate limiting using persistent IP collection."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            InitColAction,
-            SetVarAction,
-        )
-        from lewaf.storage import (  # noqa: PLC0415 - Avoids circular import
-            MemoryStorage,
-            set_storage_backend,
-        )
+        from lewaf.primitives.actions import InitColAction, SetVarAction
+        from lewaf.storage import MemoryStorage, set_storage_backend
 
         # Setup
         storage = MemoryStorage()
@@ -490,15 +466,8 @@ class TestRealWorldScenarios:
 
     def test_session_anomaly_score(self):
         """Test tracking anomaly score per session."""
-        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
-            InitColAction,
-            SetSidAction,
-            SetVarAction,
-        )
-        from lewaf.storage import (  # noqa: PLC0415 - Avoids circular import
-            MemoryStorage,
-            set_storage_backend,
-        )
+        from lewaf.primitives.actions import InitColAction, SetSidAction, SetVarAction
+        from lewaf.storage import MemoryStorage, set_storage_backend
 
         storage = MemoryStorage()
         set_storage_backend(storage)
