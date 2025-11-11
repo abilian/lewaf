@@ -1,8 +1,7 @@
 """Integration tests for audit logging with WAF."""
 
-from __future__ import annotations
-
 import json
+
 
 from lewaf.integration import WAF
 from lewaf.logging import AuditLogger, configure_audit_logging, get_audit_logger
@@ -14,11 +13,13 @@ def test_log_attack_detection(tmp_path):
     logger = AuditLogger(output_file=str(log_file), format_type="json")
 
     # Create WAF with XSS rule
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx <script" "id:1001,phase:2,deny,msg:\'XSS Attack Detected\'"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx <script" "id:1001,phase:2,deny,msg:\'XSS Attack Detected\'"',
+            ]
+        }
+    )
 
     # Process malicious request
     tx = waf.new_transaction()
@@ -56,11 +57,13 @@ def test_log_sql_injection_attack(tmp_path):
     log_file = tmp_path / "sql_attacks.log"
     logger = AuditLogger(output_file=str(log_file), format_type="json")
 
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx (union.*select|select.*from)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx (union.*select|select.*from)" "id:1002,phase:2,deny,msg:\'SQL Injection\'"',
+            ]
+        }
+    )
 
     tx = waf.new_transaction()
     tx.process_uri("/users?id=1' union select * from passwords--", "GET")
@@ -114,12 +117,14 @@ def test_multiple_attacks_logged(tmp_path):
     log_file = tmp_path / "multi_attacks.log"
     logger = AuditLogger(output_file=str(log_file), format_type="json")
 
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS "@rx <script" "id:1001,phase:2,deny,msg:\'XSS\'"',
-            'SecRule ARGS "@rx union.*select" "id:1002,phase:2,deny,msg:\'SQLi\'"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS "@rx <script" "id:1001,phase:2,deny,msg:\'XSS\'"',
+                'SecRule ARGS "@rx union.*select" "id:1002,phase:2,deny,msg:\'SQLi\'"',
+            ]
+        }
+    )
 
     # Attack 1: XSS
     tx1 = waf.new_transaction()
@@ -155,17 +160,17 @@ def test_post_request_with_body_logging(tmp_path):
         output_file=str(log_file), format_type="json", mask_sensitive_data=True
     )
 
-    waf = WAF({
-        "rules": [
-            'SecRule ARGS_POST "@rx <script" "id:1003,phase:2,deny,msg:\'POST XSS\'"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule ARGS_POST "@rx <script" "id:1003,phase:2,deny,msg:\'POST XSS\'"',
+            ]
+        }
+    )
 
     tx = waf.new_transaction()
     tx.process_uri("/comment", "POST")
-    tx.add_request_body(
-        b"text=<script>alert('xss')</script>", "application/x-www-form-urlencoded"
-    )
+    tx.add_request_body(b"text=<script>alert('xss')</script>", "application/x-www-form-urlencoded")
 
     result = tx.process_request_body()
 
@@ -185,9 +190,7 @@ def test_global_logger_integration(tmp_path):
     log_file = tmp_path / "global.log"
 
     # Configure global logger
-    logger = configure_audit_logging(
-        level="INFO", format_type="json", output=str(log_file)
-    )
+    logger = configure_audit_logging(level="INFO", format_type="json", output=str(log_file))
 
     # Create WAF
     waf = WAF({"rules": []})
@@ -218,9 +221,7 @@ def test_masking_in_attack_logs(tmp_path):
 
     tx = waf.new_transaction()
     tx.process_uri("/api/login", "POST")
-    tx.add_request_body(
-        b'{"username": "admin", "password": "secret123"}', "application/json"
-    )
+    tx.add_request_body(b'{"username": "admin", "password": "secret123"}', "application/json")
 
     # Log as allowed (no attacks in this test)
     logger.log_security_event(
@@ -322,12 +323,14 @@ def test_attack_with_multiple_phases(tmp_path):
     log_file = tmp_path / "phases.log"
     logger = AuditLogger(output_file=str(log_file), format_type="json")
 
-    waf = WAF({
-        "rules": [
-            'SecRule REQUEST_URI "@rx /admin" "id:1001,phase:1,deny,msg:\'Admin Access\'"',
-            'SecRule ARGS "@rx <script" "id:1002,phase:2,deny,msg:\'XSS\'"',
-        ]
-    })
+    waf = WAF(
+        {
+            "rules": [
+                'SecRule REQUEST_URI "@rx /admin" "id:1001,phase:1,deny,msg:\'Admin Access\'"',
+                'SecRule ARGS "@rx <script" "id:1002,phase:2,deny,msg:\'XSS\'"',
+            ]
+        }
+    )
 
     # Phase 1 attack (URI)
     tx1 = waf.new_transaction()
@@ -335,9 +338,7 @@ def test_attack_with_multiple_phases(tmp_path):
     result1 = tx1.process_request_headers()
 
     if result1:
-        logger.log_attack_detected(
-            transaction=tx1, rule_id=1001, rule_msg="Admin Access"
-        )
+        logger.log_attack_detected(transaction=tx1, rule_id=1001, rule_msg="Admin Access")
 
     # Phase 2 attack (Args)
     tx2 = waf.new_transaction()
