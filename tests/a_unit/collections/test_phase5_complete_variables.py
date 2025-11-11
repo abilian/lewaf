@@ -1,5 +1,7 @@
 """Test Phase 5 Complete Variable Coverage implementation."""
 
+from __future__ import annotations
+
 from lewaf.primitives.collections import TransactionVariables
 
 

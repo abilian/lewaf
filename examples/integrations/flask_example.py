@@ -5,6 +5,8 @@ This example shows how to integrate LeWAF with Flask using before_request
 and after_request hooks.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 from flask import Flask, g, jsonify, request
@@ -100,13 +102,11 @@ def lewaf_after_request(response):
 
 def _blocked_response(tx):
     """Generate a blocked response."""
-    return jsonify(
-        {
-            "error": "Request blocked by WAF",
-            "rule_id": tx.interruption.rule_id if tx.interruption else None,
-            "message": tx.interruption.action if tx.interruption else "Unknown",
-        }
-    ), 403
+    return jsonify({
+        "error": "Request blocked by WAF",
+        "rule_id": tx.interruption.rule_id if tx.interruption else None,
+        "message": tx.interruption.action if tx.interruption else "Unknown",
+    }), 403
 
 
 # Routes
@@ -119,37 +119,31 @@ def home():
 @app.route("/api/users")
 def api_users():
     """Example API endpoint."""
-    return jsonify(
-        {
-            "users": [
-                {"id": 1, "name": "Alice"},
-                {"id": 2, "name": "Bob"},
-            ]
-        }
-    )
+    return jsonify({
+        "users": [
+            {"id": 1, "name": "Alice"},
+            {"id": 2, "name": "Bob"},
+        ]
+    })
 
 
 @app.route("/health")
 def health():
     """Health check endpoint."""
-    return jsonify(
-        {
-            "status": "healthy",
-            "service": "flask-lewaf",
-        }
-    )
+    return jsonify({
+        "status": "healthy",
+        "service": "flask-lewaf",
+    })
 
 
 @app.route("/api/search")
 def search():
     """Search endpoint (to test query parameters)."""
     query = request.args.get("q", "")
-    return jsonify(
-        {
-            "query": query,
-            "results": ["result1", "result2"],
-        }
-    )
+    return jsonify({
+        "query": query,
+        "results": ["result1", "result2"],
+    })
 
 
 if __name__ == "__main__":

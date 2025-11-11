@@ -1,5 +1,7 @@
 """CRS rule validation utility."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any
 
@@ -49,16 +51,14 @@ class CRSValidator:
 
         test_passed = blocked == should_block and rule_match
 
-        self.results.append(
-            {
-                "rule_id": rule_id,
-                "payload": payload[:100],  # Truncate for readability
-                "expected": "block" if should_block else "pass",
-                "actual": "block" if blocked else "pass",
-                "matched_rule": result.get("rule_id") if result else None,
-                "passed": test_passed,
-            }
-        )
+        self.results.append({
+            "rule_id": rule_id,
+            "payload": payload[:100],  # Truncate for readability
+            "expected": "block" if should_block else "pass",
+            "actual": "block" if blocked else "pass",
+            "matched_rule": result.get("rule_id") if result else None,
+            "passed": test_passed,
+        })
 
         return test_passed
 

@@ -1,5 +1,7 @@
 """End-to-end CRS rule validation tests."""
 
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest
@@ -11,51 +13,45 @@ from tests.utils.crs_validator import CRSValidator
 @pytest.fixture
 def crs_sql_waf():
     """WAF with SQL injection rules."""
-    return WAF(
-        {
-            "rules": [
-                # SQL injection detection
-                'SecRule ARGS "@rx (?i:select.*from)" "id:942100,phase:2,deny,msg:\'SQL Injection - SELECT FROM\'"',
-                'SecRule ARGS "@rx (?i:union.*select)" "id:942200,phase:2,deny,msg:\'SQL Injection - UNION SELECT\'"',
-                'SecRule ARGS "@rx (?i:or.+?=)" "id:942300,phase:2,deny,msg:\'SQL Injection - OR condition\'"',
-                'SecRule REQUEST_BODY "@rx (?i:union.*select)" "id:942201,phase:2,deny,msg:\'SQL Injection in body\'"',
-                'SecRule REQUEST_BODY "@rx (?i:and\\s+sleep\\()" "id:942400,phase:2,deny,msg:\'SQL Injection - Time-based blind\'"',
-            ]
-        }
-    )
+    return WAF({
+        "rules": [
+            # SQL injection detection
+            'SecRule ARGS "@rx (?i:select.*from)" "id:942100,phase:2,deny,msg:\'SQL Injection - SELECT FROM\'"',
+            'SecRule ARGS "@rx (?i:union.*select)" "id:942200,phase:2,deny,msg:\'SQL Injection - UNION SELECT\'"',
+            'SecRule ARGS "@rx (?i:or.+?=)" "id:942300,phase:2,deny,msg:\'SQL Injection - OR condition\'"',
+            'SecRule REQUEST_BODY "@rx (?i:union.*select)" "id:942201,phase:2,deny,msg:\'SQL Injection in body\'"',
+            'SecRule REQUEST_BODY "@rx (?i:and\\s+sleep\\()" "id:942400,phase:2,deny,msg:\'SQL Injection - Time-based blind\'"',
+        ]
+    })
 
 
 @pytest.fixture
 def crs_xss_waf():
     """WAF with XSS rules."""
-    return WAF(
-        {
-            "rules": [
-                # XSS detection
-                'SecRule ARGS "@rx <script" "id:941100,phase:2,deny,msg:\'XSS - script tag\'"',
-                'SecRule ARGS "@rx (?i:on\\w+\\s*=)" "id:941200,phase:2,deny,msg:\'XSS - event handler\'"',
-                'SecRule ARGS "@rx (?i:javascript:)" "id:941300,phase:2,deny,msg:\'XSS - javascript protocol\'"',
-                'SecRule REQUEST_BODY "@rx <script" "id:941101,phase:2,deny,msg:\'XSS in body\'"',
-                'SecRule REQUEST_BODY "@rx (?i:onerror\\s*=)" "id:941201,phase:2,deny,msg:\'XSS - onerror handler\'"',
-            ]
-        }
-    )
+    return WAF({
+        "rules": [
+            # XSS detection
+            'SecRule ARGS "@rx <script" "id:941100,phase:2,deny,msg:\'XSS - script tag\'"',
+            'SecRule ARGS "@rx (?i:on\\w+\\s*=)" "id:941200,phase:2,deny,msg:\'XSS - event handler\'"',
+            'SecRule ARGS "@rx (?i:javascript:)" "id:941300,phase:2,deny,msg:\'XSS - javascript protocol\'"',
+            'SecRule REQUEST_BODY "@rx <script" "id:941101,phase:2,deny,msg:\'XSS in body\'"',
+            'SecRule REQUEST_BODY "@rx (?i:onerror\\s*=)" "id:941201,phase:2,deny,msg:\'XSS - onerror handler\'"',
+        ]
+    })
 
 
 @pytest.fixture
 def crs_lfi_waf():
     """WAF with LFI/path traversal rules."""
-    return WAF(
-        {
-            "rules": [
-                # Path traversal detection
-                'SecRule ARGS "@rx \\.\\./\\.\\." "id:930100,phase:2,deny,msg:\'Path Traversal\'"',
-                'SecRule ARGS "@rx /etc/passwd" "id:930200,phase:2,deny,msg:\'Unix passwd file access\'"',
-                'SecRule ARGS "@rx (?i:windows.*system32)" "id:930300,phase:2,deny,msg:\'Windows system access\'"',
-                'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:930101,phase:1,deny,msg:\'Path Traversal in URI\'"',
-            ]
-        }
-    )
+    return WAF({
+        "rules": [
+            # Path traversal detection
+            'SecRule ARGS "@rx \\.\\./\\.\\." "id:930100,phase:2,deny,msg:\'Path Traversal\'"',
+            'SecRule ARGS "@rx /etc/passwd" "id:930200,phase:2,deny,msg:\'Unix passwd file access\'"',
+            'SecRule ARGS "@rx (?i:windows.*system32)" "id:930300,phase:2,deny,msg:\'Windows system access\'"',
+            'SecRule REQUEST_URI "@rx \\.\\./\\.\\." "id:930101,phase:1,deny,msg:\'Path Traversal in URI\'"',
+        ]
+    })
 
 
 @pytest.fixture
@@ -189,15 +185,13 @@ def test_crs_xss_in_request_body(crs_xss_waf):
 
 def test_crs_multiple_attack_vectors():
     """Test detection of multiple attack types."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
-                'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
-                'SecRule ARGS "@rx \\.\\./\\.\\." "id:3,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
+            'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
+            'SecRule ARGS "@rx \\.\\./\\.\\." "id:3,phase:2,deny"',
+        ]
+    })
 
     # Test SQL injection
     tx1 = waf.new_transaction()
@@ -217,14 +211,12 @@ def test_crs_multiple_attack_vectors():
 
 def test_crs_legitimate_traffic_passes():
     """Test that legitimate traffic is not blocked."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
-                'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:select.*from)" "id:1,phase:2,deny"',
+            'SecRule ARGS "@rx <script" "id:2,phase:2,deny"',
+        ]
+    })
 
     # Legitimate search
     tx1 = waf.new_transaction()
@@ -244,13 +236,11 @@ def test_crs_legitimate_traffic_passes():
 
 def test_crs_encoded_payloads():
     """Test detection of URL-encoded attack payloads."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
+        ]
+    })
 
     # URL-encoded UNION SELECT
     tx = waf.new_transaction()
@@ -266,13 +256,11 @@ def test_crs_encoded_payloads():
 
 def test_crs_case_variations():
     """Test detection with case variations."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule ARGS "@rx (?i:union.*select)" "id:1,phase:2,deny"',
+        ]
+    })
 
     # Various case combinations
     test_cases = [

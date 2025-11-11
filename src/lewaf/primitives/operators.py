@@ -83,7 +83,7 @@ class RxOperatorFactory(OperatorFactory):
     """Factory for regex operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "RxOperator":
+    def create(options: OperatorOptions) -> RxOperator:
         return RxOperator(options.arguments)
 
 
@@ -116,7 +116,7 @@ class EqOperatorFactory(OperatorFactory):
     """Factory for equality operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "EqOperator":
+    def create(options: OperatorOptions) -> EqOperator:
         return EqOperator(options.arguments)
 
 
@@ -133,7 +133,7 @@ class ContainsOperatorFactory(OperatorFactory):
     """Factory for contains operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "ContainsOperator":
+    def create(options: OperatorOptions) -> ContainsOperator:
         return ContainsOperator(options.arguments)
 
 
@@ -150,7 +150,7 @@ class BeginsWithOperatorFactory(OperatorFactory):
     """Factory for begins with operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "BeginsWithOperator":
+    def create(options: OperatorOptions) -> BeginsWithOperator:
         return BeginsWithOperator(options.arguments)
 
 
@@ -167,7 +167,7 @@ class EndsWithOperatorFactory(OperatorFactory):
     """Factory for ends with operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "EndsWithOperator":
+    def create(options: OperatorOptions) -> EndsWithOperator:
         return EndsWithOperator(options.arguments)
 
 
@@ -184,7 +184,7 @@ class GtOperatorFactory(OperatorFactory):
     """Factory for greater than operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "GtOperator":
+    def create(options: OperatorOptions) -> GtOperator:
         return GtOperator(options.arguments)
 
 
@@ -204,7 +204,7 @@ class GeOperatorFactory(OperatorFactory):
     """Factory for greater than or equal operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "GeOperator":
+    def create(options: OperatorOptions) -> GeOperator:
         return GeOperator(options.arguments)
 
 
@@ -224,7 +224,7 @@ class LtOperatorFactory(OperatorFactory):
     """Factory for less than operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "LtOperator":
+    def create(options: OperatorOptions) -> LtOperator:
         return LtOperator(options.arguments)
 
 
@@ -244,7 +244,7 @@ class LeOperatorFactory(OperatorFactory):
     """Factory for less than or equal operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "LeOperator":
+    def create(options: OperatorOptions) -> LeOperator:
         return LeOperator(options.arguments)
 
 
@@ -264,7 +264,7 @@ class WithinOperatorFactory(OperatorFactory):
     """Factory for within operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "WithinOperator":
+    def create(options: OperatorOptions) -> WithinOperator:
         return WithinOperator(options.arguments)
 
 
@@ -286,7 +286,7 @@ class IpMatchOperatorFactory(OperatorFactory):
     """Factory for IP match operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "IpMatchOperator":
+    def create(options: OperatorOptions) -> IpMatchOperator:
         return IpMatchOperator(options.arguments)
 
 
@@ -323,7 +323,7 @@ class DetectSQLiOperatorFactory(OperatorFactory):
     """Factory for SQL injection detection operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "DetectSQLiOperator":
+    def create(options: OperatorOptions) -> DetectSQLiOperator:
         return DetectSQLiOperator(options.arguments)
 
 
@@ -356,7 +356,7 @@ class DetectXSSOperatorFactory(OperatorFactory):
     """Factory for XSS detection operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "DetectXSSOperator":
+    def create(options: OperatorOptions) -> DetectXSSOperator:
         return DetectXSSOperator(options.arguments)
 
 
@@ -392,7 +392,7 @@ class ValidateByteRangeOperatorFactory(OperatorFactory):
     """Factory for byte range validation operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "ValidateByteRangeOperator":
+    def create(options: OperatorOptions) -> ValidateByteRangeOperator:
         return ValidateByteRangeOperator(options.arguments)
 
 
@@ -425,7 +425,7 @@ class ValidateUtf8EncodingOperatorFactory(OperatorFactory):
     """Factory for UTF-8 validation operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "ValidateUtf8EncodingOperator":
+    def create(options: OperatorOptions) -> ValidateUtf8EncodingOperator:
         return ValidateUtf8EncodingOperator(options.arguments)
 
 
@@ -447,7 +447,7 @@ class PmOperatorFactory(OperatorFactory):
     """Factory for phrase match operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "PmOperator":
+    def create(options: OperatorOptions) -> PmOperator:
         return PmOperator(options.arguments)
 
 
@@ -472,7 +472,7 @@ class PmFromFileOperatorFactory(OperatorFactory):
     """Factory for phrase match from file operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "PmFromFileOperator":
+    def create(options: OperatorOptions) -> PmFromFileOperator:
         return PmFromFileOperator(options.arguments)
 
 
@@ -509,7 +509,7 @@ class StrMatchOperatorFactory(OperatorFactory):
     """Factory for string match operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "StrMatchOperator":
+    def create(options: OperatorOptions) -> StrMatchOperator:
         return StrMatchOperator(options.arguments)
 
 
@@ -531,7 +531,7 @@ class StrEqOperatorFactory(OperatorFactory):
     """Factory for string equality operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "StrEqOperator":
+    def create(options: OperatorOptions) -> StrEqOperator:
         return StrEqOperator(options.arguments)
 
 
@@ -549,7 +549,7 @@ class UnconditionalOperatorFactory(OperatorFactory):
     """Factory for unconditional operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "UnconditionalOperator":
+    def create(options: OperatorOptions) -> UnconditionalOperator:
         return UnconditionalOperator(options.arguments)
 
 
@@ -566,7 +566,7 @@ class NoMatchOperatorFactory(OperatorFactory):
     """Factory for NoMatch operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "NoMatchOperator":
+    def create(options: OperatorOptions) -> NoMatchOperator:
         return NoMatchOperator(options.arguments)
 
 
@@ -583,7 +583,7 @@ class ValidateUrlEncodingOperatorFactory(OperatorFactory):
     """Factory for ValidateUrlEncoding operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "ValidateUrlEncodingOperator":
+    def create(options: OperatorOptions) -> ValidateUrlEncodingOperator:
         return ValidateUrlEncodingOperator(options.arguments)
 
 
@@ -619,7 +619,7 @@ class ValidateSchemaOperatorFactory(OperatorFactory):
     """Factory for ValidateSchema operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "ValidateSchemaOperator":
+    def create(options: OperatorOptions) -> ValidateSchemaOperator:
         return ValidateSchemaOperator(options.arguments)
 
 
@@ -654,7 +654,7 @@ class ValidateNidOperatorFactory(OperatorFactory):
     """Factory for ValidateNid operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "ValidateNidOperator":
+    def create(options: OperatorOptions) -> ValidateNidOperator:
         return ValidateNidOperator(options.arguments)
 
 
@@ -804,7 +804,7 @@ class RestPathOperatorFactory(OperatorFactory):
     """Factory for RestPath operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "RestPathOperator":
+    def create(options: OperatorOptions) -> RestPathOperator:
         return RestPathOperator(options.arguments)
 
 
@@ -846,7 +846,7 @@ class InspectFileOperatorFactory(OperatorFactory):
     """Factory for InspectFile operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "InspectFileOperator":
+    def create(options: OperatorOptions) -> InspectFileOperator:
         return InspectFileOperator(options.arguments)
 
 
@@ -927,7 +927,7 @@ class IpMatchFromFileOperatorFactory(OperatorFactory):
     """Factory for IpMatchFromFile operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "IpMatchFromFileOperator":
+    def create(options: OperatorOptions) -> IpMatchFromFileOperator:
         return IpMatchFromFileOperator(options.arguments)
 
 
@@ -1029,7 +1029,7 @@ class PmFromDatasetOperatorFactory(OperatorFactory):
     """Factory for PmFromDataset operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "PmFromDatasetOperator":
+    def create(options: OperatorOptions) -> PmFromDatasetOperator:
         return PmFromDatasetOperator(options.arguments)
 
 
@@ -1065,7 +1065,7 @@ class IpMatchFromDatasetOperatorFactory(OperatorFactory):
     """Factory for IpMatchFromDataset operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "IpMatchFromDatasetOperator":
+    def create(options: OperatorOptions) -> IpMatchFromDatasetOperator:
         return IpMatchFromDatasetOperator(options.arguments)
 
 
@@ -1119,7 +1119,7 @@ class GeoLookupOperatorFactory(OperatorFactory):
     """Factory for GeoLookup operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "GeoLookupOperator":
+    def create(options: OperatorOptions) -> GeoLookupOperator:
         return GeoLookupOperator(options.arguments)
 
 
@@ -1250,7 +1250,7 @@ class RblOperatorFactory(OperatorFactory):
     """Factory for Real-time Blacklist (RBL) operators."""
 
     @staticmethod
-    def create(options: OperatorOptions) -> "RblOperator":
+    def create(options: OperatorOptions) -> RblOperator:
         return RblOperator(options.arguments)
 
 

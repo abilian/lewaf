@@ -1,5 +1,7 @@
 """Integration tests for Core Rule Set (CRS) functionality."""
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 

@@ -9,6 +9,8 @@ This package provides body processors for:
 Each processor parses the body and populates transaction variables for rule evaluation.
 """
 
+from __future__ import annotations
+
 from lewaf.bodyprocessors.base import BodyProcessorError
 from lewaf.bodyprocessors.json import JSONProcessor
 from lewaf.bodyprocessors.multipart import MultipartProcessor

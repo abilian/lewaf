@@ -1,5 +1,7 @@
 """Unit tests for Phase 6 actions (transformation action 't')."""
 
+from __future__ import annotations
+
 from lewaf.primitives.actions import ACTIONS, ActionType, TransformationAction
 
 

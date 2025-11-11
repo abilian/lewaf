@@ -4,6 +4,8 @@ Following the principle of avoiding mocks in favor of stubs, these tests use
 simple stub objects instead of Mock() to verify tangible outcomes.
 """
 
+from __future__ import annotations
+
 import socket
 
 from lewaf.primitives.collections import TransactionVariables

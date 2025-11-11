@@ -1,5 +1,7 @@
 """Audit logging and compliance features for lewaf."""
 
+from __future__ import annotations
+
 from lewaf.logging.audit import (
     AuditLogger,
     configure_audit_logging,

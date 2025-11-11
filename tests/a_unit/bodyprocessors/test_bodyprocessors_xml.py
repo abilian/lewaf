@@ -1,5 +1,7 @@
 """Tests for XML body processor."""
 
+from __future__ import annotations
+
 import pytest
 
 from lewaf.bodyprocessors import BodyProcessorError, get_body_processor

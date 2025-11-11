@@ -1,5 +1,7 @@
 """Unit tests for basic operators (rx, eq, contains, etc.)."""
 
+from __future__ import annotations
+
 from lewaf.primitives.operators import OperatorOptions, get_operator
 
 

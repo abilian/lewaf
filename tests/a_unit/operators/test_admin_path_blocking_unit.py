@@ -4,6 +4,8 @@ This module tests the operator and transformation logic in isolation,
 ensuring that @streq correctly matches paths and t:lowercase normalizes case.
 """
 
+from __future__ import annotations
+
 from lewaf.primitives.operators import OperatorOptions, get_operator
 from lewaf.primitives.transformations import TRANSFORMATIONS
 
@@ -22,9 +24,7 @@ def test_streq_operator_exact_match():
     assert operator.evaluate(tx, "/user") is False
     assert operator.evaluate(tx, "/admin/users") is False
     # Case sensitive without transformation
-    assert (
-        operator.evaluate(tx, "/ADMIN") is False
-    )
+    assert operator.evaluate(tx, "/ADMIN") is False
 
 
 def test_lowercase_transformation():

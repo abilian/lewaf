@@ -1,5 +1,7 @@
 """Integration tests for core WAF functionality."""
 
+from __future__ import annotations
+
 import pytest
 
 from lewaf.integration import WAF

@@ -4,6 +4,8 @@ This module tests the complete WAF flow: rule parsing, transaction processing,
 and request blocking for admin paths.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from lewaf.integration import WAF
@@ -12,14 +14,12 @@ from lewaf.integration import WAF
 @pytest.fixture
 def admin_blocking_waf():
     """Create WAF instance with admin path blocking rule."""
-    return WAF(
-        {
-            "rules": [
-                'SecRule REQUEST_URI "@streq /admin" '
-                "\"id:101,phase:1,t:lowercase,deny,msg:'ADMIN PATH forbidden'\""
-            ]
-        }
-    )
+    return WAF({
+        "rules": [
+            'SecRule REQUEST_URI "@streq /admin" '
+            "\"id:101,phase:1,t:lowercase,deny,msg:'ADMIN PATH forbidden'\""
+        ]
+    })
 
 
 def test_waf_blocks_lowercase_admin_path(admin_blocking_waf):
@@ -168,18 +168,16 @@ def test_multiple_transactions_independent(admin_blocking_waf):
 
 def test_waf_with_multiple_blocking_rules():
     """Test WAF with multiple path blocking rules."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule REQUEST_URI "@streq /admin" '
-                "\"id:101,phase:1,t:lowercase,deny,msg:'Admin blocked'\"",
-                'SecRule REQUEST_URI "@streq /root" '
-                "\"id:102,phase:1,t:lowercase,deny,msg:'Root blocked'\"",
-                'SecRule REQUEST_URI "@streq /config" '
-                "\"id:103,phase:1,t:lowercase,deny,msg:'Config blocked'\"",
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule REQUEST_URI "@streq /admin" '
+            "\"id:101,phase:1,t:lowercase,deny,msg:'Admin blocked'\"",
+            'SecRule REQUEST_URI "@streq /root" '
+            "\"id:102,phase:1,t:lowercase,deny,msg:'Root blocked'\"",
+            'SecRule REQUEST_URI "@streq /config" '
+            "\"id:103,phase:1,t:lowercase,deny,msg:'Config blocked'\"",
+        ]
+    })
 
     # Test each blocked path
     blocked_paths = [
@@ -226,13 +224,11 @@ def test_rule_parsing_correctness(admin_blocking_waf):
 
 def test_admin_path_with_trailing_slash():
     """Test that trailing slash makes path not match (exact match behavior)."""
-    waf = WAF(
-        {
-            "rules": [
-                'SecRule REQUEST_URI "@streq /admin" "id:101,phase:1,t:lowercase,deny"'
-            ]
-        }
-    )
+    waf = WAF({
+        "rules": [
+            'SecRule REQUEST_URI "@streq /admin" "id:101,phase:1,t:lowercase,deny"'
+        ]
+    })
 
     # /admin/ should NOT match /admin with @streq
     tx = waf.new_transaction()

@@ -1,5 +1,7 @@
 """Unit tests for file and dataset operators (Phase 2 features)."""
 
+from __future__ import annotations
+
 import os
 import tempfile
 

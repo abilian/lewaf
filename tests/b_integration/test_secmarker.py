@@ -1,5 +1,7 @@
 """Tests for SecMarker directive and skipAfter action integration."""
 
+from __future__ import annotations
+
 from lewaf.integration import WAF
 from lewaf.seclang import SecLangParser
 

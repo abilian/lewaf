@@ -1,5 +1,7 @@
 """Unit tests for TransactionVariables functionality."""
 
+from __future__ import annotations
+
 from lewaf.primitives.collections import TransactionVariables
 
 

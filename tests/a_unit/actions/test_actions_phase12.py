@@ -1,5 +1,7 @@
 """Unit tests for Phase 1 and 2 actions (redirect, skip, drop, setenv, etc.)."""
 
+from __future__ import annotations
+
 import os
 
 from lewaf.primitives.actions import (

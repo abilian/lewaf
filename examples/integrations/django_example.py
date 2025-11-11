@@ -4,6 +4,8 @@ Django integration example for LeWAF.
 This example shows how to integrate LeWAF with Django using middleware.
 """
 
+from __future__ import annotations
+
 from pathlib import Path
 
 from django.conf import settings
@@ -129,24 +131,20 @@ def home(request):
 
 def api_users(request):
     """Example API endpoint."""
-    return JsonResponse(
-        {
-            "users": [
-                {"id": 1, "name": "Alice"},
-                {"id": 2, "name": "Bob"},
-            ]
-        }
-    )
+    return JsonResponse({
+        "users": [
+            {"id": 1, "name": "Alice"},
+            {"id": 2, "name": "Bob"},
+        ]
+    })
 
 
 def health(request):
     """Health check endpoint."""
-    return JsonResponse(
-        {
-            "status": "healthy",
-            "service": "django-lewaf",
-        }
-    )
+    return JsonResponse({
+        "status": "healthy",
+        "service": "django-lewaf",
+    })
 
 
 # URL Configuration

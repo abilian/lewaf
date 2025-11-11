@@ -1,5 +1,7 @@
 """Traffic generation for load testing."""
 
+from __future__ import annotations
+
 import random
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -14,7 +16,7 @@ from tests.utils.metrics_collector import MetricsCollector
 class TrafficGenerator:
     """Generate realistic HTTP traffic for load testing."""
 
-    def __init__(self, waf: "WAF", concurrency: int = 10):
+    def __init__(self, waf: WAF, concurrency: int = 10):
         """Initialize traffic generator.
 
         Args:

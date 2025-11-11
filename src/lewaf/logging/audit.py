@@ -1,5 +1,7 @@
 """Audit logging for security events and compliance."""
 
+from __future__ import annotations
+
 import logging
 import time
 from typing import TYPE_CHECKING, Any
@@ -117,7 +119,7 @@ class AuditLogger:
 
     def log_attack_detected(
         self,
-        transaction: "Transaction",
+        transaction: Transaction,
         rule_id: int,
         rule_msg: str,
         processing_time_ms: float | None = None,
@@ -154,7 +156,7 @@ class AuditLogger:
 
     def log_request_allowed(
         self,
-        transaction: "Transaction",
+        transaction: Transaction,
         processing_time_ms: float | None = None,
     ) -> None:
         """Log allowed request (INFO level).
