@@ -15,8 +15,8 @@ def admin_blocking_waf():
     return WAF(
         {
             "rules": [
-                "SecRule REQUEST_URI \"@streq /admin\" "
-                '"id:101,phase:1,t:lowercase,deny,msg:\'ADMIN PATH forbidden\'"'
+                'SecRule REQUEST_URI "@streq /admin" '
+                "\"id:101,phase:1,t:lowercase,deny,msg:'ADMIN PATH forbidden'\""
             ]
         }
     )
@@ -41,7 +41,9 @@ def test_waf_blocks_uppercase_admin_path(admin_blocking_waf):
 
     result = tx.process_request_headers()
 
-    assert result is not None, "Request should be blocked due to lowercase transformation"
+    assert result is not None, (
+        "Request should be blocked due to lowercase transformation"
+    )
     assert result["action"] == "deny"
     assert result["rule_id"] == 101
 
@@ -169,12 +171,12 @@ def test_waf_with_multiple_blocking_rules():
     waf = WAF(
         {
             "rules": [
-                "SecRule REQUEST_URI \"@streq /admin\" "
-                '"id:101,phase:1,t:lowercase,deny,msg:\'Admin blocked\'"',
-                "SecRule REQUEST_URI \"@streq /root\" "
-                '"id:102,phase:1,t:lowercase,deny,msg:\'Root blocked\'"',
-                "SecRule REQUEST_URI \"@streq /config\" "
-                '"id:103,phase:1,t:lowercase,deny,msg:\'Config blocked\'"',
+                'SecRule REQUEST_URI "@streq /admin" '
+                "\"id:101,phase:1,t:lowercase,deny,msg:'Admin blocked'\"",
+                'SecRule REQUEST_URI "@streq /root" '
+                "\"id:102,phase:1,t:lowercase,deny,msg:'Root blocked'\"",
+                'SecRule REQUEST_URI "@streq /config" '
+                "\"id:103,phase:1,t:lowercase,deny,msg:'Config blocked'\"",
             ]
         }
     )
@@ -227,8 +229,7 @@ def test_admin_path_with_trailing_slash():
     waf = WAF(
         {
             "rules": [
-                "SecRule REQUEST_URI \"@streq /admin\" "
-                '"id:101,phase:1,t:lowercase,deny"'
+                'SecRule REQUEST_URI "@streq /admin" "id:101,phase:1,t:lowercase,deny"'
             ]
         }
     )

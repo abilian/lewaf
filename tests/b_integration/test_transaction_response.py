@@ -196,6 +196,7 @@ def test_response_5xx_status_detection():
     result = tx.process_response_headers()
 
     # Note: Log action doesn't cause interruption
+    assert result is None, "Log action should not cause interruption"
     # Just verify status is set
     assert tx.variables.response_status.get() == "500"
 

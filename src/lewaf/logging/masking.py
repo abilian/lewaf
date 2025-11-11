@@ -10,7 +10,9 @@ class DataMasker:
     # Regex patterns for sensitive data
     CREDIT_CARD_PATTERN = re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b")
     SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
-    EMAIL_PATTERN = re.compile(r"\b([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b")
+    EMAIL_PATTERN = re.compile(
+        r"\b([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b"
+    )
     IP_PATTERN = re.compile(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
     AUTH_TOKEN_PATTERN = re.compile(r"\b[A-Za-z0-9_-]{20,}\b")
 
@@ -38,6 +40,7 @@ class DataMasker:
         Returns:
             Masked text (shows only last 4 digits)
         """
+
         def replace_card(match: re.Match) -> str:
             card = match.group(0).replace("-", "").replace(" ", "")
             return f"****-****-****-{card[-4:]}"
@@ -53,6 +56,7 @@ class DataMasker:
         Returns:
             Masked text (shows only last 4 digits)
         """
+
         def replace_ssn(match: re.Match) -> str:
             ssn = match.group(0)
             return f"***-**-{ssn[-4:]}"
@@ -68,6 +72,7 @@ class DataMasker:
         Returns:
             Masked text (shows first and last char of username)
         """
+
         def replace_email(match: re.Match) -> str:
             username = match.group(1)
             domain = match.group(2)
@@ -88,6 +93,7 @@ class DataMasker:
         Returns:
             Masked text (shows only network portion)
         """
+
         def replace_ip(match: re.Match) -> str:
             ip = match.group(0)
             parts = ip.split(".")
@@ -104,6 +110,7 @@ class DataMasker:
         Returns:
             Masked text (shows only first 8 chars)
         """
+
         def replace_token(match: re.Match) -> str:
             token = match.group(0)
             if len(token) > 8:
