@@ -17,10 +17,10 @@ from lewaf.storage.backends import (
 )
 
 __all__ = [
-    "StorageBackend",
-    "MemoryStorage",
     "FileStorage",
+    "MemoryStorage",
     "RedisStorage",
+    "StorageBackend",
     "get_storage_backend",
     "set_storage_backend",
 ]

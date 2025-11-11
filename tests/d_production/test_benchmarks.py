@@ -9,8 +9,8 @@ from pathlib import Path
 import pytest
 
 from lewaf.integration import WAF
-from lewaf.primitives.operators import OperatorOptions, get_operator
 from lewaf.primitives import transformations
+from lewaf.primitives.operators import OperatorOptions, get_operator
 
 
 class BenchmarkSuite:

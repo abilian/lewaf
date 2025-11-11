@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Union
+from typing import Any
 
 from lewaf.engine import RuleGroup
 from lewaf.primitives.actions import ACTIONS
@@ -34,7 +34,7 @@ class SecLangParser:
         normalized = re.sub(r"\\\s*\n\s*", "", rule_str)
         return normalized
 
-    def _split_actions(self, actions_str: str) -> List[str]:
+    def _split_actions(self, actions_str: str) -> list[str]:
         """Split actions string on commas, but respect quoted values."""
         actions = []
         current_action = ""
@@ -140,7 +140,7 @@ class SecLangParser:
 
 
 class WAF:
-    def __init__(self, config: Dict[str, Union[List[Any], List[str]]]):
+    def __init__(self, config: dict[str, list[Any] | list[str]]):
         self.rule_group = RuleGroup()
         self.parser = SecLangParser(self.rule_group)
         self.component_signature: str = ""

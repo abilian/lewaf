@@ -17,11 +17,11 @@ from lewaf.logging.masking import (
 
 __all__ = [
     "AuditLogger",
-    "configure_audit_logging",
-    "get_audit_logger",
-    "JSONFormatter",
     "CompactJSONFormatter",
     "DataMasker",
+    "JSONFormatter",
+    "configure_audit_logging",
+    "get_audit_logger",
     "get_default_masker",
     "mask_sensitive_data",
     "set_masking_config",

@@ -5,7 +5,7 @@ import hashlib
 import html
 import os
 import re
-from typing import Callable
+from collections.abc import Callable
 from urllib.parse import quote, unquote, unquote_plus
 
 TRANSFORMATIONS = {}

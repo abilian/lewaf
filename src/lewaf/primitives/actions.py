@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import re
 import time
+from collections.abc import Callable
 from enum import IntEnum
-from typing import TYPE_CHECKING, Any, Callable, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     pass
@@ -82,37 +83,37 @@ class MacroExpander:
         # Handle special variables
         if var_spec == "MATCHED_VAR":
             return getattr(transaction, "matched_var", "0")
-        elif var_spec == "MATCHED_VAR_NAME":
+        if var_spec == "MATCHED_VAR_NAME":
             return getattr(transaction, "matched_var_name", "")
-        elif var_spec == "TIME":
+        if var_spec == "TIME":
             return str(int(time.time() * 1000))  # Milliseconds
-        elif var_spec == "TIME_SEC":
+        if var_spec == "TIME_SEC":
             return str(int(time.time()))  # Seconds
-        elif var_spec == "UNIQUE_ID":
+        if var_spec == "UNIQUE_ID":
             return (
                 transaction.variables.unique_id.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        elif var_spec == "REQUEST_URI":
+        if var_spec == "REQUEST_URI":
             return (
                 transaction.variables.request_uri.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        elif var_spec == "REQUEST_METHOD":
+        if var_spec == "REQUEST_METHOD":
             return (
                 transaction.variables.request_method.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        elif var_spec == "REMOTE_ADDR":
+        if var_spec == "REMOTE_ADDR":
             return (
                 transaction.variables.remote_addr.get()
                 if hasattr(transaction, "variables")
                 else ""
             )
-        elif var_spec == "SERVER_NAME":
+        if var_spec == "SERVER_NAME":
             return (
                 transaction.variables.server_name.get()
                 if hasattr(transaction, "variables")
@@ -137,24 +138,24 @@ class MacroExpander:
         if collection_name == "TX":
             values = transaction.variables.tx.get(member_key)
             return values[0] if values else ""
-        elif collection_name == "REQUEST_HEADERS":
+        if collection_name == "REQUEST_HEADERS":
             values = transaction.variables.request_headers.get(member_key)
             return values[0] if values else ""
-        elif collection_name == "RESPONSE_HEADERS":
+        if collection_name == "RESPONSE_HEADERS":
             values = transaction.variables.response_headers.get(member_key)
             return values[0] if values else ""
-        elif collection_name == "ARGS":
+        if collection_name == "ARGS":
             values = transaction.variables.args.get(member_key)
             return values[0] if values else ""
-        elif collection_name == "REQUEST_COOKIES":
+        if collection_name == "REQUEST_COOKIES":
             values = transaction.variables.request_cookies.get(member_key)
             return values[0] if values else ""
-        elif collection_name == "ENV":
+        if collection_name == "ENV":
             # Environment variables
             import os
 
             return os.environ.get(member_key.upper(), "")
-        elif collection_name == "GEO":
+        if collection_name == "GEO":
             values = transaction.variables.geo.get(member_key)
             return values[0] if values else ""
 
@@ -937,7 +938,7 @@ class ConditionalAction(Action):
             actual_value = self._get_variable_value(var_name, transaction)
             return actual_value == expected_value
 
-        elif ">" in condition:
+        if ">" in condition:
             var_name, threshold = condition.split(">", 1)
             var_name = var_name.strip()
             threshold = threshold.strip()
@@ -970,16 +971,16 @@ class ConditionalAction(Action):
             tx_var = var_name[3:].lower()
             values = transaction.variables.tx.get(tx_var)
             return values[0] if values else ""
-        elif var_name.startswith("GEO."):
+        if var_name.startswith("GEO."):
             geo_var = var_name[4:].lower()
             values = transaction.variables.geo.get(geo_var)
             return values[0] if values else ""
-        elif var_name.startswith("REMOTE_ADDR"):
+        if var_name.startswith("REMOTE_ADDR"):
             values = transaction.variables.remote_addr.get()
             return values[0] if values else ""
-        elif var_name == "MATCHED_VAR":
+        if var_name == "MATCHED_VAR":
             return getattr(transaction, "matched_var", "")
-        elif var_name == "MATCHED_VAR_NAME":
+        if var_name == "MATCHED_VAR_NAME":
             return getattr(transaction, "matched_var_name", "")
         # Add more variable types as needed
         return ""
@@ -1196,8 +1197,8 @@ class InitColAction(Action):
         """Load persistent collection for this transaction."""
         # Import here to avoid circular dependencies
         from lewaf.primitives.variable_expansion import VariableExpander
-        from lewaf.storage.collections import PersistentCollectionManager
         from lewaf.storage import get_storage_backend
+        from lewaf.storage.collections import PersistentCollectionManager
 
         # Expand key expression to get actual key
         key = VariableExpander.expand(self.key_expression, transaction.variables)

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 
-
 from lewaf.integration import WAF
 from lewaf.logging import AuditLogger, configure_audit_logging, get_audit_logger
 

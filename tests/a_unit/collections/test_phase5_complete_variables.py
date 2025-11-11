@@ -56,7 +56,7 @@ class TestRequestVariables:
             (b"", "0"),
             (b"small", "5"),
             (b'{"large": "' + b"x" * 1000 + b'"}', str(13 + 1000)),
-            ("unicode content: 🔥".encode("utf-8"), "21"),
+            ("unicode content: 🔥".encode(), "21"),
         ]
 
         for body, expected_length in bodies:

@@ -144,12 +144,11 @@ class DataMasker:
         """
         if isinstance(data, str):
             return self._mask_string(data)
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             return self._mask_dict(data)
-        elif isinstance(data, list):
+        if isinstance(data, list):
             return [self.mask(item) for item in data]
-        else:
-            return data
+        return data
 
     def _mask_string(self, text: str) -> str:
         """Mask sensitive data in string.

@@ -115,12 +115,11 @@ class CorazaMiddleware(BaseHTTPMiddleware):
                     "message": self.block_response_body,
                 },
             )
-        else:
-            return Response(
-                content=self.block_response_body,
-                status_code=self.block_response_status,
-                media_type="text/plain",
-            )
+        return Response(
+            content=self.block_response_body,
+            status_code=self.block_response_status,
+            media_type="text/plain",
+        )
 
 
 def create_waf_app(

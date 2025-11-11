@@ -11,7 +11,6 @@ This example shows advanced FastAPI integration with:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -35,7 +34,7 @@ class SearchRequest(BaseModel):
 
 class SearchResponse(BaseModel):
     query: str
-    results: List[str]
+    results: list[str]
     total: int
 
 
@@ -149,7 +148,7 @@ async def home():
     return {"message": "Hello from FastAPI with LeWAF protection!"}
 
 
-@app.get("/api/users", response_model=List[User])
+@app.get("/api/users", response_model=list[User])
 async def get_users():
     """
     Get list of users.
