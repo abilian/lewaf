@@ -90,7 +90,7 @@ class AuditLogger:
                 rule = self.masker.mask(rule)
 
         # Create log record with extra fields
-        extra = {
+        extra: dict[str, Any] = {
             "event_type": event_type,
             "transaction_id": transaction_id,
         }
