@@ -261,6 +261,7 @@ def test_crs_encoded_payloads():
     # For now, just verify it doesn't crash
     result = tx.process_request_body()
     # May or may not detect depending on URL decoding
+    assert result is None or isinstance(result, dict), "Should return valid result"
 
 
 def test_crs_case_variations():

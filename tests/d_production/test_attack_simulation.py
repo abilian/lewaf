@@ -39,7 +39,9 @@ class AttackSimulator:
             elif vector == "body":
                 tx.process_uri("/test", "POST")
                 body = f'{{"data": "{payload}"}}'
-                tx.add_request_body(body.encode("utf-8", errors="ignore"), "application/json")
+                tx.add_request_body(
+                    body.encode("utf-8", errors="ignore"), "application/json"
+                )
                 result = tx.process_request_body()
             elif vector == "header":
                 tx.process_uri("/test", "GET")
@@ -137,11 +139,11 @@ def test_simulate_sql_injection_attacks(comprehensive_waf, payloads_dir):
     # Simulate via query parameters
     result = simulator.simulate_attack("sqli_query", sqli_payloads[:20], vector="query")
 
-    print(f"\nSQL Injection Attack Simulation:")
+    print("\nSQL Injection Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
 
     # Should detect reasonable portion
     assert result["detection_rate"] >= 0.30
@@ -162,11 +164,11 @@ def test_simulate_xss_attacks(comprehensive_waf, payloads_dir):
     # Simulate via query parameters
     result = simulator.simulate_attack("xss_query", xss_payloads[:25], vector="query")
 
-    print(f"\nXSS Attack Simulation:")
+    print("\nXSS Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
 
     # Should detect good portion
     assert result["detection_rate"] >= 0.50
@@ -187,11 +189,11 @@ def test_simulate_path_traversal_attacks(comprehensive_waf, payloads_dir):
     # Simulate via query parameters
     result = simulator.simulate_attack("lfi_query", lfi_payloads[:20], vector="query")
 
-    print(f"\nPath Traversal Attack Simulation:")
+    print("\nPath Traversal Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
 
     # Many use encoding, so lower threshold
     assert result["detection_rate"] >= 0.25
@@ -219,11 +221,11 @@ def test_simulate_command_injection_attacks(comprehensive_waf):
 
     result = simulator.simulate_attack("cmdi", payloads, vector="query")
 
-    print(f"\nCommand Injection Attack Simulation:")
+    print("\nCommand Injection Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
 
     # Should detect most command injection
     assert result["detection_rate"] >= 0.50
@@ -244,11 +246,11 @@ def test_simulate_header_injection_attacks(comprehensive_waf):
 
     result = simulator.simulate_attack("header_injection", payloads, vector="header")
 
-    print(f"\nHeader Injection Attack Simulation:")
+    print("\nHeader Injection Attack Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
 
     # Should detect some header attacks
     assert result["detection_rate"] >= 0.20
@@ -303,15 +305,13 @@ def test_simulate_owasp_top10_campaign(comprehensive_waf, payloads_dir):
                         all_payloads.append(line)
 
     # Take sample from each
-    result = simulator.simulate_attack(
-        "owasp_top10", all_payloads[:50], vector="query"
-    )
+    result = simulator.simulate_attack("owasp_top10", all_payloads[:50], vector="query")
 
-    print(f"\nOWSAP Top 10 Campaign Simulation:")
+    print("\nOWSAP Top 10 Campaign Simulation:")
     print(f"  Total Attacks: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
 
     # Mixed attacks, lower threshold
     assert result["detection_rate"] >= 0.40
@@ -346,11 +346,11 @@ def test_simulate_evasion_techniques():
 
     result = simulator.simulate_attack("evasion", evasion_payloads, vector="query")
 
-    print(f"\nEvasion Technique Detection:")
+    print("\nEvasion Technique Detection:")
     print(f"  Total Attempts: {result['total']}")
     print(f"  Detected: {result['detected']}")
     print(f"  Missed: {result['missed']}")
-    print(f"  Detection Rate: {result['detection_rate']*100:.1f}%")
+    print(f"  Detection Rate: {result['detection_rate'] * 100:.1f}%")
 
     # Case-insensitive regex should catch most
     assert result["detection_rate"] >= 0.50
@@ -417,11 +417,11 @@ def test_attack_detection_rates_summary(comprehensive_waf, payloads_dir):
     # Get summary
     summary = simulator.get_summary()
 
-    print(f"\n=== Attack Detection Summary ===")
+    print("\n=== Attack Detection Summary ===")
     print(f"Total Attacks Simulated: {summary['total_attacks']}")
     print(f"Total Detected: {summary['total_detected']}")
     print(f"Total Missed: {summary['total_missed']}")
-    print(f"Overall Detection Rate: {summary['overall_detection_rate']*100:.1f}%")
+    print(f"Overall Detection Rate: {summary['overall_detection_rate'] * 100:.1f}%")
 
     print("\nBy Category:")
     for category in categories:
@@ -490,11 +490,11 @@ def test_performance_under_attack_load():
 
     elapsed = time.time() - start
 
-    print(f"\nPerformance Under Attack:")
+    print("\nPerformance Under Attack:")
     print(f"  Attacks: {attack_count}")
     print(f"  Blocked: {blocked}")
     print(f"  Time: {elapsed:.2f}s")
-    print(f"  Rate: {attack_count/elapsed:.1f} attacks/sec")
+    print(f"  Rate: {attack_count / elapsed:.1f} attacks/sec")
 
     # Should block all attacks quickly
     assert blocked == attack_count

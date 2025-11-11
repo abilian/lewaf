@@ -19,7 +19,9 @@ def create_test_app():
     """Create test application with various endpoints."""
 
     async def homepage(request: Request) -> JSONResponse:
-        return JSONResponse({"message": "Welcome to homepage", "path": str(request.url.path)})
+        return JSONResponse(
+            {"message": "Welcome to homepage", "path": str(request.url.path)}
+        )
 
     async def admin_panel(request: Request) -> JSONResponse:
         return JSONResponse({"message": "Admin panel", "admin": True})
@@ -45,8 +47,8 @@ def admin_blocking_app():
     """Create application with WAF that blocks /admin paths."""
     base_app = create_test_app()
     rules = [
-        "SecRule REQUEST_URI \"@streq /admin\" "
-        '"id:101,phase:1,t:lowercase,deny,msg:\'ADMIN PATH forbidden\'"'
+        'SecRule REQUEST_URI "@streq /admin" '
+        "\"id:101,phase:1,t:lowercase,deny,msg:'ADMIN PATH forbidden'\""
     ]
     return create_waf_app(base_app, rules=rules)
 
@@ -236,19 +238,23 @@ def test_e2e_concurrent_requests_simulation(admin_blocking_app):
     # Check results
     for i, response in enumerate(responses):
         if i % 2 == 0:
-            assert response.status_code == 403, f"Request {i} to /admin should be blocked"
+            assert response.status_code == 403, (
+                f"Request {i} to /admin should be blocked"
+            )
         else:
-            assert response.status_code == 200, f"Request {i} to /user should be allowed"
+            assert response.status_code == 200, (
+                f"Request {i} to /user should be allowed"
+            )
 
 
 def test_e2e_with_multiple_blocking_rules():
     """E2E: Test application with multiple path blocking rules."""
     base_app = create_test_app()
     rules = [
-        "SecRule REQUEST_URI \"@streq /admin\" "
-        '"id:101,phase:1,t:lowercase,deny,msg:\'Admin blocked\'"',
-        "SecRule REQUEST_URI \"@streq /root\" "
-        '"id:102,phase:1,t:lowercase,deny,msg:\'Root blocked\'"',
+        'SecRule REQUEST_URI "@streq /admin" '
+        "\"id:101,phase:1,t:lowercase,deny,msg:'Admin blocked'\"",
+        'SecRule REQUEST_URI "@streq /root" '
+        "\"id:102,phase:1,t:lowercase,deny,msg:'Root blocked'\"",
     ]
     waf_app = create_waf_app(base_app, rules=rules)
     client = TestClient(waf_app)
@@ -279,8 +285,8 @@ def test_e2e_custom_block_status_code():
 
     base_app = create_test_app()
     rules = [
-        "SecRule REQUEST_URI \"@streq /admin\" "
-        '"id:101,phase:1,t:lowercase,deny,msg:\'Admin blocked\'"'
+        'SecRule REQUEST_URI "@streq /admin" '
+        "\"id:101,phase:1,t:lowercase,deny,msg:'Admin blocked'\""
     ]
 
     # Create WAF
@@ -324,7 +330,7 @@ def test_e2e_admin_path_performance(admin_blocking_app):
     avg_time = (end - start) / 100
 
     # Each request should take < 10ms (very generous threshold)
-    assert avg_time < 0.01, f"Average request time {avg_time*1000:.2f}ms is too slow"
+    assert avg_time < 0.01, f"Average request time {avg_time * 1000:.2f}ms is too slow"
 
 
 def test_e2e_full_request_lifecycle(admin_blocking_app):

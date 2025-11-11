@@ -21,7 +21,10 @@ def test_streq_operator_exact_match():
     # Non-matches should fail
     assert operator.evaluate(tx, "/user") is False
     assert operator.evaluate(tx, "/admin/users") is False
-    assert operator.evaluate(tx, "/ADMIN") is False  # Case sensitive without transformation
+    # Case sensitive without transformation
+    assert (
+        operator.evaluate(tx, "/ADMIN") is False
+    )
 
 
 def test_lowercase_transformation():
@@ -81,7 +84,9 @@ def test_streq_with_lowercase_transformation():
         # Apply transformation first, then evaluate
         transformed_uri, _ = lowercase_fn(uri)
         result = operator.evaluate(tx, transformed_uri)
-        assert result == expected, f"Failed: {description} (URI: {uri}, transformed: {transformed_uri})"
+        assert result == expected, (
+            f"Failed: {description} (URI: {uri}, transformed: {transformed_uri})"
+        )
 
 
 def test_streq_operator_case_sensitivity_without_transformation():
@@ -133,7 +138,11 @@ def test_admin_path_blocking_edge_cases():
         ("admin", False, "Path without leading slash should not match"),
         ("/ADMIN/", False, "Uppercase with trailing slash should not match"),
         ("//admin", False, "Double slash should not match"),
-        ("/admin/../admin", False, "Path traversal should not match (as literal string)"),
+        (
+            "/admin/../admin",
+            False,
+            "Path traversal should not match (as literal string)",
+        ),
     ]
 
     for uri, expected, description in edge_cases:

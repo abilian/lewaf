@@ -39,7 +39,6 @@ class CRSValidator:
         result = tx.process_request_body()
 
         blocked = result is not None
-        passed = blocked == should_block
 
         # If blocked, check if it was the expected rule
         if blocked and result:

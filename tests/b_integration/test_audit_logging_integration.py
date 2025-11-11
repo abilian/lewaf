@@ -170,7 +170,9 @@ def test_post_request_with_body_logging(tmp_path):
 
     tx = waf.new_transaction()
     tx.process_uri("/comment", "POST")
-    tx.add_request_body(b"text=<script>alert('xss')</script>", "application/x-www-form-urlencoded")
+    tx.add_request_body(
+        b"text=<script>alert('xss')</script>", "application/x-www-form-urlencoded"
+    )
 
     result = tx.process_request_body()
 
@@ -190,7 +192,9 @@ def test_global_logger_integration(tmp_path):
     log_file = tmp_path / "global.log"
 
     # Configure global logger
-    logger = configure_audit_logging(level="INFO", format_type="json", output=str(log_file))
+    logger = configure_audit_logging(
+        level="INFO", format_type="json", output=str(log_file)
+    )
 
     # Create WAF
     waf = WAF({"rules": []})
@@ -221,7 +225,9 @@ def test_masking_in_attack_logs(tmp_path):
 
     tx = waf.new_transaction()
     tx.process_uri("/api/login", "POST")
-    tx.add_request_body(b'{"username": "admin", "password": "secret123"}', "application/json")
+    tx.add_request_body(
+        b'{"username": "admin", "password": "secret123"}', "application/json"
+    )
 
     # Log as allowed (no attacks in this test)
     logger.log_security_event(
@@ -338,7 +344,9 @@ def test_attack_with_multiple_phases(tmp_path):
     result1 = tx1.process_request_headers()
 
     if result1:
-        logger.log_attack_detected(transaction=tx1, rule_id=1001, rule_msg="Admin Access")
+        logger.log_attack_detected(
+            transaction=tx1, rule_id=1001, rule_msg="Admin Access"
+        )
 
     # Phase 2 attack (Args)
     tx2 = waf.new_transaction()
