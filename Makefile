@@ -1,9 +1,9 @@
 .PHONY: all test build format check lint clean
 
 all:
-	uv run ruff check .
 	uv run pytest
 	uv run ruff format . --check
+	uv run ruff check .
 	uv run pyrefly check src
 
 

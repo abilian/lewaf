@@ -239,8 +239,7 @@ def test_config_manager_callback_error_handling():
     manager = ConfigManager(auto_reload_on_signal=False)
 
     def bad_callback(old: WAFConfig, new: WAFConfig) -> None:
-        msg = "Callback error"
-        raise RuntimeError(msg)
+        raise RuntimeError("Callback error")
 
     manager.register_reload_callback(bad_callback)
 
@@ -251,7 +250,7 @@ def test_config_manager_callback_error_handling():
 
 def test_config_manager_thread_safety():
     """Test thread-safe config access."""
-    import threading  # noqa: PLC0415 - Avoids circular import
+    import threading
 
     manager = ConfigManager(auto_reload_on_signal=False)
 
@@ -308,7 +307,7 @@ def test_config_manager_validate_config_file():
     try:
         manager = ConfigManager(config_file=temp_path, auto_reload_on_signal=False)
 
-        is_valid, errors, _warnings = manager.validate_config_file()
+        is_valid, errors, warnings = manager.validate_config_file()
 
         assert is_valid is True
         assert len(errors) == 0
@@ -330,7 +329,7 @@ def test_config_manager_validate_invalid_config():
     try:
         manager = ConfigManager(config_file=temp_path, auto_reload_on_signal=False)
 
-        is_valid, errors, _warnings = manager.validate_config_file()
+        is_valid, errors, warnings = manager.validate_config_file()
 
         assert is_valid is False
         assert len(errors) > 0
@@ -369,7 +368,8 @@ def test_config_manager_reload_failure_handling():
         config1 = manager.get_config()
 
         # Corrupt the file
-        Path(temp_path).write_text("invalid: yaml: [unclosed")
+        with open(temp_path, "w") as f:
+            f.write("invalid: yaml: [unclosed")
 
         # Reload should fail
         with pytest.raises(Exception):
@@ -401,10 +401,10 @@ def test_config_manager_get_config_before_load():
 
 def test_config_version_attributes():
     """Test ConfigVersion attributes."""
-    from datetime import datetime, timezone  # noqa: PLC0415 - Avoids circular import
+    from datetime import datetime
 
     config = WAFConfig()
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     version = ConfigVersion(1, config, now)
 
     assert version.version == 1

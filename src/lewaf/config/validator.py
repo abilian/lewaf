@@ -3,25 +3,17 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
 
-if TYPE_CHECKING:
-    from lewaf.config.models import WAFConfig
+from lewaf.config.models import WAFConfig
 
 
 class ConfigValidator:
     """Validate WAF configuration."""
 
-    VALID_ENGINES: ClassVar[list[str]] = ["On", "DetectionOnly", "Off"]
-    VALID_STORAGE_BACKENDS: ClassVar[list[str]] = ["memory", "file", "redis"]
-    VALID_LOG_FORMATS: ClassVar[list[str]] = ["json", "text"]
-    VALID_LOG_LEVELS: ClassVar[list[str]] = [
-        "DEBUG",
-        "INFO",
-        "WARNING",
-        "ERROR",
-        "CRITICAL",
-    ]
+    VALID_ENGINES = ["On", "DetectionOnly", "Off"]
+    VALID_STORAGE_BACKENDS = ["memory", "file", "redis"]
+    VALID_LOG_FORMATS = ["json", "text"]
+    VALID_LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
     def __init__(self):
         """Initialize validator."""
