@@ -30,7 +30,7 @@ def test_validate_valid_config():
     )
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is True
     assert len(errors) == 0
@@ -41,7 +41,7 @@ def test_validate_invalid_engine():
     config = WAFConfig(engine="Invalid")
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("engine mode" in err.lower() for err in errors)
@@ -52,7 +52,7 @@ def test_validate_no_rules_warning():
     config = WAFConfig(rules=[], rule_files=[])
 
     validator = ConfigValidator()
-    is_valid, _errors, warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is True  # Warning, not error
     assert any("no rules" in warn.lower() for warn in warnings)
@@ -63,7 +63,7 @@ def test_validate_rule_file_not_found():
     config = WAFConfig(rule_files=["/nonexistent/rules.conf"])
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("not found" in err.lower() for err in errors)
@@ -74,7 +74,7 @@ def test_validate_rule_file_glob_pattern():
     config = WAFConfig(rule_files=["/nonexistent/dir/*.conf"])
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("parent directory not found" in err.lower() for err in errors)
@@ -85,7 +85,7 @@ def test_validate_invalid_body_limit():
     config = WAFConfig(request_limits=RequestLimits(body_limit=-1))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("body_limit must be positive" in err.lower() for err in errors)
@@ -98,7 +98,7 @@ def test_validate_large_body_limit_warning():
     )
 
     validator = ConfigValidator()
-    is_valid, _errors, warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is True
     assert any("very large" in warn.lower() for warn in warnings)
@@ -109,7 +109,7 @@ def test_validate_invalid_storage_backend():
     config = WAFConfig(storage=StorageConfig(backend="invalid"))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("storage backend" in err.lower() for err in errors)
@@ -120,7 +120,7 @@ def test_validate_file_storage_without_path():
     config = WAFConfig(storage=StorageConfig(backend="file", file_path=None))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("file_path is required" in err.lower() for err in errors)
@@ -133,7 +133,7 @@ def test_validate_file_storage_nonexistent_parent():
     )
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("parent directory not found" in err.lower() for err in errors)
@@ -144,7 +144,7 @@ def test_validate_invalid_redis_port():
     config = WAFConfig(storage=StorageConfig(backend="redis", redis_port=70000))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("redis_port" in err.lower() for err in errors)
@@ -155,7 +155,7 @@ def test_validate_negative_ttl_warning():
     config = WAFConfig(storage=StorageConfig(ttl=-1))
 
     validator = ConfigValidator()
-    is_valid, _errors, warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is True
     assert any("ttl" in warn.lower() for warn in warnings)
@@ -166,7 +166,7 @@ def test_validate_invalid_audit_format():
     config = WAFConfig(audit_logging=AuditLoggingConfig(format="invalid"))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("format" in err.lower() for err in errors)
@@ -177,7 +177,7 @@ def test_validate_invalid_audit_level():
     config = WAFConfig(audit_logging=AuditLoggingConfig(level="INVALID"))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("level" in err.lower() for err in errors)
@@ -190,7 +190,7 @@ def test_validate_audit_output_nonexistent_parent():
     )
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("parent directory not found" in err.lower() for err in errors)
@@ -201,7 +201,7 @@ def test_validate_invalid_regex_cache_size():
     config = WAFConfig(performance=PerformanceConfig(regex_cache_size=-1))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("regex_cache_size" in err.lower() for err in errors)
@@ -212,7 +212,7 @@ def test_validate_large_regex_cache_warning():
     config = WAFConfig(performance=PerformanceConfig(regex_cache_size=20000))
 
     validator = ConfigValidator()
-    is_valid, _errors, warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is True
     assert any("regex_cache_size" in warn.lower() for warn in warnings)
@@ -223,7 +223,7 @@ def test_validate_invalid_worker_threads():
     config = WAFConfig(performance=PerformanceConfig(worker_threads=0))
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert any("worker_threads" in err.lower() for err in errors)
@@ -234,7 +234,7 @@ def test_validate_high_worker_threads_warning():
     config = WAFConfig(performance=PerformanceConfig(worker_threads=64))
 
     validator = ConfigValidator()
-    is_valid, _errors, warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is True
     assert any("worker_threads" in warn.lower() for warn in warnings)
@@ -249,7 +249,7 @@ def test_validate_multiple_errors():
     )
 
     validator = ConfigValidator()
-    is_valid, errors, _warnings = validator.validate(config)
+    is_valid, errors, warnings = validator.validate(config)
 
     assert is_valid is False
     assert len(errors) >= 3  # At least engine, body_limit, storage backend
@@ -266,7 +266,7 @@ def test_validate_with_existing_file():
         config = WAFConfig(rule_files=[temp_path])
 
         validator = ConfigValidator()
-        is_valid, errors, _warnings = validator.validate(config)
+        is_valid, errors, warnings = validator.validate(config)
 
         assert is_valid is True
         assert len(errors) == 0
@@ -284,7 +284,7 @@ def test_validate_with_existing_storage_directory():
         )
 
         validator = ConfigValidator()
-        is_valid, errors, _warnings = validator.validate(config)
+        is_valid, errors, warnings = validator.validate(config)
 
         assert is_valid is True
         assert len(errors) == 0
@@ -298,7 +298,7 @@ def test_validate_with_existing_log_directory():
         config = WAFConfig(audit_logging=AuditLoggingConfig(output=str(log_path)))
 
         validator = ConfigValidator()
-        is_valid, errors, _warnings = validator.validate(config)
+        is_valid, errors, warnings = validator.validate(config)
 
         assert is_valid is True
         assert len(errors) == 0

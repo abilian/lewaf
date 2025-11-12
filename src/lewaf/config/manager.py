@@ -5,35 +5,30 @@ from __future__ import annotations
 import logging
 import signal
 import threading
-import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any, Callable
 
+from lewaf.config.models import WAFConfig
 from lewaf.config.profiles import Environment, load_config_with_profile
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-    from lewaf.config.models import WAFConfig
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass(frozen=True, slots=True)
 class ConfigVersion:
-    """Configuration version tracking.
+    """Configuration version tracking."""
 
-    Attributes:
-        version: Version number
-        config: Configuration data
-        loaded_at: Timestamp when loaded
-    """
+    def __init__(self, version: int, config: WAFConfig, loaded_at: datetime):
+        """Initialize config version.
 
-    version: int
-    config: WAFConfig
-    loaded_at: datetime
+        Args:
+            version: Version number
+            config: Configuration data
+            loaded_at: Timestamp when loaded
+        """
+        self.version = version
+        self.config = config
+        self.loaded_at = loaded_at
 
 
 class ConfigManager:
@@ -94,8 +89,7 @@ class ConfigManager:
         """
         with self._lock:
             if self._current_config is None:
-                msg = "No configuration loaded"
-                raise RuntimeError(msg)
+                raise RuntimeError("No configuration loaded")
             return self._current_config
 
     def reload(self, overrides: dict[str, Any] | None = None) -> WAFConfig:
@@ -131,7 +125,7 @@ class ConfigManager:
                     version = ConfigVersion(
                         self._current_version - 1,
                         old_config,
-                        datetime.now(timezone.utc),
+                        datetime.now(),
                     )
                     self._config_history.append(version)
 
@@ -155,7 +149,7 @@ class ConfigManager:
             return new_config
 
         except Exception as e:
-            logger.error("Failed to reload configuration: %s", e)
+            logger.error(f"Failed to reload configuration: {e}")
             raise
 
     def register_reload_callback(
@@ -196,7 +190,7 @@ class ConfigManager:
             try:
                 callback(old_config, new_config)
             except Exception as e:
-                logger.error("Error in reload callback: %s", e)
+                logger.error(f"Error in reload callback: {e}")
 
     def get_version(self) -> int:
         """Get current configuration version.
@@ -246,7 +240,7 @@ class ConfigManager:
             try:
                 self.reload()
             except Exception as e:
-                logger.error("Failed to reload configuration on SIGHUP: %s", e)
+                logger.error(f"Failed to reload configuration on SIGHUP: {e}")
 
         # Only install on Unix-like systems
         if hasattr(signal, "SIGHUP"):
@@ -260,9 +254,7 @@ class ConfigManager:
         Returns:
             Tuple of (is_valid, errors, warnings)
         """
-        from lewaf.config.validator import (  # noqa: PLC0415 - Avoids circular import
-            ConfigValidator,
-        )
+        from lewaf.config.validator import ConfigValidator
 
         try:
             # Load config
@@ -287,11 +279,12 @@ class ConfigManager:
             interval: Check interval in seconds
         """
         if not self.config_file:
-            msg = "Cannot watch file: no config file specified"
-            raise ValueError(msg)
+            raise ValueError("Cannot watch file: no config file specified")
 
         def watch_thread() -> None:
             """Background thread to watch for file changes."""
+            import time
+
             last_mtime = self.config_file.stat().st_mtime if self.config_file else 0
 
             while True:
@@ -308,7 +301,7 @@ class ConfigManager:
                         last_mtime = current_mtime
 
                 except Exception as e:
-                    logger.error("Error in file watch thread: %s", e)
+                    logger.error(f"Error in file watch thread: {e}")
 
         thread = threading.Thread(target=watch_thread, daemon=True)
         thread.start()

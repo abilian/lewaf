@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -131,6 +130,8 @@ def _validate_rule_syntax(config: Any) -> list[str]:
     Returns:
         List of rule syntax errors
     """
+    import re
+
     errors: list[str] = []
 
     # Basic syntax validation using regex patterns
@@ -197,6 +198,8 @@ def _validate_variable_references(config: Any) -> list[str]:
     Returns:
         List of variable reference errors
     """
+    import re
+
     errors: list[str] = []
 
     # Known valid SecLang collection variables
