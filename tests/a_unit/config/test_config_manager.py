@@ -308,7 +308,7 @@ def test_config_manager_validate_config_file():
     try:
         manager = ConfigManager(config_file=temp_path, auto_reload_on_signal=False)
 
-        is_valid, errors, warnings = manager.validate_config_file()
+        is_valid, errors, _warnings = manager.validate_config_file()
 
         assert is_valid is True
         assert len(errors) == 0
@@ -330,7 +330,7 @@ def test_config_manager_validate_invalid_config():
     try:
         manager = ConfigManager(config_file=temp_path, auto_reload_on_signal=False)
 
-        is_valid, errors, warnings = manager.validate_config_file()
+        is_valid, errors, _warnings = manager.validate_config_file()
 
         assert is_valid is False
         assert len(errors) > 0
