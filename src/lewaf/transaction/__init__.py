@@ -334,4 +334,3 @@ class Transaction:
     def capture_field(self, index: int, value: str) -> None:
         """Capture a field value at the given index."""
         # Placeholder implementation - can be extended to store captures
-        pass

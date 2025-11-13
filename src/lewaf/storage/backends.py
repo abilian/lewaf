@@ -36,7 +36,6 @@ class StorageBackend(ABC):
         Returns:
             Dictionary containing collection data, or None if not found
         """
-        pass
 
     @abstractmethod
     def set(
@@ -51,7 +50,6 @@ class StorageBackend(ABC):
             data: Collection data to store
             ttl: Time-to-live in seconds (0 = no expiration)
         """
-        pass
 
     @abstractmethod
     def delete(self, collection_name: str, key: str) -> None:
@@ -62,7 +60,6 @@ class StorageBackend(ABC):
             collection_name: Name of the collection type
             key: Unique key within the collection
         """
-        pass
 
     @abstractmethod
     def clear_expired(self) -> int:
@@ -72,7 +69,6 @@ class StorageBackend(ABC):
         Returns:
             Number of collections removed
         """
-        pass
 
 
 class MemoryStorage(StorageBackend):

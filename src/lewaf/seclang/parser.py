@@ -148,7 +148,7 @@ class SecLangParser:
                 in_backticks = True
                 line_buffer.append(line)
                 continue
-            elif in_backticks:
+            if in_backticks:
                 line_buffer.append(line)
                 if line.startswith("`"):
                     in_backticks = False
@@ -162,11 +162,10 @@ class SecLangParser:
             if line.endswith("\\"):
                 line_buffer.append(line[:-1])  # Remove the backslash
                 continue
-            else:
-                line_buffer.append(line)
-                full_line = "".join(line_buffer)
-                line_buffer = []
-                self._evaluate_line(full_line)
+            line_buffer.append(line)
+            full_line = "".join(line_buffer)
+            line_buffer = []
+            self._evaluate_line(full_line)
 
         if in_backticks:
             msg = "Unclosed backtick section"
