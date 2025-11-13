@@ -75,7 +75,7 @@ def log_error(
     # If it's a WAFError, include all the rich context
     is_waf_error = hasattr(error, "to_dict")
     if is_waf_error:
-        log_data.update(error.to_dict())  # type: ignore[union-attr]
+        log_data.update(error.to_dict())  # type: ignore[attr-defined]
 
     # Add any extra context
     log_data.update(extra_context)
