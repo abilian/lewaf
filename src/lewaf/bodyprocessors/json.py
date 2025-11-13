@@ -6,7 +6,8 @@ import json
 import logging
 from typing import Any
 
-from lewaf.bodyprocessors.base import BaseBodyProcessor, BodyProcessorError
+from lewaf.bodyprocessors.base import BaseBodyProcessor
+from lewaf.exceptions import InvalidJSONError
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,9 @@ class JSONProcessor(BaseBodyProcessor):
             body_str = body.decode("utf-8")
         except UnicodeDecodeError as e:
             msg = f"Invalid UTF-8 in JSON body: {e}"
-            raise BodyProcessorError(msg) from e
+            # Get snippet for debugging (first 100 bytes)
+            snippet = body[:100].decode("utf-8", errors="replace")
+            raise InvalidJSONError(msg, body_snippet=snippet, cause=e) from e
 
         # Store raw body
         self.raw_body = body
@@ -64,7 +67,9 @@ class JSONProcessor(BaseBodyProcessor):
             self.json_data = json.loads(body_str)
         except json.JSONDecodeError as e:
             msg = f"Invalid JSON: {e}"
-            raise BodyProcessorError(msg) from e
+            # Get snippet around error position
+            snippet = body_str[:100] if len(body_str) > 100 else body_str
+            raise InvalidJSONError(msg, body_snippet=snippet, cause=e) from e
 
         # Flatten JSON to ARGS_POST
         args_post = {}

@@ -6,6 +6,7 @@ import pytest
 
 from lewaf.bodyprocessors import BodyProcessorError, get_body_processor
 from lewaf.bodyprocessors.xml import XMLProcessor
+from lewaf.exceptions import BodySizeLimitError, InvalidXMLError
 
 
 def test_xml_processor_basic():
@@ -130,7 +131,7 @@ def test_xml_processor_malformed():
     processor = XMLProcessor()
     xml = b"<root><unclosed>"
 
-    with pytest.raises(BodyProcessorError, match="Invalid XML"):
+    with pytest.raises(InvalidXMLError, match="Invalid XML"):
         processor.read(xml, "text/xml")
 
 
@@ -139,7 +140,7 @@ def test_xml_processor_invalid_utf8():
     processor = XMLProcessor()
     xml = b"\xff\xfe<root/>"
 
-    with pytest.raises(BodyProcessorError, match="Invalid UTF-8"):
+    with pytest.raises(InvalidXMLError, match="Invalid UTF-8"):
         processor.read(xml, "text/xml")
 
 
@@ -149,7 +150,7 @@ def test_xml_processor_too_large():
     # Create XML larger than max_size (1MB)
     large_xml = b"<root>" + b"<item>data</item>" * 100000 + b"</root>"
 
-    with pytest.raises(BodyProcessorError, match="too large"):
+    with pytest.raises(BodySizeLimitError, match="exceeds limit"):
         processor.read(large_xml, "text/xml")
 
 
@@ -167,7 +168,7 @@ def test_xml_processor_xxe_protection():
 
     # Python's ET is safe by default - external entities cause parse errors
     # This is the secure behavior we want
-    with pytest.raises(BodyProcessorError, match="Invalid XML"):
+    with pytest.raises(InvalidXMLError, match="Invalid XML"):
         processor.read(xxe_xml, "text/xml")
 
 

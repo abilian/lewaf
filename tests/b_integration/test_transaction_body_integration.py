@@ -176,7 +176,7 @@ def test_oversized_xml_error_handling():
 
     # Verify error variables set
     assert tx.variables.reqbody_error.get() == "1"
-    assert "too large" in tx.variables.reqbody_error_msg.get()
+    assert "exceeds limit" in tx.variables.reqbody_error_msg.get()
 
 
 def test_no_body_no_error():
