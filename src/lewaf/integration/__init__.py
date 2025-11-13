@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -26,8 +27,6 @@ class SecLangParser:
 
     def _normalize_line_continuations(self, rule_str: str) -> str:
         """Normalize line continuations by removing backslash-newline sequences."""
-        import re
-
         # Remove backslash followed by optional whitespace and newline
         # This handles cases like "action,\" followed by newline and indentation
         # Be more careful to only remove actual line continuations, not escaped quotes

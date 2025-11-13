@@ -264,7 +264,9 @@ class SecLangParser:
         Raises:
             ParseError: If the rule cannot be parsed
         """
-        from lewaf.seclang.rule_parser import SecRuleParser
+        from lewaf.seclang.rule_parser import (  # noqa: PLC0415 - Avoids circular import
+            SecRuleParser,
+        )
 
         parser = SecRuleParser(self)
         parser.parse_rule(args)
@@ -351,7 +353,9 @@ class SecLangParser:
 
         # Create a marker "rule" - a pass-through rule with the marker name
         # This allows skipAfter to find it during rule evaluation
-        from lewaf.seclang.rule_parser import SecRuleParser
+        from lewaf.seclang.rule_parser import (  # noqa: PLC0415 - Avoids circular import
+            SecRuleParser,
+        )
 
         # Create a dummy rule that always passes and has the marker name as a tag
         marker_rule_str = f'REQUEST_URI "@unconditional" "id:marker_{marker_name},phase:1,nolog,pass,tag:{marker_name}"'

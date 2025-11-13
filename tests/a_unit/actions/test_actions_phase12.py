@@ -310,7 +310,9 @@ def test_initcol_action():
         pass
 
     # Test evaluation
-    from lewaf.primitives.collections import TransactionVariables
+    from lewaf.primitives.collections import (  # noqa: PLC0415 - Avoids circular import
+        TransactionVariables,
+    )
 
     class MockRule:
         def __init__(self):

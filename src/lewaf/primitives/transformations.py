@@ -58,8 +58,6 @@ def trim(value: str) -> tuple[str, bool]:
 @register_transformation("compresswhitespace")
 def compress_whitespace(value: str) -> tuple[str, bool]:
     """Replace multiple consecutive whitespace characters with a single space."""
-    import re
-
     compressed = re.sub(r"\s+", " ", value)
     return compressed, compressed != value
 

@@ -92,7 +92,9 @@ class TestChainAction:
 
     def test_chain_action_type(self):
         """Test chain action type classification."""
-        from lewaf.primitives.actions import ActionType
+        from lewaf.primitives.actions import (  # noqa: PLC0415 - Avoids circular import
+            ActionType,
+        )
 
         assert self.action.action_type() == ActionType.FLOW
 
@@ -370,7 +372,7 @@ class TestMacroExpander:
 
     def test_environment_variable_expansion(self):
         """Test environment variable expansion."""
-        import os
+        import os  # noqa: PLC0415 - Avoids circular import
 
         # Save original value
         original_value = os.environ.get("TEST_VAR")

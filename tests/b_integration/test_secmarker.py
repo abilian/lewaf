@@ -40,7 +40,7 @@ def test_skipafter_with_marker():
     assert len(rules) >= 4
 
     # Test that skip logic works
-    from lewaf.transaction import Transaction
+    from lewaf.transaction import Transaction  # noqa: PLC0415 - Avoids circular import
 
     tx = Transaction(waf, "test-1")
     tx.variables.request_headers.add("Host", "example.com")
@@ -71,7 +71,7 @@ def test_skipafter_paranoia_level_pattern():
     """)
 
     # Paranoia level 1 should skip rule 3 but execute rule 4
-    from lewaf.transaction import Transaction
+    from lewaf.transaction import Transaction  # noqa: PLC0415 - Avoids circular import
 
     tx = Transaction(waf, "test-2")
     tx.variables.request_headers.add("Host", "example.com")

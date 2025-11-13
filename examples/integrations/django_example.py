@@ -57,7 +57,7 @@ class LeWAFMiddleware:
         self.get_response = get_response
 
         # Import here to avoid issues if lewaf is not installed
-        from lewaf.engine import WAF
+        from lewaf.engine import WAF  # noqa: PLC0415 - Avoids circular import
 
         # Initialize WAF
         config = settings.LEWAF_CONFIG
