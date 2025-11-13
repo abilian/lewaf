@@ -6,8 +6,11 @@ import html
 import os
 import re
 import string
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 from urllib.parse import quote, unquote, unquote_plus
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 TRANSFORMATIONS = {}
 

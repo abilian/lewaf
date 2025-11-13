@@ -4,13 +4,16 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from lewaf.integration import WAF
 from lewaf.primitives import transformations
 from lewaf.primitives.operators import OperatorOptions, get_operator
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class BenchmarkSuite:

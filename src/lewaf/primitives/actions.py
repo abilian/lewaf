@@ -4,12 +4,11 @@ import logging
 import os
 import re
 import time
-from collections.abc import Callable
 from enum import IntEnum
 from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
-    pass
+    from collections.abc import Callable
 
 
 class RuleProtocol(Protocol):

@@ -7,11 +7,13 @@ providing request/response filtering and WAF protection.
 from __future__ import annotations
 
 import logging
-from typing import Any, Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from lewaf.config.manager import ConfigManager
 from lewaf.integration import WAF
-from lewaf.transaction import Transaction
+
+if TYPE_CHECKING:
+    from lewaf.transaction import Transaction
 
 logger = logging.getLogger(__name__)
 

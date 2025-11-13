@@ -40,6 +40,8 @@ lint.extend-ignore = [
     "INP001", # 	[ ] implicit-namespace-package
     "PLC1901", #	[ ] compare-to-empty-string
     "PLW1514", #	[ ] unspecified-encoding
+    "TRY300", # 	[ ] try-consider-else
+    "TRY400", # 	[ ] error-instead-of-exception
     # Fix
     "SLF001", # 	[ ] private-member-access
     "G004", #   	[ ] logging-f-string
@@ -48,23 +50,18 @@ lint.extend-ignore = [
     "PLR6201", #	[ ] literal-membership
     "RUF029", # 	[ ] unused-async
     "PLW2901", #	[ ] redefined-loop-name
-#    "B011", #   	[ ] assert-false
-    "PT015", #  	[ ] pytest-assert-always-false
-    "TRY300", # 	[ ] try-consider-else
     "FBT001", # 	[ ] boolean-type-hint-positional-argument
     "C901", #   	[ ] complex-structure
-    "TRY400", # 	[ ] error-instead-of-exception
     "FBT002", # 	[ ] boolean-default-value-positional-argument
     "PERF203", #	[ ] try-except-in-loop
     "PERF401", #	[ ] manual-list-comprehension
-    "TC003", #  	[ ] typing-only-standard-library-import
     "PLR0911", #	[ ] too-many-return-statements
-    "TC001", #  	[ ] typing-only-first-party-import
+#    "TC001", #  	[ ] typing-only-first-party-import
     "PLR0912", #	[ ] too-many-branches
     "PLW0603", #	[ ] global-statement
     "SIM102", # 	[ ] collapsible-if
-    "TC002", #  	[ ] typing-only-third-party-import
-    "TC006", #  	[*] runtime-cast-value
+#    "TC002", #  	[ ] typing-only-third-party-import
+#    "TC006", #  	[*] runtime-cast-value
     "PLR1702", #	[ ] too-many-nested-blocks
     "SIM105", # 	[ ] suppressible-exception
     "SIM118", # 	[ ] in-dict-keys

@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-from lewaf.rules import Rule
-from lewaf.transaction import Transaction
+if TYPE_CHECKING:
+    from lewaf.rules import Rule
+    from lewaf.transaction import Transaction
 
 
 class RuleGroup:
@@ -12,7 +13,7 @@ class RuleGroup:
         self.rules_by_phase = {1: [], 2: [], 3: [], 4: [], 5: []}
 
     def add(self, rule: Rule):
-        phase = cast(int, rule.phase)  # Phase is always int in practice
+        phase = cast("int", rule.phase)  # Phase is always int in practice
         self.rules_by_phase[phase].append(rule)
         logging.debug("Added rule %s to phase %s", rule.id, phase)
 

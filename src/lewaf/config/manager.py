@@ -8,10 +8,12 @@ import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
-from lewaf.config.models import WAFConfig
 from lewaf.config.profiles import Environment, load_config_with_profile
+
+if TYPE_CHECKING:
+    from lewaf.config.models import WAFConfig
 
 logger = logging.getLogger(__name__)
 
