@@ -110,8 +110,6 @@ class TestGeoLookupOperator:
         class TransactionWithoutVariables:
             """Stub transaction without variables."""
 
-            pass
-
         tx_no_vars = TransactionWithoutVariables()
 
         result = self.operator.evaluate(tx_no_vars, "8.8.8.8")

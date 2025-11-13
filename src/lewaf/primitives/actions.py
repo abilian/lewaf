@@ -1103,7 +1103,6 @@ class VerAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Version checking is metadata only."""
-        pass
 
 
 @register_action("t")
@@ -1157,7 +1156,6 @@ class TransformationAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Transformation is applied during rule evaluation, not as an action."""
-        pass
 
 
 @register_action("initcol")

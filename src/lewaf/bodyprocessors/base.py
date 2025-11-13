@@ -15,8 +15,6 @@ class BodyProcessorError(Exception):
     - Encoding errors
     """
 
-    pass
-
 
 class BaseBodyProcessor:
     """Base class for body processors.

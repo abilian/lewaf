@@ -75,7 +75,6 @@ lint.extend-ignore = [
     "FBT001", # 	[ ] boolean-type-hint-positional-argument
     "PERF401", #	[ ] manual-list-comprehension
     "FBT002", # 	[ ] boolean-default-value-positional-argument
-    "PIE790", # 	[*] unnecessary-placeholder
     "PLR0911", #	[ ] too-many-return-statements
     "TRY400", # 	[ ] error-instead-of-exception
     "UP035", #  	[ ] deprecated-import
@@ -87,11 +86,9 @@ lint.extend-ignore = [
     "PT017", #  	[ ] pytest-assert-in-except
     "PLR1714", #	[ ] repeated-equality-comparison
     "PT011", #  	[ ] pytest-raises-too-broad
-    "RET507", # 	[*] superfluous-else-continue
     "RUF003", # 	[ ] ambiguous-unicode-character-comment
     "SIM103", # 	[ ] needless-bool
     "UP015", #  	[*] redundant-open-modes
-    "FURB156", #	[*] hardcoded-string-charset
     "FURB161", #	[ ] bit-count
     "PERF403", #	[ ] manual-dict-comprehension
     "PIE810", # 	[ ] multiple-starts-ends-with

@@ -5,6 +5,7 @@ import hashlib
 import html
 import os
 import re
+import string
 from collections.abc import Callable
 from urllib.parse import quote, unquote, unquote_plus
 
@@ -360,7 +361,7 @@ def css_decode(value: str) -> tuple[str, bool]:
             while (
                 hex_end < len(value)
                 and hex_end - hex_start < 6
-                and value[hex_end] in "0123456789abcdefABCDEF"
+                and value[hex_end] in string.hexdigits
             ):
                 hex_end += 1
 
@@ -392,7 +393,7 @@ def css_decode(value: str) -> tuple[str, bool]:
                     pass
 
             # Handle non-hex escape or invalid hex
-            if i + 1 < len(value) and value[i + 1] not in "0123456789abcdefABCDEF":
+            if i + 1 < len(value) and value[i + 1] not in string.hexdigits:
                 # Non-hex character escape (e.g., ja\vascript -> javascript)
                 result += value[i + 1]
                 i += 2
@@ -595,7 +596,7 @@ def normalize_path(value: str) -> tuple[str, bool]:
     for part in value.split("/"):
         if part == "" or part == ".":
             continue
-        elif part == "..":
+        if part == "..":
             if components:
                 components.pop()
         else:
