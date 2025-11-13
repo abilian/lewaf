@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-import yaml
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Route
@@ -160,6 +159,8 @@ def test_url_encoded_attack(client):
 
 def test_middleware_with_config_file(tmpdir):
     """Test middleware initialization with config file."""
+    import yaml
+
     # Create config file
     config_file = tmpdir / "test.yaml"
     config_data = {
@@ -253,7 +254,6 @@ def test_content_type_json(client):
 
 def test_middleware_passes_through_non_http(waf_config):
     """Test that non-HTTP connections pass through."""
-
     # Create a WebSocket-like app
     async def websocket_app(scope, receive, send):
         assert scope["type"] == "websocket"
@@ -268,7 +268,6 @@ def test_middleware_passes_through_non_http(waf_config):
 
 def test_middleware_error_handling(waf_config):
     """Test that WAF errors don't crash the application."""
-
     # Create an app that will cause the WAF to process
     async def app_route(request):
         return JSONResponse({"ok": True})

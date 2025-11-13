@@ -7,14 +7,12 @@ providing request/response filtering and WAF protection.
 from __future__ import annotations
 
 import logging
-from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any
+from typing import Any, Awaitable, Callable
 
+from lewaf.config.loader import load_config
 from lewaf.config.manager import ConfigManager
 from lewaf.integration import WAF
-
-if TYPE_CHECKING:
-    from lewaf.transaction import Transaction
+from lewaf.transaction import Transaction
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +52,6 @@ class ASGIMiddleware:
         """
         self.app = app
         self.enable_hot_reload = enable_hot_reload
-        self.config_manager: ConfigManager | None
 
         # Initialize WAF
         if waf_instance:
@@ -77,8 +74,9 @@ class ASGIMiddleware:
             self.waf = WAF(config_dict)
             self.config_manager = None
         else:
-            # Use empty config (no rules)
-            self.waf = WAF({"rules": []})
+            # Load default config
+            default_config = load_config()
+            self.waf = self._create_waf_from_config(default_config)
             self.config_manager = None
 
         logger.info("LeWAF ASGI middleware initialized")
@@ -110,7 +108,7 @@ class ASGIMiddleware:
             self.waf = self._create_waf_from_config(new_config)
             logger.info("WAF configuration reloaded successfully")
         except Exception as e:
-            logger.error("Failed to reload WAF configuration: %s", e)
+            logger.error(f"Failed to reload WAF configuration: {e}")
             # Keep old WAF instance on failure
 
     async def __call__(
@@ -161,8 +159,8 @@ class ASGIMiddleware:
             # Call wrapped application with replay receive
             await self.app(scope, replay_receive, wrapped_send)
 
-        except Exception:
-            logger.exception("WAF middleware error")
+        except Exception as e:
+            logger.error(f"WAF middleware error: {e}", exc_info=True)
             # Continue with original app on WAF errors
             await self.app(scope, receive, send)
 
@@ -216,7 +214,7 @@ class ASGIMiddleware:
         body_messages: list[dict[str, Any]] = []
 
         # Process body if present
-        if method in {"POST", "PUT", "PATCH"}:
+        if method in ("POST", "PUT", "PATCH"):
             body_parts = []
 
             while True:
@@ -351,8 +349,6 @@ class ASGIMiddlewareFactory:
             config_dict: Configuration dictionary
             enable_hot_reload: Enable hot-reload
         """
-        self.config_manager: ConfigManager | None
-
         # Create shared WAF instance
         if config_file:
             self.config_manager = ConfigManager(
@@ -368,8 +364,8 @@ class ASGIMiddlewareFactory:
             self.waf = WAF(config_dict)
             self.config_manager = None
         else:
-            # Use empty config (no rules)
-            self.waf = WAF({"rules": []})
+            default_config = load_config()
+            self.waf = self._create_waf_from_config(default_config)
             self.config_manager = None
 
     def _create_waf_from_config(self, config: Any) -> WAF:
@@ -383,7 +379,7 @@ class ASGIMiddlewareFactory:
             self.waf = self._create_waf_from_config(new_config)
             logger.info("Shared WAF configuration reloaded")
         except Exception as e:
-            logger.error("Failed to reload shared WAF: %s", e)
+            logger.error(f"Failed to reload shared WAF: {e}")
 
     def wrap(self, app: ASGIApp) -> ASGIMiddleware:
         """Wrap an ASGI application with middleware.
