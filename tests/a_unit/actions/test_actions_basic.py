@@ -138,7 +138,8 @@ def test_id_action():
     # Test with empty data should raise error
     try:
         action.init({}, "")
-        assert False, "Should raise ValueError for empty ID"
+        msg = "Should raise ValueError for empty ID"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -157,13 +158,15 @@ def test_phase_action():
     # Test invalid phase
     try:
         action.init({}, "0")
-        assert False, "Should raise ValueError for invalid phase"
+        msg = "Should raise ValueError for invalid phase"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
     try:
         action.init({}, "6")
-        assert False, "Should raise ValueError for invalid phase"
+        msg = "Should raise ValueError for invalid phase"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -181,7 +184,8 @@ def test_msg_action():
     # Test with empty message should raise error
     try:
         action.init({}, "")
-        assert False, "Should raise ValueError for empty message"
+        msg = "Should raise ValueError for empty message"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -210,7 +214,8 @@ def test_severity_action():
     # Test invalid severity
     try:
         action.init({}, "INVALID")
-        assert False, "Should raise ValueError for invalid severity"
+        msg = "Should raise ValueError for invalid severity"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
