@@ -95,12 +95,22 @@ def test_transformation_action_empty_data():
         action.init(rule_metadata, "")
 
 
-def test_transformation_action_evaluate_noop(mock_rule, mock_transaction):
+def test_transformation_action_evaluate_noop():
     """Test that evaluate does nothing (transformations applied during rule evaluation)."""
+
+    class MockRule:
+        def __init__(self):
+            self.id = 1
+
+    class MockTransaction:
+        pass
+
     action = TransformationAction()
+    rule = MockRule()
+    tx = MockTransaction()
 
     # Should not raise exception
-    action.evaluate(mock_rule, mock_transaction)
+    action.evaluate(rule, tx)
 
 
 def test_transformation_action_case_insensitive():

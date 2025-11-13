@@ -256,8 +256,8 @@ def test_action_inheritance():
 
         # Action type should be one of the valid types
         action_type = action.action_type()
-        assert action_type in [
+        assert action_type in {
             ActionType.DISRUPTIVE,
             ActionType.NONDISRUPTIVE,
             ActionType.METADATA,
-        ]
+        }

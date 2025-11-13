@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import fnmatch
 import ipaddress
 import re
@@ -906,10 +907,8 @@ class InspectFileOperator(Operator):
 
             finally:
                 # Clean up temporary file
-                try:
+                with contextlib.suppress(OSError):
                     os.unlink(temp_file_path)
-                except OSError:
-                    pass
 
             # If we get here, the script ran but we didn't parse the output correctly
             return True
@@ -1206,7 +1205,7 @@ class GeoLookupOperator(Operator):
         # In production, this would query an actual geolocation database
 
         # Example: Classify some known IP ranges
-        if ip_address.startswith("8.8.8.") or ip_address.startswith("8.8.4."):
+        if ip_address.startswith(("8.8.8.", "8.8.4.")):
             # Google DNS servers - mock as US
             return {
                 "COUNTRY_CODE": "US",
@@ -1219,7 +1218,7 @@ class GeoLookupOperator(Operator):
                 "LATITUDE": "37.4056",
                 "LONGITUDE": "-122.0775",
             }
-        if ip_address.startswith("1.1.1.") or ip_address.startswith("1.0.0."):
+        if ip_address.startswith(("1.1.1.", "1.0.0.")):
             # Cloudflare DNS - mock as US
             return {
                 "COUNTRY_CODE": "US",

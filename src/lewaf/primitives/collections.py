@@ -514,19 +514,19 @@ class TransactionVariables:
         """Populate header name collections from existing headers."""
         # Populate REQUEST_HEADERS_NAMES from REQUEST_HEADERS
         self.request_headers_names._data.clear()
-        for header_name in self.request_headers._data.keys():
+        for header_name in self.request_headers._data:
             self.request_headers_names.add(header_name, header_name)
 
         # Populate RESPONSE_HEADERS_NAMES from RESPONSE_HEADERS
         self.response_headers_names._data.clear()
-        for header_name in self.response_headers._data.keys():
+        for header_name in self.response_headers._data:
             self.response_headers_names.add(header_name, header_name)
 
     def populate_args_metadata(self) -> None:
         """Populate argument metadata collections."""
         # Populate ARGS_NAMES from ARGS
         self.args_names._data.clear()
-        for arg_name in self.args._data.keys():
+        for arg_name in self.args._data:
             self.args_names.add(arg_name, arg_name)
 
         # Calculate ARGS_COMBINED_SIZE
@@ -541,5 +541,5 @@ class TransactionVariables:
         """Populate cookie name collections from existing cookies."""
         # Populate REQUEST_COOKIES_NAMES from REQUEST_COOKIES
         self.request_cookies_names._data.clear()
-        for cookie_name in self.request_cookies._data.keys():
+        for cookie_name in self.request_cookies._data:
             self.request_cookies_names.add(cookie_name, cookie_name)

@@ -41,7 +41,7 @@ class SecLangParser:
         quote_char = None
 
         for char in actions_str:
-            if char in ("'", '"') and not in_quotes:
+            if char in {"'", '"'} and not in_quotes:
                 in_quotes = True
                 quote_char = char
                 current_action += char
@@ -125,7 +125,7 @@ class SecLangParser:
                     msg = f"Unknown action: {key}"
                     raise ValueError(msg)
                 parsed_actions[key] = action_class(value)
-                if key in ["id", "phase"]:
+                if key in {"id", "phase"}:
                     parsed_metadata[key] = int(value)
                 if key == "tag":
                     tags.append(value)

@@ -18,7 +18,6 @@ from lewaf.primitives.actions import (
     SetEnvAction,
     SkipAction,
 )
-from lewaf.primitives.collections import TransactionVariables
 
 
 def test_phase1_actions_registered():
@@ -39,7 +38,7 @@ def test_phase2_actions_registered():
     assert "initcol" in ACTIONS
 
 
-def test_redirect_action(mock_rule, mock_transaction):
+def test_redirect_action():
     """Test redirect action functionality."""
     action = RedirectAction()
 
@@ -58,8 +57,22 @@ def test_redirect_action(mock_rule, mock_transaction):
         pass
 
     # Test evaluation
-    action.evaluate(mock_rule, mock_transaction)
-    assert mock_transaction._interrupted is True
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        def __init__(self):
+            self.interruption = None
+
+        def interrupt(self, rule):
+            self.interruption = {"rule_id": rule.id, "action": "redirect"}
+
+    rule = MockRule()
+    tx = MockTransaction()
+
+    action.evaluate(rule, tx)
+    assert tx.interruption is not None
 
 
 def test_skip_action():
@@ -100,37 +113,72 @@ def test_rev_action():
         pass
 
 
-def test_auditlog_action(mock_rule, mock_transaction):
+def test_auditlog_action():
     """Test audit log action functionality."""
     action = AuditLogAction()
 
     assert action.action_type() == ActionType.NONDISRUPTIVE
 
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        pass
+
+    rule = MockRule()
+    tx = MockTransaction()
+
     # Should not raise exception
-    action.evaluate(mock_rule, mock_transaction)
+    action.evaluate(rule, tx)
 
 
-def test_noauditlog_action(mock_rule, mock_transaction):
+def test_noauditlog_action():
     """Test no audit log action functionality."""
     action = NoAuditLogAction()
 
     assert action.action_type() == ActionType.NONDISRUPTIVE
 
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        pass
+
+    rule = MockRule()
+    tx = MockTransaction()
+
     # Should not raise exception
-    action.evaluate(mock_rule, mock_transaction)
+    action.evaluate(rule, tx)
 
 
-def test_drop_action(mock_rule, mock_transaction):
+def test_drop_action():
     """Test drop action functionality."""
     action = DropAction()
 
     assert action.action_type() == ActionType.DISRUPTIVE
 
-    action.evaluate(mock_rule, mock_transaction)
-    assert mock_transaction._interrupted is True
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        def __init__(self):
+            self.interruption = None
+
+        def interrupt(self, rule):
+            self.interruption = {"rule_id": rule.id, "action": "deny"}
+
+    rule = MockRule()
+    tx = MockTransaction()
+
+    action.evaluate(rule, tx)
+    assert tx.interruption is not None
+    assert tx.interruption["rule_id"] == 123
 
 
-def test_exec_action(mock_rule, mock_transaction):
+def test_exec_action():
     """Test exec action functionality (security disabled)."""
     action = ExecAction()
 
@@ -148,12 +196,24 @@ def test_exec_action(mock_rule, mock_transaction):
     except ValueError:
         pass
 
+    # Test evaluation (should not execute for security)
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        def __init__(self):
+            self.interruption = None
+
+    rule = MockRule()
+    tx = MockTransaction()
+
     # Should not interrupt transaction (disabled for security)
-    action.evaluate(mock_rule, mock_transaction)
-    assert mock_transaction._interrupted is False
+    action.evaluate(rule, tx)
+    assert tx.interruption is None
 
 
-def test_setenv_action(mock_rule, mock_transaction):
+def test_setenv_action():
     """Test setenv action functionality."""
     action = SetEnvAction()
 
@@ -180,7 +240,17 @@ def test_setenv_action(mock_rule, mock_transaction):
         pass
 
     # Test evaluation
-    action.evaluate(mock_rule, mock_transaction)
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        pass
+
+    rule = MockRule()
+    tx = MockTransaction()
+
+    action.evaluate(rule, tx)
     assert os.environ.get("TEST_VAR") == "test_value"
 
     # Clean up
@@ -188,7 +258,7 @@ def test_setenv_action(mock_rule, mock_transaction):
         del os.environ["TEST_VAR"]
 
 
-def test_expirevar_action(mock_rule, mock_transaction):
+def test_expirevar_action():
     """Test expirevar action functionality."""
     action = ExpireVarAction()
 
@@ -214,11 +284,22 @@ def test_expirevar_action(mock_rule, mock_transaction):
     except ValueError:
         pass
 
+    # Test evaluation
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        pass
+
+    rule = MockRule()
+    tx = MockTransaction()
+
     # Should not interrupt transaction
-    action.evaluate(mock_rule, mock_transaction)
+    action.evaluate(rule, tx)
 
 
-def test_initcol_action(mock_rule, mock_transaction):
+def test_initcol_action():
     """Test initcol action functionality."""
     action = InitColAction()
 
@@ -237,15 +318,28 @@ def test_initcol_action(mock_rule, mock_transaction):
     except ValueError:
         pass
 
-    # Test evaluation with real TransactionVariables
-    mock_transaction.variables = TransactionVariables()
-    mock_transaction.variables.remote_addr.set("192.168.1.100")
+    # Test evaluation
+    from lewaf.primitives.collections import (  # noqa: PLC0415 - Avoids circular import
+        TransactionVariables,
+    )
+
+    class MockRule:
+        def __init__(self):
+            self.id = 123
+
+    class MockTransaction:
+        def __init__(self):
+            self.variables = TransactionVariables()
+            self.variables.remote_addr.set("192.168.1.100")
+
+    rule = MockRule()
+    tx = MockTransaction()
 
     # Should not interrupt transaction (creates collection manager and IP collection)
-    action.evaluate(mock_rule, mock_transaction)
+    action.evaluate(rule, tx)
 
     # Verify IP collection was created
-    assert hasattr(mock_transaction.variables, "ip")
+    assert hasattr(tx.variables, "ip")
 
 
 def test_action_error_handling():

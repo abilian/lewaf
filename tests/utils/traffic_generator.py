@@ -57,7 +57,7 @@ class TrafficGenerator:
         # Generate body for POST/PUT
         body = None
         content_type = None
-        if method in ["POST", "PUT"]:
+        if method in {"POST", "PUT"}:
             body_type = random.choice(["json", "urlencoded", "empty"])
             if body_type == "json":
                 body = f'{{"id": {resource_id}, "name": "test", "value": {random.random()}}}'

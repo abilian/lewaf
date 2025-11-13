@@ -166,7 +166,7 @@ def test_crs_sqli_in_request_body(crs_sql_waf):
 
     # Should detect SQL injection in body
     assert result is not None
-    assert result["rule_id"] in [942100, 942200, 942201]
+    assert result["rule_id"] in {942100, 942200, 942201}
 
 
 def test_crs_xss_in_request_body(crs_xss_waf):
@@ -180,7 +180,7 @@ def test_crs_xss_in_request_body(crs_xss_waf):
 
     # Should detect XSS in body
     assert result is not None
-    assert result["rule_id"] in [941100, 941101]
+    assert result["rule_id"] in {941100, 941101}
 
 
 def test_crs_multiple_attack_vectors():

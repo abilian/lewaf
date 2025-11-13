@@ -162,7 +162,7 @@ class MacroExpander:
         return ""
 
 
-ACTIONS = {}
+ACTIONS: dict[str, type[Action]] = {}
 
 
 class ActionType(IntEnum):
@@ -289,7 +289,7 @@ class PhaseAction(Action):
             raise ValueError(msg)
         try:
             phase = int(data)
-            if phase not in (1, 2, 3, 4, 5):
+            if phase not in {1, 2, 3, 4, 5}:
                 msg = f"Phase must be 1-5, got {phase}"
                 raise ValueError(msg)
             self.phase = phase
@@ -1052,7 +1052,8 @@ class CtlAction(Action):
 
     def _handle_body_limit_control(self, transaction: TransactionProtocol) -> None:
         """Handle request body limit control."""
-        try:
+        # FIXME: is it safe to ignore invalid values here?
+        try:  # noqa: SIM105
             transaction.body_limit = int(self.value)
         except ValueError:
             pass  # Invalid limit value

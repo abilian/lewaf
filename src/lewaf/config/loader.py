@@ -54,7 +54,7 @@ class ConfigLoader:
         content = self._substitute_env_vars(content)
 
         # Parse based on file extension
-        if file_path.suffix in [".yaml", ".yml"]:
+        if file_path.suffix in {".yaml", ".yml"}:
             data = yaml.safe_load(content)
         elif file_path.suffix == ".json":
             data = json.loads(content)
