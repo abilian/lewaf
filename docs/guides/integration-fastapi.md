@@ -835,7 +835,6 @@ if __name__ == "__main__":
 - [Quickstart Guide](quickstart.md)
 - [API Reference](../api/reference.md)
 - [Custom Rules Guide](custom-rules.md)
-- [Django Integration](integration-django.md)
 - [Flask Integration](integration-flask.md)
 - [Starlette Integration](integration-starlette.md)
 - [Docker Deployment](../deployment/docker.md)

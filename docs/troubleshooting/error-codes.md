@@ -792,5 +792,5 @@ SecRule REQBODY_ERROR_MSG "@contains BODY-3001" \
 ---
 
 **Questions or Issues?**
-- GitHub Issues: https://github.com/abilian/lewaf/issues
+- GitHub Issues: https://github.com/yourorg/lewaf/issues
 - Documentation: https://lewaf.readthedocs.io
