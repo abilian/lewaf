@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 from typing import Any, Awaitable, Callable
 
-from lewaf.config.loader import load_config
 from lewaf.config.manager import ConfigManager
 from lewaf.integration import WAF
 from lewaf.transaction import Transaction
@@ -52,6 +51,7 @@ class ASGIMiddleware:
         """
         self.app = app
         self.enable_hot_reload = enable_hot_reload
+        self.config_manager: ConfigManager | None
 
         # Initialize WAF
         if waf_instance:
@@ -74,9 +74,8 @@ class ASGIMiddleware:
             self.waf = WAF(config_dict)
             self.config_manager = None
         else:
-            # Load default config
-            default_config = load_config()
-            self.waf = self._create_waf_from_config(default_config)
+            # Use empty config (no rules)
+            self.waf = WAF({"rules": []})
             self.config_manager = None
 
         logger.info("LeWAF ASGI middleware initialized")
@@ -349,6 +348,8 @@ class ASGIMiddlewareFactory:
             config_dict: Configuration dictionary
             enable_hot_reload: Enable hot-reload
         """
+        self.config_manager: ConfigManager | None
+
         # Create shared WAF instance
         if config_file:
             self.config_manager = ConfigManager(
@@ -364,8 +365,8 @@ class ASGIMiddlewareFactory:
             self.waf = WAF(config_dict)
             self.config_manager = None
         else:
-            default_config = load_config()
-            self.waf = self._create_waf_from_config(default_config)
+            # Use empty config (no rules)
+            self.waf = WAF({"rules": []})
             self.config_manager = None
 
     def _create_waf_from_config(self, config: Any) -> WAF:

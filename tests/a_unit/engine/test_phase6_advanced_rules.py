@@ -495,7 +495,7 @@ class TestAdvancedTransformations:
 
         # Test zero parity with character that has high bit set
         test_char = chr(0xC1)  # Character with high bit set
-        result, changed = TRANSFORMATIONS["parityzero7bit"](test_char)
+        _result, changed = TRANSFORMATIONS["parityzero7bit"](test_char)
         assert changed is True
 
 
