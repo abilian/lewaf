@@ -36,7 +36,7 @@ LeWAF is deployed on Kubernetes using:
 
 ### Key Features
 
-- Security (non-root, read-only filesystem)
+- Production-ready security (non-root, read-only filesystem)
 - Liveness, readiness, and startup probes
 - Resource limits and requests
 - Horizontal pod autoscaling
@@ -164,36 +164,36 @@ curl http://localhost:8000/health
 ### Resource Overview
 
 ```
-┌────────────────────────────────────────────┐
-│              Kubernetes Cluster            │
-├────────────────────────────────────────────┤
-│                                            │
-│  ┌────────────┐       ┌───────────────┐    │
-│  │  Ingress   │──────▶│   Service     │    │
-│  └────────────┘       └───────┬───────┘    │
+┌─────────────────────────────────────────────┐
+│              Kubernetes Cluster              │
+├─────────────────────────────────────────────┤
+│                                             │
+│  ┌────────────┐       ┌───────────────┐   │
+│  │  Ingress   │──────▶│   Service     │   │
+│  └────────────┘       └───────┬───────┘   │
 │                               │            │
-│       ┌───────────────────────┼───────┐   │
-│       │                       │       │   │
-│  ┌────▼────┐  ┌──────▼──────┐    ┌────▼─┐  │
-│  │  Pod 1  │  │    Pod 2    │    │ Pod 3│  │
-│  │ (LeWAF) │  │   (LeWAF)   │    │(LeWAF│  │
-│  └─────────┘  └─────────────┘    └──────┘  │
-│                                            │
-│  ┌──────────────────────────────────────┐  │
-│  │     HorizontalPodAutoscaler          │  │
-│  │  (Scales pods based on CPU/Memory)   │  │
-│  └──────────────────────────────────────┘  │
-│                                            │
-│  ┌──────────────────────────────────────┐  │
-│  │      PodDisruptionBudget             │  │
-│  │  (Ensures min 2 pods during updates) │  │
-│  └──────────────────────────────────────┘  │
-│                                            │
-│  ┌──────────────────────────────────────┐  │
-│  │      ConfigMap / Secret              │  │
-│  │  (Configuration & Credentials)       │  │
-│  └──────────────────────────────────────┘  │
-└────────────────────────────────────────────┘
+│       ┌───────────────────────┼────────┐  │
+│       │                       │        │  │
+│  ┌────▼────┐  ┌──────▼──────┐  ┌────▼─┐ │
+│  │  Pod 1  │  │    Pod 2    │  │ Pod 3│ │
+│  │ (LeWAF) │  │   (LeWAF)   │  │(LeWAF│ │
+│  └─────────┘  └─────────────┘  └──────┘ │
+│                                             │
+│  ┌──────────────────────────────────────┐ │
+│  │     HorizontalPodAutoscaler          │ │
+│  │  (Scales pods based on CPU/Memory)   │ │
+│  └──────────────────────────────────────┘ │
+│                                             │
+│  ┌──────────────────────────────────────┐ │
+│  │      PodDisruptionBudget             │ │
+│  │  (Ensures min 2 pods during updates) │ │
+│  └──────────────────────────────────────┘ │
+│                                             │
+│  ┌──────────────────────────────────────┐ │
+│  │      ConfigMap / Secret              │ │
+│  │  (Configuration & Credentials)       │ │
+│  └──────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
 ```
 
 ### Components
@@ -908,5 +908,5 @@ kube-bench run --targets master,node
 ---
 
 **Questions or Issues?**
-- GitHub Issues: https://github.com/abilian/lewaf/issues
+- GitHub Issues: https://github.com/yourorg/lewaf/issues
 - Documentation: https://lewaf.readthedocs.io

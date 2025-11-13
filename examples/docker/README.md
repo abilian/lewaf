@@ -5,7 +5,7 @@ This directory contains Docker configuration examples for LeWAF deployment.
 ## Files
 
 ### Dockerfile
-**Purpose**: Dockerfile template
+**Purpose**: Production-ready Dockerfile template
 **Status**: ⚠️ Template for future use - **Not currently buildable**
 **Use Case**: Reference for production deployments when LeWAF is packaged
 
