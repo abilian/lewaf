@@ -12,6 +12,7 @@ for features like:
 
 from __future__ import annotations
 
+import contextlib
 import json
 import pickle
 import time
@@ -277,10 +278,8 @@ class FileStorage(StorageBackend):
 
         with self._lock:
             if file_path.exists():
-                try:
+                with contextlib.suppress(Exception):
                     file_path.unlink()
-                except Exception:
-                    pass
 
     def clear_expired(self) -> int:
         """Remove expired collection files."""
@@ -389,10 +388,8 @@ class RedisStorage(StorageBackend):
         """Delete a collection from Redis."""
         redis_key = self._get_redis_key(collection_name, key)
 
-        try:
+        with contextlib.suppress(Exception):
             self.redis.delete(redis_key)
-        except Exception:
-            pass
 
     def clear_expired(self) -> int:
         """

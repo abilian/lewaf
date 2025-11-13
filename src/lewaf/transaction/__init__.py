@@ -131,7 +131,7 @@ class Transaction:
                 self.variables.args.add(key, value)
 
             # Populate ARGS_POST_NAMES
-            for key in args_post.keys():
+            for key in args_post:
                 self.variables.args_post_names.add(key, key)
 
         # FILES - uploaded files

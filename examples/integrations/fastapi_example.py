@@ -82,7 +82,7 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
             return self._blocked_response(tx)
 
         # Process request body if present
-        if request.method in ["POST", "PUT", "PATCH"]:
+        if request.method in {"POST", "PUT", "PATCH"}:
             body = await request.body()
             if body:
                 tx.process_request_body(body)

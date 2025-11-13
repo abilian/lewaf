@@ -79,7 +79,7 @@ class ProxyClient:
 
         # Read request body if present
         body = None
-        if request.method in ("POST", "PUT", "PATCH"):
+        if request.method in {"POST", "PUT", "PATCH"}:
             body = await request.body()
 
         try:

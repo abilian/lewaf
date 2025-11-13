@@ -35,15 +35,15 @@ class Environment(Enum):
         env_str = os.getenv("ENV") or os.getenv("ENVIRONMENT")
         if env_str:
             env_lower = env_str.lower()
-            if env_lower in ["dev", "development"]:
+            if env_lower in {"dev", "development"}:
                 return cls.DEVELOPMENT
-            if env_lower in ["staging", "stage"]:
+            if env_lower in {"staging", "stage"}:
                 return cls.STAGING
-            if env_lower in ["prod", "production"]:
+            if env_lower in {"prod", "production"}:
                 return cls.PRODUCTION
 
         # Check DEBUG flag
-        debug = os.getenv("DEBUG", "").lower() in ["1", "true", "yes"]
+        debug = os.getenv("DEBUG", "").lower() in {"1", "true", "yes"}
         if debug:
             return cls.DEVELOPMENT
 

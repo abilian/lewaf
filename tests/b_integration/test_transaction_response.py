@@ -355,7 +355,7 @@ def test_response_invalid_content_length():
 
     # Should not crash, just not set the variable
     # (or set to empty string)
-    assert tx.variables.response_content_length.get() in ["", "0"]
+    assert tx.variables.response_content_length.get() in {"", "0"}
 
 
 def test_response_nested_json():

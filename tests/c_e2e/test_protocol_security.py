@@ -118,14 +118,14 @@ class TestProtocolSecurity:
                 interruption = tx.process_request_body()
 
             # Some methods like TRACE might be legitimately blocked
-            if tx.interruption is None and method in [
+            if tx.interruption is None and method in {
                 "TRACE",
                 "CONNECT",
                 "TRACK",
                 "DEBUG",
-            ]:
+            }:
                 print(f"Info: Method {method} not blocked (may be acceptable)")
-            elif tx.interruption is None and method not in [
+            elif tx.interruption is None and method not in {
                 "GET",
                 "POST",
                 "HEAD",
@@ -133,7 +133,7 @@ class TestProtocolSecurity:
                 "DELETE",
                 "OPTIONS",
                 "PATCH",
-            ]:
+            }:
                 print(f"Warning: Dangerous method not blocked: {method}")
 
     def test_http_version_attacks(self, protocol_waf):
@@ -395,12 +395,12 @@ class TestProtocolSecurity:
             if ua == "" and tx.interruption is not None:
                 # Empty UA should be detected
                 pass
-            elif tx.interruption is None and ua in [
+            elif tx.interruption is None and ua in {
                 "sqlmap/1.0",
                 "Nikto/2.1.6",
                 "w3af.org",
                 "Havij",
-            ]:
+            }:
                 print(f"Warning: Malicious User-Agent not detected: {ua}")
 
     def test_content_type_attacks(self, protocol_waf):

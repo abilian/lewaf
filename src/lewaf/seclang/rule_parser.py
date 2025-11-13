@@ -13,7 +13,7 @@ import logging
 import random
 from typing import TYPE_CHECKING, Any
 
-from lewaf.primitives.actions import ACTIONS
+from lewaf.primitives.actions import ACTIONS, Action
 from lewaf.primitives.operators import OperatorOptions, get_operator
 from lewaf.rules import Rule
 
@@ -117,7 +117,7 @@ class SecRuleParser:
                     current = []
                 continue
 
-            if not in_quotes and char in (" ", "\t"):
+            if not in_quotes and char in {" ", "\t"}:
                 if current:
                     parts.append("".join(current))
                     current = []
@@ -222,12 +222,12 @@ class SecRuleParser:
         self.operator_argument = parts[1] if len(parts) > 1 else ""
 
         # Handle operators without arguments
-        if not self.operator_argument and self.operator_name in [
+        if not self.operator_argument and self.operator_name in {
             "unconditional",
             "unconditionalmatch",
             "detectsqli",
             "detectxss",
-        ]:
+        }:
             self.operator_argument = ""
 
     def _parse_actions(self, actions_str: str) -> None:
@@ -264,7 +264,7 @@ class SecRuleParser:
                 continue
 
             # Handle metadata actions (id, phase, rev, severity, msg, etc.)
-            if action_name in [
+            if action_name in {
                 "id",
                 "phase",
                 "rev",
@@ -272,16 +272,16 @@ class SecRuleParser:
                 "ver",
                 "maturity",
                 "accuracy",
-            ]:
+            }:
                 # Strip quotes from value
-                if action_value.startswith("'") and action_value.endswith("'"):
-                    action_value = action_value[1:-1]
-                elif action_value.startswith('"') and action_value.endswith('"'):
+                if (action_value.startswith("'") and action_value.endswith("'")) or (
+                    action_value.startswith('"') and action_value.endswith('"')
+                ):
                     action_value = action_value[1:-1]
 
                 # Try to convert to int
                 try:
-                    if action_name in ["id", "phase", "severity"]:
+                    if action_name in {"id", "phase", "severity"}:
                         self.metadata[action_name] = int(action_value)
                     else:
                         self.metadata[action_name] = action_value
@@ -293,15 +293,9 @@ class SecRuleParser:
             if action_name in ACTIONS:
                 action_class = ACTIONS[action_name]
                 action_instance = action_class()
+                assert isinstance(action_instance, Action)
 
-                # Initialize action with value if needed
-                if hasattr(action_instance, "init"):
-                    try:
-                        action_instance.init(self.metadata, action_value)
-                    except Exception:
-                        # Some actions don't need init
-                        pass
-
+                action_instance.init(self.metadata, action_value)
                 self.actions[action_name] = action_instance
 
     def _split_actions(self, actions_str: str) -> list[str]:

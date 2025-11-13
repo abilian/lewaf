@@ -7,7 +7,8 @@ providing request/response filtering and WAF protection.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 from lewaf.config.manager import ConfigManager
 from lewaf.integration import WAF
@@ -215,7 +216,7 @@ class ASGIMiddleware:
         body_messages: list[dict[str, Any]] = []
 
         # Process body if present
-        if method in ("POST", "PUT", "PATCH"):
+        if method in {"POST", "PUT", "PATCH"}:
             body_parts = []
 
             while True:

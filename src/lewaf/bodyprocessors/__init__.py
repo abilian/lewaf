@@ -20,10 +20,10 @@ from lewaf.bodyprocessors.urlencoded import URLEncodedProcessor
 from lewaf.bodyprocessors.xml import XMLProcessor
 
 # Register built-in processors
-register_body_processor("URLENCODED", lambda: URLEncodedProcessor())
-register_body_processor("JSON", lambda: JSONProcessor())
-register_body_processor("XML", lambda: XMLProcessor())
-register_body_processor("MULTIPART", lambda: MultipartProcessor())
+register_body_processor("URLENCODED", URLEncodedProcessor)
+register_body_processor("JSON", JSONProcessor)
+register_body_processor("XML", XMLProcessor)
+register_body_processor("MULTIPART", MultipartProcessor)
 
 __all__ = [
     "BodyProcessorError",
