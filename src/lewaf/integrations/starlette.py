@@ -100,7 +100,7 @@ class CorazaMiddleware(BaseHTTPMiddleware):
             return response
 
         except Exception as e:
-            logger.error(f"Error in Coraza middleware: {e}")
+            logger.error("Error in Coraza middleware: %s", e)
             # On error, allow request to proceed (fail open)
             return await call_next(request)
 

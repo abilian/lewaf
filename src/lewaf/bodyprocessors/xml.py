@@ -49,15 +49,15 @@ class XMLProcessor(BaseBodyProcessor):
         """
         # Check size limit
         if len(body) > self.max_size:
-            raise BodyProcessorError(
-                f"XML body too large: {len(body)} bytes (max: {self.max_size})"
-            )
+            msg = f"XML body too large: {len(body)} bytes (max: {self.max_size})"
+            raise BodyProcessorError(msg)
 
         try:
             # Decode body to string
             body_str = body.decode("utf-8")
         except UnicodeDecodeError as e:
-            raise BodyProcessorError(f"Invalid UTF-8 in XML body: {e}") from e
+            msg = f"Invalid UTF-8 in XML body: {e}"
+            raise BodyProcessorError(msg) from e
 
         # Store raw body
         self.raw_body = body
@@ -74,7 +74,8 @@ class XMLProcessor(BaseBodyProcessor):
             self.tree = ET.ElementTree(self.root)
 
         except ET.ParseError as e:
-            raise BodyProcessorError(f"Invalid XML: {e}") from e
+            msg = f"Invalid XML: {e}"
+            raise BodyProcessorError(msg) from e
 
         # Create XML collection (for XML:/* queries in rules)
         # This is a special collection that represents the parsed XML
@@ -124,7 +125,7 @@ class XMLProcessor(BaseBodyProcessor):
             return results
 
         except Exception as e:
-            logger.warning(f"XPath query failed '{expression}': {e}")
+            logger.warning("XPath query failed '%s': %s", expression, e)
             return []
 
     def _get_all_text(self, element: ET.Element) -> str:

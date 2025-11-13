@@ -62,9 +62,8 @@ class MultipartProcessor(BaseBodyProcessor):
         """
         # Check size limit
         if len(body) > self.max_size:
-            raise BodyProcessorError(
-                f"Multipart body too large: {len(body)} bytes (max: {self.max_size})"
-            )
+            msg = f"Multipart body too large: {len(body)} bytes (max: {self.max_size})"
+            raise BodyProcessorError(msg)
 
         # Store raw body
         self.raw_body = body
@@ -73,15 +72,15 @@ class MultipartProcessor(BaseBodyProcessor):
         # Extract boundary from Content-Type
         boundary = self._extract_boundary(content_type)
         if not boundary:
-            raise BodyProcessorError(
-                "Missing boundary in multipart Content-Type header"
-            )
+            msg = "Missing boundary in multipart Content-Type header"
+            raise BodyProcessorError(msg)
 
         # Parse multipart body
         try:
             self.parts = self._parse_multipart(body, boundary)
         except Exception as e:
-            raise BodyProcessorError(f"Failed to parse multipart body: {e}") from e
+            msg = f"Failed to parse multipart body: {e}"
+            raise BodyProcessorError(msg) from e
 
         # Populate collections
         args_post = {}
@@ -218,7 +217,7 @@ class MultipartProcessor(BaseBodyProcessor):
             msg_bytes = header_data + b"\r\n\r\n"
             msg = message_from_bytes(msg_bytes)
         except Exception as e:
-            logger.warning(f"Failed to parse multipart headers: {e}")
+            logger.warning("Failed to parse multipart headers: %s", e)
             return None
 
         # Extract Content-Disposition

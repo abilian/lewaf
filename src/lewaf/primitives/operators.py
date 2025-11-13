@@ -74,7 +74,8 @@ def register_operator(name: str) -> Callable:
 def get_operator(name: str, options: OperatorOptions) -> Operator:
     """Get an operator instance by name."""
     if name.lower() not in OPERATORS:
-        raise ValueError(f"Unknown operator: {name}")
+        msg = f"Unknown operator: {name}"
+        raise ValueError(msg)
     factory = OPERATORS[name.lower()]
     return factory.create(options)
 
@@ -672,7 +673,8 @@ class ValidateNidOperator(Operator):
         # Parse argument: "country_code regex_pattern"
         parts = argument.split(None, 1)
         if len(parts) < 2:
-            raise ValueError("validateNid requires format: <country_code> <regex>")
+            msg = "validateNid requires format: <country_code> <regex>"
+            raise ValueError(msg)
 
         self._country_code = parts[0].lower()
         self._regex_pattern = parts[1]
@@ -684,10 +686,11 @@ class ValidateNidOperator(Operator):
         elif self._country_code == "us":
             self._validator = self._validate_us
         else:
-            raise ValueError(
+            msg = (
                 f"Unsupported country code '{self._country_code}'. "
                 "Supported: cl (Chile), us (USA)"
             )
+            raise ValueError(msg)
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Find and validate National IDs in the input value."""
@@ -857,7 +860,8 @@ class InspectFileOperator(Operator):
         super().__init__(argument)
         self._script_path = argument.strip()
         if not self._script_path:
-            raise ValueError("InspectFile operator requires a script path")
+            msg = "InspectFile operator requires a script path"
+            raise ValueError(msg)
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Execute external script for file inspection."""
@@ -868,15 +872,13 @@ class InspectFileOperator(Operator):
         # Security check: only allow certain file extensions
         allowed_extensions = [".pl", ".py", ".sh", ".lua"]
         if not any(self._script_path.endswith(ext) for ext in allowed_extensions):
-            raise ValueError(
-                f"InspectFile: Script type not allowed: {self._script_path}"
-            )
+            msg = f"InspectFile: Script type not allowed: {self._script_path}"
+            raise ValueError(msg)
 
         # Security check: prevent path traversal
         if ".." in self._script_path:
-            raise ValueError(
-                f"InspectFile: Path traversal not allowed: {self._script_path}"
-            )
+            msg = f"InspectFile: Path traversal not allowed: {self._script_path}"
+            raise ValueError(msg)
 
         try:
             # Create temporary file with the content to inspect
@@ -943,13 +945,13 @@ class IpMatchFromFileOperator(Operator):
         import os
 
         if not self._file_path:
-            raise ValueError("IpMatchFromFile operator requires a file path")
+            msg = "IpMatchFromFile operator requires a file path"
+            raise ValueError(msg)
 
         # Security check: prevent path traversal
         if ".." in self._file_path:
-            raise ValueError(
-                f"IpMatchFromFile: Path traversal not allowed: {self._file_path}"
-            )
+            msg = f"IpMatchFromFile: Path traversal not allowed: {self._file_path}"
+            raise ValueError(msg)
 
         ip_list = []
         try:
@@ -1039,7 +1041,8 @@ class PmFromDatasetOperator(Operator):
         super().__init__(argument)
         self._dataset_name = argument.strip()
         if not self._dataset_name:
-            raise ValueError("PmFromDataset operator requires a dataset name")
+            msg = "PmFromDataset operator requires a dataset name"
+            raise ValueError(msg)
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if value contains any patterns from the dataset."""
@@ -1075,7 +1078,8 @@ class IpMatchFromDatasetOperator(Operator):
         super().__init__(argument)
         self._dataset_name = argument.strip()
         if not self._dataset_name:
-            raise ValueError("IpMatchFromDataset operator requires a dataset name")
+            msg = "IpMatchFromDataset operator requires a dataset name"
+            raise ValueError(msg)
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if IP address matches any in the dataset."""

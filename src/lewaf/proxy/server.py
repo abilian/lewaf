@@ -52,7 +52,7 @@ class CorazaReverseProxy:
             # If we get here, the request passed WAF checks
             return await self.proxy_client.proxy_request(request)
         except Exception as e:
-            logger.error(f"Error in proxy handler: {e}")
+            logger.error("Error in proxy handler: %s", e)
             return JSONResponse(
                 status_code=500, content={"error": "Internal proxy error"}
             )

@@ -55,12 +55,12 @@ def compile_regex(pattern: str) -> re.Pattern:
     Returns:
         Compiled regex pattern object
     """
-    logging.debug(f"Compiling regex: {pattern}")
+    logging.debug("Compiling regex: %s", pattern)
 
     # Translate Perl-specific syntax
     translated = _translate_perl_regex(pattern)
 
     if translated != pattern:
-        logging.debug(f"Translated regex: {translated}")
+        logging.debug("Translated regex: %s", translated)
 
     return re.compile(translated)

@@ -184,7 +184,8 @@ class Action:
     def init(self, rule_metadata: dict, data: str) -> None:
         """Initialize the action with rule metadata and data."""
         if data and len(data) > 0:
-            raise ValueError(f"Unexpected arguments for {self.__class__.__name__}")
+            msg = f"Unexpected arguments for {self.__class__.__name__}"
+            raise ValueError(msg)
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Evaluate the action."""
@@ -270,11 +271,13 @@ class IdAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """ID action requires an argument."""
         if not data:
-            raise ValueError("ID action requires an ID argument")
+            msg = "ID action requires an ID argument"
+            raise ValueError(msg)
         try:
             self.rule_id = int(data)
         except ValueError as e:
-            raise ValueError(f"ID must be a valid integer: {data}") from e
+            msg = f"ID must be a valid integer: {data}"
+            raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # ID is metadata, no runtime behavior
@@ -290,14 +293,17 @@ class PhaseAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Phase action requires a phase number."""
         if not data:
-            raise ValueError("Phase action requires a phase number")
+            msg = "Phase action requires a phase number"
+            raise ValueError(msg)
         try:
             phase = int(data)
             if phase not in (1, 2, 3, 4, 5):
-                raise ValueError(f"Phase must be 1-5, got {phase}")
+                msg = f"Phase must be 1-5, got {phase}"
+                raise ValueError(msg)
             self.phase = phase
         except ValueError as e:
-            raise ValueError(f"Phase must be a valid integer 1-5: {data}") from e
+            msg = f"Phase must be a valid integer 1-5: {data}"
+            raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Phase is metadata, no runtime behavior
@@ -313,7 +319,8 @@ class MsgAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Message action requires a message."""
         if not data:
-            raise ValueError("Message action requires a message")
+            msg = "Message action requires a message"
+            raise ValueError(msg)
         self.message = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -330,7 +337,8 @@ class SeverityAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Severity action requires a severity level."""
         if not data:
-            raise ValueError("Severity action requires a severity level")
+            msg = "Severity action requires a severity level"
+            raise ValueError(msg)
         valid_severities = [
             "emergency",
             "alert",
@@ -342,9 +350,8 @@ class SeverityAction(Action):
             "debug",
         ]
         if data.lower() not in valid_severities:
-            raise ValueError(
-                f"Invalid severity '{data}', must be one of: {valid_severities}"
-            )
+            msg = f"Invalid severity '{data}', must be one of: {valid_severities}"
+            raise ValueError(msg)
         self.severity = data.lower()
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -414,7 +421,8 @@ class TagAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Tag action requires a tag name."""
         if not data:
-            raise ValueError("Tag action requires a tag name")
+            msg = "Tag action requires a tag name"
+            raise ValueError(msg)
         self.tag_name = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -431,11 +439,13 @@ class MaturityAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Maturity action requires a maturity level."""
         if not data:
-            raise ValueError("Maturity action requires a maturity level")
+            msg = "Maturity action requires a maturity level"
+            raise ValueError(msg)
         try:
             self.maturity = int(data)
         except ValueError as e:
-            raise ValueError(f"Maturity must be an integer: {data}") from e
+            msg = f"Maturity must be an integer: {data}"
+            raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Maturity is metadata only
@@ -451,11 +461,13 @@ class AccuracyAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Accuracy action requires an accuracy level."""
         if not data:
-            raise ValueError("Accuracy action requires an accuracy level")
+            msg = "Accuracy action requires an accuracy level"
+            raise ValueError(msg)
         try:
             self.accuracy = int(data)
         except ValueError as e:
-            raise ValueError(f"Accuracy must be an integer: {data}") from e
+            msg = f"Accuracy must be an integer: {data}"
+            raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Accuracy is metadata only
@@ -573,11 +585,13 @@ class StatusAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Status action requires a status code."""
         if not data:
-            raise ValueError("Status action requires a status code")
+            msg = "Status action requires a status code"
+            raise ValueError(msg)
         try:
             self.status_code = int(data)
         except ValueError as e:
-            raise ValueError(f"Status must be an integer: {data}") from e
+            msg = f"Status must be an integer: {data}"
+            raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         pass  # Status is metadata only
@@ -621,7 +635,8 @@ class RedirectAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Redirect action requires a URL."""
         if not data:
-            raise ValueError("Redirect action requires a URL")
+            msg = "Redirect action requires a URL"
+            raise ValueError(msg)
         self.redirect_url = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -642,11 +657,13 @@ class SkipAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Skip action requires number of rules to skip."""
         if not data:
-            raise ValueError("Skip action requires number of rules to skip")
+            msg = "Skip action requires number of rules to skip"
+            raise ValueError(msg)
         try:
             self.skip_count = int(data)
         except ValueError as e:
-            raise ValueError(f"Skip count must be an integer: {data}") from e
+            msg = f"Skip count must be an integer: {data}"
+            raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         import logging
@@ -665,7 +682,8 @@ class RevAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Rev action requires a revision number."""
         if not data:
-            raise ValueError("Rev action requires a revision number")
+            msg = "Rev action requires a revision number"
+            raise ValueError(msg)
         self.revision = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -697,7 +715,8 @@ class ExecAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Exec action requires a command."""
         if not data:
-            raise ValueError("Exec action requires a command")
+            msg = "Exec action requires a command"
+            raise ValueError(msg)
         self.command = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -721,7 +740,8 @@ class SetEnvAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """SetEnv action requires var=value format."""
         if not data or "=" not in data:
-            raise ValueError("SetEnv action requires var=value format")
+            msg = "SetEnv action requires var=value format"
+            raise ValueError(msg)
         parts = data.split("=", 1)
         self.var_name = parts[0].strip()
         self.var_value = parts[1].strip()
@@ -751,7 +771,8 @@ class SetVarAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse setvar expression."""
         if not data:
-            raise ValueError("SetVar action requires variable specification")
+            msg = "SetVar action requires variable specification"
+            raise ValueError(msg)
         self.var_spec = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -857,7 +878,8 @@ class DeprecateVarAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse deprecation specification."""
         if not data:
-            raise ValueError("DeprecateVar action requires variable specification")
+            msg = "DeprecateVar action requires variable specification"
+            raise ValueError(msg)
         self.var_spec = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -877,14 +899,16 @@ class ExpireVarAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse expiration specification."""
         if not data or "=" not in data:
-            raise ValueError("ExpireVar action requires var=seconds format")
+            msg = "ExpireVar action requires var=seconds format"
+            raise ValueError(msg)
 
         parts = data.split("=", 1)
         self.var_name = parts[0].strip()
         try:
             self.expire_seconds = int(parts[1].strip())
         except ValueError as e:
-            raise ValueError(f"ExpireVar seconds must be integer: {parts[1]}") from e
+            msg = f"ExpireVar seconds must be integer: {parts[1]}"
+            raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         import time
@@ -912,7 +936,8 @@ class ConditionalAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse conditional specification."""
         if not data or "," not in data:
-            raise ValueError("Conditional action requires condition,action format")
+            msg = "Conditional action requires condition,action format"
+            raise ValueError(msg)
 
         condition, actions_str = data.split(",", 1)
         self.condition = condition.strip()
@@ -993,7 +1018,7 @@ class ConditionalAction(Action):
         # In a full implementation, this would parse and execute actual actions
         import logging
 
-        logging.debug(f"Conditional actions triggered: {actions_str}")
+        logging.debug("Conditional actions triggered: %s", actions_str)
 
 
 @register_action("ctl")
@@ -1013,7 +1038,8 @@ class CtlAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse control specification."""
         if not data or "=" not in data:
-            raise ValueError("Ctl action requires property=value format")
+            msg = "Ctl action requires property=value format"
+            raise ValueError(msg)
 
         property_name, value = data.split("=", 1)
         self.property_name = property_name.strip()
@@ -1071,7 +1097,8 @@ class VerAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Store version requirement."""
         if not data:
-            raise ValueError("Ver action requires version specification")
+            msg = "Ver action requires version specification"
+            raise ValueError(msg)
         self.required_version = data.strip()
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
@@ -1103,7 +1130,8 @@ class TransformationAction(Action):
         from lewaf.primitives.transformations import TRANSFORMATIONS
 
         if not data:
-            raise ValueError("Transformation action requires a transformation name")
+            msg = "Transformation action requires a transformation name"
+            raise ValueError(msg)
 
         transformation_name = data.strip().lower()
 
@@ -1118,10 +1146,11 @@ class TransformationAction(Action):
 
         # Validate transformation exists
         if transformation_name not in TRANSFORMATIONS:
-            raise ValueError(
+            msg = (
                 f"Unknown transformation '{transformation_name}'. "
                 f"Available: {', '.join(sorted(TRANSFORMATIONS.keys()))}"
             )
+            raise ValueError(msg)
 
         # Add transformation to the list
         rule_metadata["transformations"].append(transformation_name)
@@ -1166,9 +1195,8 @@ class InitColAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse initcol specification."""
         if not data or "=" not in data:
-            raise ValueError(
-                "InitCol action requires format: collection=key or collection=key,ttl=seconds"
-            )
+            msg = "InitCol action requires format: collection=key or collection=key,ttl=seconds"
+            raise ValueError(msg)
 
         # Parse collection=key,ttl=seconds
         parts = data.split(",")
@@ -1176,7 +1204,8 @@ class InitColAction(Action):
 
         # Extract collection name and key expression
         if "=" not in collection_spec:
-            raise ValueError("InitCol requires collection=key format")
+            msg = "InitCol requires collection=key format"
+            raise ValueError(msg)
 
         collection_name, key_expression = collection_spec.split("=", 1)
         self.collection_name = collection_name.strip()
@@ -1191,7 +1220,8 @@ class InitColAction(Action):
                     try:
                         self.ttl = int(param_value.strip())
                     except ValueError:
-                        raise ValueError(f"Invalid TTL value: {param_value}")
+                        msg = f"Invalid TTL value: {param_value}"
+                        raise ValueError(msg)
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Load persistent collection for this transaction."""
@@ -1268,7 +1298,8 @@ class SetSidAction(Action):
     def init(self, rule_metadata: dict, data: str) -> None:
         """Parse setsid expression."""
         if not data:
-            raise ValueError("SetSid action requires an expression")
+            msg = "SetSid action requires an expression"
+            raise ValueError(msg)
 
         self.session_id_expression = data.strip()
 

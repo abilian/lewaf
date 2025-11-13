@@ -41,7 +41,8 @@ class URLEncodedProcessor(BaseBodyProcessor):
             # Decode body to string
             body_str = body.decode("utf-8")
         except UnicodeDecodeError as e:
-            raise BodyProcessorError(f"Invalid UTF-8 in request body: {e}") from e
+            msg = f"Invalid UTF-8 in request body: {e}"
+            raise BodyProcessorError(msg) from e
 
         # Store raw body
         self.raw_body = body
@@ -59,8 +60,9 @@ class URLEncodedProcessor(BaseBodyProcessor):
 
         except Exception as e:
             # parse_qs is lenient, but catch any unexpected errors
-            logger.warning(f"Error parsing URL-encoded body: {e}")
-            raise BodyProcessorError(f"Failed to parse URL-encoded body: {e}") from e
+            logger.warning("Error parsing URL-encoded body: %s", e)
+            msg = f"Failed to parse URL-encoded body: {e}"
+            raise BodyProcessorError(msg) from e
 
         # Populate collections
         self._set_collection("args_post", args_post)

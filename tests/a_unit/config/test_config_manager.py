@@ -239,7 +239,8 @@ def test_config_manager_callback_error_handling():
     manager = ConfigManager(auto_reload_on_signal=False)
 
     def bad_callback(old: WAFConfig, new: WAFConfig) -> None:
-        raise RuntimeError("Callback error")
+        msg = "Callback error"
+        raise RuntimeError(msg)
 
     manager.register_reload_callback(bad_callback)
 

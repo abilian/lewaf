@@ -52,7 +52,8 @@ class JSONProcessor(BaseBodyProcessor):
             # Decode body to string
             body_str = body.decode("utf-8")
         except UnicodeDecodeError as e:
-            raise BodyProcessorError(f"Invalid UTF-8 in JSON body: {e}") from e
+            msg = f"Invalid UTF-8 in JSON body: {e}"
+            raise BodyProcessorError(msg) from e
 
         # Store raw body
         self.raw_body = body
@@ -62,7 +63,8 @@ class JSONProcessor(BaseBodyProcessor):
         try:
             self.json_data = json.loads(body_str)
         except json.JSONDecodeError as e:
-            raise BodyProcessorError(f"Invalid JSON: {e}") from e
+            msg = f"Invalid JSON: {e}"
+            raise BodyProcessorError(msg) from e
 
         # Flatten JSON to ARGS_POST
         args_post = {}

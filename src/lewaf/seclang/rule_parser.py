@@ -64,7 +64,8 @@ class SecRuleParser:
         parts = self._split_rule_parts(rule_text)
 
         if len(parts) < 3:
-            raise ValueError(f"Invalid SecRule format: {rule_text[:100]}")
+            msg = f"Invalid SecRule format: {rule_text[:100]}"
+            raise ValueError(msg)
 
         variables_str = parts[0]
         operator_str = parts[1]
@@ -376,7 +377,7 @@ class SecRuleParser:
             self.metadata["id"] = generated_id
 
             logger = logging.getLogger(__name__)
-            logger.debug(f"Generated ID {generated_id} for rule without explicit ID")
+            logger.debug("Generated ID %s for rule without explicit ID", generated_id)
 
         if "phase" not in self.metadata:
             self.metadata["phase"] = 2  # Default phase

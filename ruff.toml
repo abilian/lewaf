@@ -63,8 +63,6 @@ lint.extend-ignore = [
     "PLC0415", #	[ ] import-outside-top-level
     "TRY003", # 	[ ] raise-vanilla-args
     "G004", #   	[ ] logging-f-string
-    "EM102", #  	[ ] f-string-in-exception
-    "EM101", #  	[ ] raw-string-in-exception
     "LOG015", # 	[ ] root-logger-call
     "SLF001", # 	[ ] private-member-access
     "B011", #   	[ ] assert-false

@@ -50,7 +50,8 @@ class StubDnsResolver:
         if isinstance(response, Exception):
             raise response
         if response is None:
-            raise socket.gaierror(f"No response configured for {hostname}")
+            msg = f"No response configured for {hostname}"
+            raise socket.gaierror(msg)
         return response
 
 
