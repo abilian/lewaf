@@ -425,14 +425,12 @@ class InvalidMultipartError(BodyProcessorError):
         self,
         message: str,
         transaction_id: str | None = None,
-        body_snippet: str | None = None,
         cause: Exception | None = None,
     ):
         super().__init__(
             f"Invalid multipart data: {message}",
             content_type="multipart/form-data",
             transaction_id=transaction_id,
-            body_snippet=body_snippet,
             cause=cause,
         )
 

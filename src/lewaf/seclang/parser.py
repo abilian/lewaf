@@ -14,20 +14,12 @@ import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from lewaf.exceptions import IncludeRecursionError, ParseError
+
 if TYPE_CHECKING:
     from lewaf.integration import WAF
 
 logger = logging.getLogger(__name__)
-
-
-class ParseError(Exception):
-    """Exception raised when parsing SecLang files fails."""
-
-    def __init__(self, message: str, line: int = 0, file: str = ""):
-        self.message = message
-        self.line = line
-        self.file = file
-        super().__init__(f"{file}:{line}: {message}" if file else message)
 
 
 class SecLangParser:
@@ -169,7 +161,9 @@ class SecLangParser:
 
         if in_backticks:
             msg = "Unclosed backtick section"
-            raise ParseError(msg, self.current_line, self.current_file)
+            raise ParseError(
+                msg, file_path=self.current_file, line_number=self.current_line
+            )
 
         if line_buffer:
             # Process any remaining buffered line
@@ -219,8 +213,8 @@ class SecLangParser:
                 msg = f"Failed to process {directive}: {e}"
                 raise ParseError(
                     msg,
-                    self.current_line,
-                    self.current_file,
+                    file_path=self.current_file,
+                    line_number=self.current_line,
                 ) from e
         else:
             logger.warning(
@@ -237,11 +231,10 @@ class SecLangParser:
             ParseError: If recursion limit exceeded or file not found
         """
         if self.include_count >= self.MAX_INCLUDE_RECURSION:
-            msg = f"Include recursion limit exceeded ({self.MAX_INCLUDE_RECURSION})"
-            raise ParseError(
-                msg,
-                self.current_line,
-                self.current_file,
+            raise IncludeRecursionError(
+                file_path=path,
+                depth=self.include_count,
+                max_depth=self.MAX_INCLUDE_RECURSION,
             )
 
         self.include_count += 1
