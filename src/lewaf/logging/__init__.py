@@ -7,6 +7,13 @@ from lewaf.logging.audit import (
     configure_audit_logging,
     get_audit_logger,
 )
+from lewaf.logging.error_logger import (
+    log_body_processing_error,
+    log_error,
+    log_operator_error,
+    log_storage_error,
+    log_transformation_error,
+)
 from lewaf.logging.formatters import CompactJSONFormatter, JSONFormatter
 from lewaf.logging.masking import (
     DataMasker,
@@ -23,6 +30,11 @@ __all__ = [
     "configure_audit_logging",
     "get_audit_logger",
     "get_default_masker",
+    "log_body_processing_error",
+    "log_error",
+    "log_operator_error",
+    "log_storage_error",
+    "log_transformation_error",
     "mask_sensitive_data",
     "set_masking_config",
 ]
