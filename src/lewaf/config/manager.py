@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import signal
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -125,7 +125,7 @@ class ConfigManager:
                     version = ConfigVersion(
                         self._current_version - 1,
                         old_config,
-                        datetime.now(),
+                        datetime.now(timezone.utc),
                     )
                     self._config_history.append(version)
 

@@ -254,6 +254,7 @@ def test_content_type_json(client):
 
 def test_middleware_passes_through_non_http(waf_config):
     """Test that non-HTTP connections pass through."""
+
     # Create a WebSocket-like app
     async def websocket_app(scope, receive, send):
         assert scope["type"] == "websocket"
@@ -268,6 +269,7 @@ def test_middleware_passes_through_non_http(waf_config):
 
 def test_middleware_error_handling(waf_config):
     """Test that WAF errors don't crash the application."""
+
     # Create an app that will cause the WAF to process
     async def app_route(request):
         return JSONResponse({"ok": True})

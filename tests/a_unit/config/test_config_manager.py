@@ -368,8 +368,7 @@ def test_config_manager_reload_failure_handling():
         config1 = manager.get_config()
 
         # Corrupt the file
-        with open(temp_path, "w") as f:
-            f.write("invalid: yaml: [unclosed")
+        Path(temp_path).write_text("invalid: yaml: [unclosed")
 
         # Reload should fail
         with pytest.raises(Exception):
@@ -401,10 +400,10 @@ def test_config_manager_get_config_before_load():
 
 def test_config_version_attributes():
     """Test ConfigVersion attributes."""
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     config = WAFConfig()
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     version = ConfigVersion(1, config, now)
 
     assert version.version == 1

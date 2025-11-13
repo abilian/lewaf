@@ -162,7 +162,8 @@ def test_validate_with_invalid_rule_syntax(runner):
 
         assert result.exit_code == 1
         assert "Errors:" in result.output
-        assert "invalid" in result.output.lower() and "syntax" in result.output.lower()
+        assert "invalid" in result.output.lower()
+        assert "syntax" in result.output.lower()
     finally:
         Path(temp_path).unlink()
 
@@ -263,7 +264,8 @@ def test_validate_with_invalid_rule_file(runner):
         result = runner.invoke(validate, ["--check-rules", config_file])
 
         assert result.exit_code == 1
-        assert "invalid" in result.output.lower() and "syntax" in result.output.lower()
+        assert "invalid" in result.output.lower()
+        assert "syntax" in result.output.lower()
         assert rule_file in result.output
     finally:
         Path(rule_file).unlink()
