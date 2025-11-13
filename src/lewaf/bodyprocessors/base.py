@@ -4,16 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-
-class BodyProcessorError(Exception):
-    """Exception raised when body processing fails.
-
-    This includes:
-    - Malformed JSON/XML
-    - Invalid multipart boundaries
-    - Size limit violations
-    - Encoding errors
-    """
+# Re-export for backward compatibility
+from lewaf.exceptions import BodyProcessorError  # noqa: F401
 
 
 class BaseBodyProcessor:
