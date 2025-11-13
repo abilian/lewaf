@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from starlette.applications import Starlette
-from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from lewaf.integration import WAF
 from lewaf.integrations.starlette import CorazaMiddleware, create_waf_app
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 
 
 def create_test_app():

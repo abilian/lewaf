@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 from urllib.parse import urljoin, urlparse
 
 import httpx
-from starlette.requests import Request
 from starlette.responses import StreamingResponse
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+    from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 

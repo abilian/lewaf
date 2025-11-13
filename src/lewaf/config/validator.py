@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from lewaf.config.models import WAFConfig
+if TYPE_CHECKING:
+    from lewaf.config.models import WAFConfig
 
 
 class ConfigValidator:

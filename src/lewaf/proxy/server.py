@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from starlette.applications import Starlette
-from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.routing import Route
 
 from lewaf.integrations.starlette import CorazaMiddleware
 
 from .client import ProxyClient
+
+if TYPE_CHECKING:
+    from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +87,7 @@ class CorazaReverseProxy:
 
         # Add Coraza WAF middleware
         app.add_middleware(
-            cast(Any, CorazaMiddleware),
+            cast("Any", CorazaMiddleware),
             rules=self.waf_rules,
             config_file=self.waf_config.get("config_file") if self.waf_config else None,
             block_response_status=403,

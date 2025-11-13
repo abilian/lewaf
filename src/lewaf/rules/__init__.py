@@ -4,13 +4,13 @@ import logging
 from dataclasses import dataclass, field as dataclass_field
 from typing import TYPE_CHECKING, Any, cast
 
-from lewaf.primitives.actions import Action, RuleProtocol, TransactionProtocol
 from lewaf.primitives.collections import MapCollection, SingleValueCollection
 from lewaf.primitives.transformations import TRANSFORMATIONS
-from lewaf.transaction import Transaction
 
 if TYPE_CHECKING:
     from lewaf.integration import ParsedOperator
+    from lewaf.primitives.actions import Action, RuleProtocol, TransactionProtocol
+    from lewaf.transaction import Transaction
 
 
 @dataclass(frozen=True)
@@ -80,7 +80,7 @@ class Rule:
             )
 
             match_result = self.operator.op.evaluate(
-                cast(Any, transaction), transformed_value
+                cast("Any", transaction), transformed_value
             )
             # Handle negation
             if self.operator.negated:
@@ -92,7 +92,8 @@ class Rule:
                 )
                 for action in self.actions.values():
                     action.evaluate(
-                        cast(RuleProtocol, self), cast(TransactionProtocol, transaction)
+                        cast("RuleProtocol", self),
+                        cast("TransactionProtocol", transaction),
                     )
                 return True
         return False

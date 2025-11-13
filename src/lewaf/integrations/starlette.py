@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Awaitable, Callable
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import parse_qs
 
-from starlette.applications import Starlette
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from lewaf.integration import WAF
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from starlette.applications import Starlette
+    from starlette.requests import Request
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +135,7 @@ def create_waf_app(
 
     # Add Coraza middleware to the target app
     target_app.add_middleware(
-        cast(Any, CorazaMiddleware),
+        cast("Any", CorazaMiddleware),
         config_file=config_file,
         rules=rules,
         **middleware_kwargs,

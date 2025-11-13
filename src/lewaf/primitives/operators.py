@@ -3,14 +3,13 @@ from __future__ import annotations
 import fnmatch
 import ipaddress
 import re
-from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Protocol
 from urllib.parse import unquote
 
 from lewaf.core import compile_regex
 
 if TYPE_CHECKING:
-    pass
+    from collections.abc import Callable
 
 
 class TransactionProtocol(Protocol):
