@@ -127,6 +127,8 @@ class Transaction:
             args_post = collections["args_post"]
             for key, value in args_post.items():
                 self.variables.args_post.add(key, value)
+                # Also add to ARGS (union of query params and POST params)
+                self.variables.args.add(key, value)
 
             # Populate ARGS_POST_NAMES
             for key in args_post.keys():
