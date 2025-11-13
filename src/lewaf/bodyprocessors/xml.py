@@ -5,7 +5,8 @@ from __future__ import annotations
 import logging
 import xml.etree.ElementTree as ET
 
-from lewaf.bodyprocessors.base import BaseBodyProcessor, BodyProcessorError
+from lewaf.bodyprocessors.base import BaseBodyProcessor
+from lewaf.exceptions import BodySizeLimitError, InvalidXMLError
 
 logger = logging.getLogger(__name__)
 
@@ -49,15 +50,19 @@ class XMLProcessor(BaseBodyProcessor):
         """
         # Check size limit
         if len(body) > self.max_size:
-            msg = f"XML body too large: {len(body)} bytes (max: {self.max_size})"
-            raise BodyProcessorError(msg)
+            raise BodySizeLimitError(
+                actual_size=len(body),
+                limit=self.max_size,
+                content_type=content_type,
+            )
 
         try:
             # Decode body to string
             body_str = body.decode("utf-8")
         except UnicodeDecodeError as e:
             msg = f"Invalid UTF-8 in XML body: {e}"
-            raise BodyProcessorError(msg) from e
+            snippet = body[:100].decode("utf-8", errors="replace")
+            raise InvalidXMLError(msg, body_snippet=snippet, cause=e) from e
 
         # Store raw body
         self.raw_body = body
@@ -75,7 +80,8 @@ class XMLProcessor(BaseBodyProcessor):
 
         except ET.ParseError as e:
             msg = f"Invalid XML: {e}"
-            raise BodyProcessorError(msg) from e
+            snippet = body_str[:100] if len(body_str) > 100 else body_str
+            raise InvalidXMLError(msg, body_snippet=snippet, cause=e) from e
 
         # Create XML collection (for XML:/* queries in rules)
         # This is a special collection that represents the parsed XML

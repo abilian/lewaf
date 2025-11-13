@@ -6,8 +6,9 @@ import json
 
 import pytest
 
-from lewaf.bodyprocessors import BodyProcessorError, get_body_processor
+from lewaf.bodyprocessors import get_body_processor
 from lewaf.bodyprocessors.json import JSONProcessor
+from lewaf.exceptions import InvalidJSONError
 
 
 def test_json_processor_basic():
@@ -149,7 +150,7 @@ def test_json_processor_invalid_json():
     processor = JSONProcessor()
     body = b'{"invalid": json}'
 
-    with pytest.raises(BodyProcessorError, match="Invalid JSON"):
+    with pytest.raises(InvalidJSONError, match="Invalid JSON"):
         processor.read(body, "application/json")
 
 
@@ -158,7 +159,7 @@ def test_json_processor_invalid_utf8():
     processor = JSONProcessor()
     body = b"\xff\xfe{}"
 
-    with pytest.raises(BodyProcessorError, match="Invalid UTF-8"):
+    with pytest.raises(InvalidJSONError, match="Invalid UTF-8"):
         processor.read(body, "application/json")
 
 

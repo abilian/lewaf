@@ -6,7 +6,8 @@ import logging
 import re
 from email import message_from_bytes
 
-from lewaf.bodyprocessors.base import BaseBodyProcessor, BodyProcessorError
+from lewaf.bodyprocessors.base import BaseBodyProcessor
+from lewaf.exceptions import BodySizeLimitError, InvalidMultipartError
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +63,11 @@ class MultipartProcessor(BaseBodyProcessor):
         """
         # Check size limit
         if len(body) > self.max_size:
-            msg = f"Multipart body too large: {len(body)} bytes (max: {self.max_size})"
-            raise BodyProcessorError(msg)
+            raise BodySizeLimitError(
+                actual_size=len(body),
+                limit=self.max_size,
+                content_type=content_type,
+            )
 
         # Store raw body
         self.raw_body = body
@@ -72,15 +76,16 @@ class MultipartProcessor(BaseBodyProcessor):
         # Extract boundary from Content-Type
         boundary = self._extract_boundary(content_type)
         if not boundary:
-            msg = "Missing boundary in multipart Content-Type header"
-            raise BodyProcessorError(msg)
+            raise InvalidMultipartError("Missing boundary in Content-Type header")
 
         # Parse multipart body
         try:
             self.parts = self._parse_multipart(body, boundary)
         except Exception as e:
-            msg = f"Failed to parse multipart body: {e}"
-            raise BodyProcessorError(msg) from e
+            snippet = body[:100].decode("utf-8", errors="replace")
+            raise InvalidMultipartError(
+                f"Failed to parse multipart body: {e}", body_snippet=snippet, cause=e
+            ) from e
 
         # Populate collections
         args_post = {}
