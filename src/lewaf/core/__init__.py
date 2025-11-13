@@ -26,11 +26,10 @@ def _translate_perl_regex(pattern: str) -> str:
     # Python requires inline flags (?i) (?m) etc to be at the start
     # CRS often has patterns like ^(?i)pattern which fail in Python
     # We need to move inline flags to the beginning
-    import re as regex_module
 
     # Match inline flags like (?i) (?m) (?s) (?x) or combinations (?im)
     flag_pattern = r"(\(\?[imsxauL]+\))"
-    flags_match = regex_module.search(flag_pattern, pattern)
+    flags_match = re.search(flag_pattern, pattern)
 
     if flags_match and flags_match.start() > 0:
         # Flags are not at the start, move them

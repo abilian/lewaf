@@ -6,6 +6,8 @@ rule evaluation, and HTTP responses using Starlette TestClient.
 
 from __future__ import annotations
 
+import time
+
 import pytest
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -284,7 +286,9 @@ def test_e2e_with_multiple_blocking_rules():
 
 def test_e2e_custom_block_status_code():
     """E2E: Test custom block response status code."""
-    from lewaf.integrations.starlette import CorazaMiddleware
+    from lewaf.integrations.starlette import (  # noqa: PLC0415 - Avoids circular import
+        CorazaMiddleware,
+    )
 
     base_app = create_test_app()
     rules = [
@@ -320,8 +324,6 @@ def test_e2e_options_method(admin_blocking_app):
 
 def test_e2e_admin_path_performance(admin_blocking_app):
     """E2E: Test performance of admin path blocking (should be fast)."""
-    import time
-
     client = TestClient(admin_blocking_app)
 
     # Measure time for 100 blocked requests

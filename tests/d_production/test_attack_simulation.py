@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import pytest
@@ -463,8 +464,6 @@ def test_performance_under_attack_load():
             'SecRule ARGS "@rx (?i:attack)" "id:1,phase:2,deny"',
         ]
     })
-
-    import time
 
     # Simulate rapid attack attempts
     start = time.time()

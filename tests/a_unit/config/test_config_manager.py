@@ -251,7 +251,7 @@ def test_config_manager_callback_error_handling():
 
 def test_config_manager_thread_safety():
     """Test thread-safe config access."""
-    import threading
+    import threading  # noqa: PLC0415 - Avoids circular import
 
     manager = ConfigManager(auto_reload_on_signal=False)
 
@@ -401,7 +401,7 @@ def test_config_manager_get_config_before_load():
 
 def test_config_version_attributes():
     """Test ConfigVersion attributes."""
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone  # noqa: PLC0415 - Avoids circular import
 
     config = WAFConfig()
     now = datetime.now(timezone.utc)

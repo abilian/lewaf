@@ -15,7 +15,7 @@ from lewaf.config.profiles import (
 
 def test_environment_detect_from_env():
     """Test environment detection from ENV variable."""
-    import os
+    import os  # noqa: PLC0415 - Avoids circular import
 
     # Save original
     original = os.environ.get("ENV")
@@ -47,7 +47,7 @@ def test_environment_detect_from_env():
 
 def test_environment_detect_from_environment():
     """Test environment detection from ENVIRONMENT variable."""
-    import os
+    import os  # noqa: PLC0415 - Avoids circular import
 
     original_env = os.environ.get("ENV")
     original_environment = os.environ.get("ENVIRONMENT")
@@ -75,7 +75,7 @@ def test_environment_detect_from_environment():
 
 def test_environment_detect_from_debug():
     """Test environment detection from DEBUG flag."""
-    import os
+    import os  # noqa: PLC0415 - Avoids circular import
 
     original_env = os.environ.get("ENV")
     original_environment = os.environ.get("ENVIRONMENT")
@@ -113,7 +113,7 @@ def test_environment_detect_from_debug():
 
 def test_environment_detect_default():
     """Test environment defaults to production."""
-    import os
+    import os  # noqa: PLC0415 - Avoids circular import
 
     original_env = os.environ.get("ENV")
     original_environment = os.environ.get("ENVIRONMENT")
@@ -248,7 +248,7 @@ def test_merge_configs_empty():
 
 def test_load_config_with_profile_development():
     """Test loading config with development profile."""
-    import os
+    import os  # noqa: PLC0415 - Avoids circular import
 
     original = os.environ.get("ENV")
 
@@ -270,7 +270,7 @@ def test_load_config_with_profile_development():
 
 def test_load_config_with_profile_production():
     """Test loading config with production profile."""
-    import os
+    import os  # noqa: PLC0415 - Avoids circular import
 
     original = os.environ.get("ENV")
 

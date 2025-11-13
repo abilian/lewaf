@@ -225,7 +225,9 @@ def load_config_with_profile(
     Returns:
         WAFConfig instance
     """
-    from lewaf.config.loader import ConfigLoader
+    from lewaf.config.loader import (  # noqa: PLC0415 - Avoids circular import
+        ConfigLoader,
+    )
 
     # Detect environment if not specified
     if environment is None:

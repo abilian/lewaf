@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import os
 import re
 import time
 from collections.abc import Callable
@@ -152,7 +154,6 @@ class MacroExpander:
             return values[0] if values else ""
         if collection_name == "ENV":
             # Environment variables
-            import os
 
             return os.environ.get(member_key.upper(), "")
         if collection_name == "GEO":
@@ -214,8 +215,6 @@ class LogAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.info(f"Rule {rule.id} matched and logged.")
 
 
@@ -227,8 +226,6 @@ class DenyAction(Action):
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.warning(f"Executing DENY action from rule {rule.id}")
         transaction.interrupt(rule)
 
@@ -241,8 +238,6 @@ class AllowAction(Action):
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.info(f"Rule {rule.id} allowing request")
         # Allow doesn't interrupt, it just permits
 
@@ -255,8 +250,6 @@ class BlockAction(Action):
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.warning(f"Blocking request due to rule {rule.id}")
         transaction.interrupt(rule)
 
@@ -366,8 +359,6 @@ class PassAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.debug(f"Rule {rule.id} matched but allowed to pass")
         # Pass action does nothing - just allows the request to continue
 
@@ -605,8 +596,6 @@ class AuditLogAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.info(f"Rule {rule.id} marked transaction for audit logging")
         # TODO: In full implementation, mark transaction for audit logging
 
@@ -619,8 +608,6 @@ class NoAuditLogAction(Action):
         return ActionType.NONDISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.debug(f"Rule {rule.id} disabled audit logging for transaction")
         # TODO: In full implementation, disable audit logging for transaction
 
@@ -640,8 +627,6 @@ class RedirectAction(Action):
         self.redirect_url = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.warning(f"Rule {rule.id} redirecting to {self.redirect_url}")
         transaction.interrupt(rule)
         # TODO: In full implementation, set redirect response
@@ -666,8 +651,6 @@ class SkipAction(Action):
             raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.debug(f"Rule {rule.id} skipping {self.skip_count} rules")
         # TODO: In full implementation, skip the specified number of rules
 
@@ -698,8 +681,6 @@ class DropAction(Action):
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         logging.warning(f"Rule {rule.id} dropping connection")
         transaction.interrupt(rule)
         # TODO: In full implementation, terminate the connection
@@ -720,8 +701,6 @@ class ExecAction(Action):
         self.command = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-
         # WARNING: exec action is a significant security risk
         # In production, this should be heavily restricted or disabled
         logging.warning(f"Rule {rule.id} would execute: {self.command}")
@@ -747,9 +726,6 @@ class SetEnvAction(Action):
         self.var_value = parts[1].strip()
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import logging
-        import os
-
         logging.debug(f"Rule {rule.id} setting env {self.var_name}={self.var_value}")
         os.environ[self.var_name] = self.var_value
 
@@ -911,7 +887,7 @@ class ExpireVarAction(Action):
             raise ValueError(msg) from e
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        import time
+        import time  # noqa: PLC0415 - Avoids circular import
 
         # Store expiration info
         if not hasattr(transaction, "var_expiration"):
@@ -1016,7 +992,6 @@ class ConditionalAction(Action):
         """Execute the conditional actions."""
         # This is a simplified implementation
         # In a full implementation, this would parse and execute actual actions
-        import logging
 
         logging.debug("Conditional actions triggered: %s", actions_str)
 
@@ -1126,7 +1101,9 @@ class TransformationAction(Action):
 
     def init(self, rule_metadata: dict, data: str) -> None:
         """Add or clear transformations in the rule."""
-        from lewaf.primitives.transformations import TRANSFORMATIONS
+        from lewaf.primitives.transformations import (  # noqa: PLC0415 - Avoids circular import
+            TRANSFORMATIONS,
+        )
 
         if not data:
             msg = "Transformation action requires a transformation name"
@@ -1224,9 +1201,15 @@ class InitColAction(Action):
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Load persistent collection for this transaction."""
         # Import here to avoid circular dependencies
-        from lewaf.primitives.variable_expansion import VariableExpander
-        from lewaf.storage import get_storage_backend
-        from lewaf.storage.collections import PersistentCollectionManager
+        from lewaf.primitives.variable_expansion import (  # noqa: PLC0415 - Avoids circular import
+            VariableExpander,
+        )
+        from lewaf.storage import (  # noqa: PLC0415 - Avoids circular import
+            get_storage_backend,
+        )
+        from lewaf.storage.collections import (  # noqa: PLC0415 - Avoids circular import
+            PersistentCollectionManager,
+        )
 
         # Expand key expression to get actual key
         key = VariableExpander.expand(self.key_expression, transaction.variables)
@@ -1248,7 +1231,9 @@ class InitColAction(Action):
         # Create or get collection for this type
         # Collections are added as attributes to transaction.variables
         # e.g., initcol:ip=... creates transaction.variables.ip
-        from lewaf.primitives.collections import MapCollection
+        from lewaf.primitives.collections import (  # noqa: PLC0415 - Avoids circular import
+            MapCollection,
+        )
 
         collection_attr = self.collection_name.lower()
 
@@ -1304,7 +1289,9 @@ class SetSidAction(Action):
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         """Set session ID in transaction."""
         # Import here to avoid circular dependencies
-        from lewaf.primitives.variable_expansion import VariableExpander
+        from lewaf.primitives.variable_expansion import (  # noqa: PLC0415 - Avoids circular import
+            VariableExpander,
+        )
 
         # Expand expression to get session ID
         session_id = VariableExpander.expand(

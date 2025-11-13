@@ -593,7 +593,7 @@ class ValidateUrlEncodingOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if the input contains valid URL encoding."""
-        import re
+        import re  # noqa: PLC0415 - Avoids circular import
 
         # Find all percent-encoded sequences
         encoded_chars = re.findall(r"%[0-9A-Fa-f]{2}", value)
@@ -629,8 +629,8 @@ class ValidateSchemaOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if the input is valid JSON or XML."""
-        import json
-        import xml.etree.ElementTree as ET
+        import json  # noqa: PLC0415 - Avoids circular import
+        import xml.etree.ElementTree as ET  # noqa: PLC0415 - Avoids circular import
 
         # Try JSON validation first
         try:
@@ -820,7 +820,7 @@ class RestPathOperator(Operator):
 
     def _compile_path_pattern(self, path_pattern: str) -> str:
         """Convert REST path pattern to regex."""
-        import re
+        import re  # noqa: PLC0415 - Avoids circular import
 
         # Escape special regex characters except {}
         escaped = re.escape(path_pattern)
@@ -834,7 +834,7 @@ class RestPathOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if the input matches the REST path pattern."""
-        import re
+        import re  # noqa: PLC0415 - Avoids circular import
 
         match = re.match(self._pattern, value)
         if match:
@@ -865,9 +865,9 @@ class InspectFileOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Execute external script for file inspection."""
-        import os
-        import subprocess
-        import tempfile
+        import os  # noqa: PLC0415 - Avoids circular import
+        import subprocess  # noqa: PLC0415 - Avoids circular import
+        import tempfile  # noqa: PLC0415 - Avoids circular import
 
         # Security check: only allow certain file extensions
         allowed_extensions = [".pl", ".py", ".sh", ".lua"]
@@ -942,7 +942,7 @@ class IpMatchFromFileOperator(Operator):
 
     def _load_ip_list(self) -> list[str]:
         """Load IP addresses and networks from file."""
-        import os
+        import os  # noqa: PLC0415 - Avoids circular import
 
         if not self._file_path:
             msg = "IpMatchFromFile operator requires a file path"
@@ -958,7 +958,7 @@ class IpMatchFromFileOperator(Operator):
             # Check if file exists
             if not os.path.exists(self._file_path):
                 # For now, just log and continue with empty list
-                import logging
+                import logging  # noqa: PLC0415 - Avoids circular import
 
                 logging.warning(f"IpMatchFromFile: File not found: {self._file_path}")
                 return ip_list
@@ -970,7 +970,7 @@ class IpMatchFromFileOperator(Operator):
                     if line and not line.startswith("#"):
                         ip_list.append(line)
         except Exception as e:
-            import logging
+            import logging  # noqa: PLC0415 - Avoids circular import
 
             logging.error(f"IpMatchFromFile: Error loading file {self._file_path}: {e}")
 
@@ -978,7 +978,7 @@ class IpMatchFromFileOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if IP address matches any in the file."""
-        import ipaddress
+        import ipaddress  # noqa: PLC0415 - Avoids circular import
 
         if not self._ip_list:
             return False
@@ -1083,7 +1083,7 @@ class IpMatchFromDatasetOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Check if IP address matches any in the dataset."""
-        import ipaddress
+        import ipaddress  # noqa: PLC0415 - Avoids circular import
 
         ip_list = get_dataset(self._dataset_name)
         if not ip_list:
@@ -1159,7 +1159,7 @@ class GeoLookupOperator(Operator):
         Returns:
             bool: True if geolocation data was successfully populated
         """
-        import ipaddress
+        import ipaddress  # noqa: PLC0415 - Avoids circular import
 
         try:
             # Validate IP address format
@@ -1295,8 +1295,8 @@ class RblOperator(Operator):
         Returns:
             bool: True if IP is found in any RBL
         """
-        import ipaddress
-        import socket
+        import ipaddress  # noqa: PLC0415 - Avoids circular import
+        import socket  # noqa: PLC0415 - Avoids circular import
 
         try:
             # Validate IP address format

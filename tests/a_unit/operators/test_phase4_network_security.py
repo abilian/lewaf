@@ -378,8 +378,8 @@ class TestPhase4Integration:
 
     def test_performance_tracking_workflow(self):
         """Test performance monitoring during rule processing."""
-        import time
-        import uuid
+        import time  # noqa: PLC0415 - Avoids circular import
+        import uuid  # noqa: PLC0415 - Avoids circular import
 
         # Start transaction
         start_time = time.time()
@@ -407,7 +407,9 @@ class TestPhase4Integration:
 
     def test_operator_factory_integration(self):
         """Test operator creation through factory pattern."""
-        from lewaf.primitives.operators import get_operator
+        from lewaf.primitives.operators import (  # noqa: PLC0415 - Avoids circular import
+            get_operator,
+        )
 
         # Test geoLookup operator factory
         geo_options = OperatorOptions(arguments="")
@@ -421,7 +423,9 @@ class TestPhase4Integration:
 
     def test_case_insensitive_operator_lookup(self):
         """Test that operator names are case insensitive."""
-        from lewaf.primitives.operators import get_operator
+        from lewaf.primitives.operators import (  # noqa: PLC0415 - Avoids circular import
+            get_operator,
+        )
 
         # Test various case combinations
         test_cases = ["GEOLOOKUP", "GeoLookup", "geolookup", "geoLOOKUP"]

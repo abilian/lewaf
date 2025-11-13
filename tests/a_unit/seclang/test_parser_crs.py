@@ -155,7 +155,7 @@ class TestSecLangParserCRS:
     def test_parse_includes_with_relative_paths(self):
         """Test Include directive with relative paths."""
         # Create temp files for testing
-        import tempfile
+        import tempfile  # noqa: PLC0415 - Avoids circular import
 
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create main config
@@ -175,8 +175,8 @@ class TestSecLangParserCRS:
 
     def test_parse_includes_with_subdirectories(self):
         """Test Include directive with subdirectory paths."""
-        import tempfile
-        from pathlib import Path
+        import tempfile  # noqa: PLC0415 - Avoids circular import
+        from pathlib import Path  # noqa: PLC0415 - Avoids circular import
 
         with tempfile.TemporaryDirectory() as tmpdir:
             tmppath = Path(tmpdir)

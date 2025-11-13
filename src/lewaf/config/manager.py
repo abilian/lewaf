@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import signal
 import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -255,7 +256,9 @@ class ConfigManager:
         Returns:
             Tuple of (is_valid, errors, warnings)
         """
-        from lewaf.config.validator import ConfigValidator
+        from lewaf.config.validator import (  # noqa: PLC0415 - Avoids circular import
+            ConfigValidator,
+        )
 
         try:
             # Load config
@@ -285,8 +288,6 @@ class ConfigManager:
 
         def watch_thread() -> None:
             """Background thread to watch for file changes."""
-            import time
-
             last_mtime = self.config_file.stat().st_mtime if self.config_file else 0
 
             while True:

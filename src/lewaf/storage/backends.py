@@ -343,7 +343,7 @@ class RedisStorage(StorageBackend):
             **kwargs: Additional redis.Redis arguments
         """
         try:
-            import redis
+            import redis  # noqa: PLC0415 - Avoids circular import
         except ImportError as e:
             msg = "Redis storage requires redis-py: pip install redis"
             raise ImportError(msg) from e

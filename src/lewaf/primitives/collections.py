@@ -423,7 +423,7 @@ class TransactionVariables:
             self.request_uri_raw.set(uri)  # In production, this would be URL-encoded
 
             # Extract basename and filename from URI
-            import os
+            import os  # noqa: PLC0415 - Avoids circular import
 
             if uri:
                 # Remove query string for path extraction

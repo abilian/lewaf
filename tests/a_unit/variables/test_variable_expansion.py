@@ -320,7 +320,9 @@ class TestLegacyCompatibility:
 
     def test_macro_expander_interface(self, tx_vars):
         """Test MacroExpander compatibility wrapper."""
-        from lewaf.primitives.variable_expansion import MacroExpander
+        from lewaf.primitives.variable_expansion import (  # noqa: PLC0415 - Avoids circular import
+            MacroExpander,
+        )
 
         # Create mock transaction with variables
         transaction = Mock()
@@ -331,7 +333,9 @@ class TestLegacyCompatibility:
 
     def test_macro_expander_without_variables(self):
         """Test MacroExpander with transaction lacking variables."""
-        from lewaf.primitives.variable_expansion import MacroExpander
+        from lewaf.primitives.variable_expansion import (  # noqa: PLC0415 - Avoids circular import
+            MacroExpander,
+        )
 
         transaction = Mock(spec=[])  # No variables attribute
 

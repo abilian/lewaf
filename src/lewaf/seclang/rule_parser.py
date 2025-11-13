@@ -383,7 +383,9 @@ class SecRuleParser:
             self.metadata["phase"] = 2  # Default phase
 
         # Create the operator
-        from lewaf.integration import ParsedOperator
+        from lewaf.integration import (  # noqa: PLC0415 - Avoids circular import
+            ParsedOperator,
+        )
 
         operator_options = OperatorOptions(self.operator_argument)
         operator_instance = get_operator(self.operator_name, operator_options)
