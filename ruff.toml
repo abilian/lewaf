@@ -48,7 +48,7 @@ lint.extend-ignore = [
     "PLR6201", #	[ ] literal-membership
     "RUF029", # 	[ ] unused-async
     "PLW2901", #	[ ] redefined-loop-name
-    "B011", #   	[ ] assert-false
+#    "B011", #   	[ ] assert-false
     "PT015", #  	[ ] pytest-assert-always-false
     "TRY300", # 	[ ] try-consider-else
     "FBT001", # 	[ ] boolean-type-hint-positional-argument

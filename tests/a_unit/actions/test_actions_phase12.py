@@ -51,7 +51,8 @@ def test_redirect_action():
     # Test with empty URL should raise error
     try:
         action.init({}, "")
-        assert False, "Should raise ValueError for empty URL"
+        msg = "Should raise ValueError for empty URL"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -87,7 +88,8 @@ def test_skip_action():
     # Test with invalid number
     try:
         action.init({}, "not_a_number")
-        assert False, "Should raise ValueError for invalid number"
+        msg = "Should raise ValueError for invalid number"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -105,7 +107,8 @@ def test_rev_action():
     # Test with empty revision
     try:
         action.init({}, "")
-        assert False, "Should raise ValueError for empty revision"
+        msg = "Should raise ValueError for empty revision"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -188,7 +191,8 @@ def test_exec_action():
     # Test with empty command should raise error
     try:
         action.init({}, "")
-        assert False, "Should raise ValueError for empty command"
+        msg = "Should raise ValueError for empty command"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -223,13 +227,15 @@ def test_setenv_action():
     # Test with invalid format
     try:
         action.init({}, "INVALID_FORMAT")
-        assert False, "Should raise ValueError for invalid format"
+        msg = "Should raise ValueError for invalid format"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
     try:
         action.init({}, "")
-        assert False, "Should raise ValueError for empty data"
+        msg = "Should raise ValueError for empty data"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -266,13 +272,15 @@ def test_expirevar_action():
     # Test with invalid format
     try:
         action.init({}, "INVALID_FORMAT")
-        assert False, "Should raise ValueError for invalid format"
+        msg = "Should raise ValueError for invalid format"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
     try:
         action.init({}, "VAR=not_a_number")
-        assert False, "Should raise ValueError for non-numeric seconds"
+        msg = "Should raise ValueError for non-numeric seconds"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -305,7 +313,8 @@ def test_initcol_action():
     # Test with empty spec should raise error
     try:
         action.init({}, "")
-        assert False, "Should raise ValueError for empty spec"
+        msg = "Should raise ValueError for empty spec"
+        raise AssertionError(msg)
     except ValueError:
         pass
 
@@ -348,13 +357,11 @@ def test_action_error_handling():
     for action, invalid_data in actions_to_test:
         try:
             action.init({}, invalid_data)
-            assert False, (
-                f"Action {type(action).__name__} should raise ValueError for invalid data"
-            )
+            msg = f"Action {type(action).__name__} should raise ValueError for invalid data"
+            raise AssertionError(msg)
         except ValueError:
             # Expected behavior
             pass
         except Exception as e:
-            assert False, (
-                f"Action {type(action).__name__} raised unexpected exception: {e}"
-            )
+            msg = f"Action {type(action).__name__} raised unexpected exception: {e}"
+            raise AssertionError(msg)

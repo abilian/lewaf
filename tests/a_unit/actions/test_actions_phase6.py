@@ -80,7 +80,8 @@ def test_transformation_action_invalid_transformation():
 
     try:
         action.init(rule_metadata, "invalidtransformationname")
-        assert False, "Should have raised ValueError"
+        msg = "Should have raised ValueError"
+        raise AssertionError(msg)
     except ValueError as e:
         assert "Unknown transformation" in str(e)
         assert "invalidtransformationname" in str(e)
@@ -93,7 +94,8 @@ def test_transformation_action_empty_data():
 
     try:
         action.init(rule_metadata, "")
-        assert False, "Should have raised ValueError"
+        msg = "Should have raised ValueError"
+        raise AssertionError(msg)
     except ValueError as e:
         assert "requires a transformation name" in str(e)
 

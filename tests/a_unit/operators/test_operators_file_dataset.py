@@ -177,7 +177,8 @@ def test_inspect_file_operator_allowed_extensions():
             assert result is True
         except ValueError as e:
             if "Script type not allowed" in str(e):
-                assert False, f"Script {script} should be allowed but was rejected"
+                msg = f"Script {script} should be allowed but was rejected"
+                raise AssertionError(msg)
 
 
 def test_inspect_file_operator_path_traversal():
