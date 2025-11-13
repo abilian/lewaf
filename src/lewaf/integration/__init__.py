@@ -69,7 +69,8 @@ class SecLangParser:
 
         parts = normalized_rule.split('"')
         if len(parts) < 5 or not parts[0].strip().startswith("SecRule"):
-            raise ValueError(f"Invalid rule format: {rule_str}")
+            msg = f"Invalid rule format: {rule_str}"
+            raise ValueError(msg)
 
         variables_str = parts[0].replace("SecRule", "").strip()
         operator_str = parts[1]
@@ -101,7 +102,8 @@ class SecLangParser:
             op_instance = get_operator(op_name, options)
             parsed_operator = ParsedOperator(op_name, op_arg, op_instance, negated)
         except ValueError as e:
-            raise ValueError(f"Failed to create operator {op_name}: {e}") from e
+            msg = f"Failed to create operator {op_name}: {e}"
+            raise ValueError(msg) from e
 
         parsed_actions = {}
         parsed_transformations = []
@@ -121,7 +123,8 @@ class SecLangParser:
             else:
                 action_class = ACTIONS.get(key)
                 if not action_class:
-                    raise ValueError(f"Unknown action: {key}")
+                    msg = f"Unknown action: {key}"
+                    raise ValueError(msg)
                 parsed_actions[key] = action_class(value)
                 if key in ["id", "phase"]:
                     parsed_metadata[key] = int(value)

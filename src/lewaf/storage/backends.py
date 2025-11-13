@@ -349,9 +349,8 @@ class RedisStorage(StorageBackend):
         try:
             import redis
         except ImportError as e:
-            raise ImportError(
-                "Redis storage requires redis-py: pip install redis"
-            ) from e
+            msg = "Redis storage requires redis-py: pip install redis"
+            raise ImportError(msg) from e
 
         self.redis = redis.Redis(host=host, port=port, db=db, **kwargs)
         self.key_prefix = "lewaf:collection:"

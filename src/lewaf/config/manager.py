@@ -89,7 +89,8 @@ class ConfigManager:
         """
         with self._lock:
             if self._current_config is None:
-                raise RuntimeError("No configuration loaded")
+                msg = "No configuration loaded"
+                raise RuntimeError(msg)
             return self._current_config
 
     def reload(self, overrides: dict[str, Any] | None = None) -> WAFConfig:
@@ -149,7 +150,7 @@ class ConfigManager:
             return new_config
 
         except Exception as e:
-            logger.error(f"Failed to reload configuration: {e}")
+            logger.error("Failed to reload configuration: %s", e)
             raise
 
     def register_reload_callback(
@@ -190,7 +191,7 @@ class ConfigManager:
             try:
                 callback(old_config, new_config)
             except Exception as e:
-                logger.error(f"Error in reload callback: {e}")
+                logger.error("Error in reload callback: %s", e)
 
     def get_version(self) -> int:
         """Get current configuration version.
@@ -240,7 +241,7 @@ class ConfigManager:
             try:
                 self.reload()
             except Exception as e:
-                logger.error(f"Failed to reload configuration on SIGHUP: {e}")
+                logger.error("Failed to reload configuration on SIGHUP: %s", e)
 
         # Only install on Unix-like systems
         if hasattr(signal, "SIGHUP"):
@@ -279,7 +280,8 @@ class ConfigManager:
             interval: Check interval in seconds
         """
         if not self.config_file:
-            raise ValueError("Cannot watch file: no config file specified")
+            msg = "Cannot watch file: no config file specified"
+            raise ValueError(msg)
 
         def watch_thread() -> None:
             """Background thread to watch for file changes."""
@@ -301,7 +303,7 @@ class ConfigManager:
                         last_mtime = current_mtime
 
                 except Exception as e:
-                    logger.error(f"Error in file watch thread: {e}")
+                    logger.error("Error in file watch thread: %s", e)
 
         thread = threading.Thread(target=watch_thread, daemon=True)
         thread.start()

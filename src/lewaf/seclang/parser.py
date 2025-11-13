@@ -79,7 +79,7 @@ class SecLangParser:
         if "*" in str(file_path):
             files = sorted(file_path.parent.glob(file_path.name))
             if not files:
-                logger.warning(f"No files matching pattern: {file_path}")
+                logger.warning("No files matching pattern: %s", file_path)
                 return
 
             for f in files:
@@ -102,7 +102,7 @@ class SecLangParser:
             self.current_dir = str(file_path.parent)
             self.current_line = 0
 
-            logger.info(f"Parsing SecLang file: {file_path}")
+            logger.info("Parsing SecLang file: %s", file_path)
 
             with open(file_path, encoding="utf-8") as f:
                 content = f.read()
@@ -169,9 +169,8 @@ class SecLangParser:
                 self._evaluate_line(full_line)
 
         if in_backticks:
-            raise ParseError(
-                "Unclosed backtick section", self.current_line, self.current_file
-            )
+            msg = "Unclosed backtick section"
+            raise ParseError(msg, self.current_line, self.current_file)
 
         if line_buffer:
             # Process any remaining buffered line
@@ -218,8 +217,9 @@ class SecLangParser:
             try:
                 handler(args)
             except Exception as e:
+                msg = f"Failed to process {directive}: {e}"
                 raise ParseError(
-                    f"Failed to process {directive}: {e}",
+                    msg,
                     self.current_line,
                     self.current_file,
                 ) from e
@@ -238,8 +238,9 @@ class SecLangParser:
             ParseError: If recursion limit exceeded or file not found
         """
         if self.include_count >= self.MAX_INCLUDE_RECURSION:
+            msg = f"Include recursion limit exceeded ({self.MAX_INCLUDE_RECURSION})"
             raise ParseError(
-                f"Include recursion limit exceeded ({self.MAX_INCLUDE_RECURSION})",
+                msg,
                 self.current_line,
                 self.current_file,
             )
@@ -289,7 +290,7 @@ class SecLangParser:
             args: Engine mode (On, Off, DetectionOnly)
         """
         mode = args.lower()
-        logger.info(f"Setting rule engine to: {mode}")
+        logger.info("Setting rule engine to: %s", mode)
         # TODO: Store in WAF configuration
         # self.waf.rule_engine = mode
 
@@ -300,7 +301,7 @@ class SecLangParser:
             args: On or Off
         """
         enabled = args.lower() == "on"
-        logger.info(f"Request body access: {enabled}")
+        logger.info("Request body access: %s", enabled)
         # TODO: Store in WAF configuration
 
     def _handle_secresponsebodyaccess(self, args: str) -> None:
@@ -310,7 +311,7 @@ class SecLangParser:
             args: On or Off
         """
         enabled = args.lower() == "on"
-        logger.info(f"Response body access: {enabled}")
+        logger.info("Response body access: %s", enabled)
         # TODO: Store in WAF configuration
 
     def _handle_secdefaultaction(self, args: str) -> None:
@@ -324,9 +325,9 @@ class SecLangParser:
         if phase_match:
             phase = int(phase_match.group(1))
             self.default_actions[phase] = args
-            logger.info(f"Set default actions for phase {phase}: {args}")
+            logger.info("Set default actions for phase %s: %s", phase, args)
         else:
-            logger.warning(f"SecDefaultAction without phase specification: {args}")
+            logger.warning("SecDefaultAction without phase specification: %s", args)
 
     def _handle_secmarker(self, args: str) -> None:
         """Handle SecMarker directive.
@@ -360,9 +361,9 @@ class SecLangParser:
         try:
             parser.parse_rule(marker_rule_str)
         except Exception as e:
-            logger.warning(f"Failed to create marker rule for '{marker_name}': {e}")
+            logger.warning("Failed to create marker rule for '%s': %s", marker_name, e)
 
-        logger.debug(f"Registered marker '{marker_name}' as rule")
+        logger.debug("Registered marker '%s' as rule", marker_name)
 
     def _handle_seccomponentsignature(self, args: str) -> None:
         """Handle SecComponentSignature directive.
@@ -377,6 +378,6 @@ class SecLangParser:
             SecComponentSignature "OWASP_CRS/3.3.4"
         """
         signature = args.strip()
-        logger.info(f"Component signature: {signature}")
+        logger.info("Component signature: %s", signature)
         # Store in WAF metadata
         self.waf.component_signature = signature

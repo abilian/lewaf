@@ -43,7 +43,8 @@ class ConfigLoader:
         file_path = Path(file_path)
 
         if not file_path.exists():
-            raise FileNotFoundError(f"Configuration file not found: {file_path}")
+            msg = f"Configuration file not found: {file_path}"
+            raise FileNotFoundError(msg)
 
         # Read file content
         with open(file_path, encoding="utf-8") as f:
@@ -58,12 +59,12 @@ class ConfigLoader:
         elif file_path.suffix == ".json":
             data = json.loads(content)
         else:
-            raise ValueError(
-                f"Unsupported file format: {file_path.suffix}. Use .yaml, .yml, or .json"
-            )
+            msg = f"Unsupported file format: {file_path.suffix}. Use .yaml, .yml, or .json"
+            raise ValueError(msg)
 
         if not isinstance(data, dict):
-            raise TypeError("Configuration file must contain a dictionary/object")
+            msg = "Configuration file must contain a dictionary/object"
+            raise TypeError(msg)
 
         # Handle nested "waf" key (common pattern)
         if "waf" in data and isinstance(data["waf"], dict):
@@ -114,7 +115,8 @@ class ConfigLoader:
             if value is None:
                 if default_value is not None:
                     return default_value
-                raise ValueError(f"Required environment variable not set: {var_name}")
+                msg = f"Required environment variable not set: {var_name}"
+                raise ValueError(msg)
 
             return value
 

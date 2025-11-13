@@ -108,7 +108,7 @@ class ASGIMiddleware:
             self.waf = self._create_waf_from_config(new_config)
             logger.info("WAF configuration reloaded successfully")
         except Exception as e:
-            logger.error(f"Failed to reload WAF configuration: {e}")
+            logger.error("Failed to reload WAF configuration: %s", e)
             # Keep old WAF instance on failure
 
     async def __call__(
@@ -379,7 +379,7 @@ class ASGIMiddlewareFactory:
             self.waf = self._create_waf_from_config(new_config)
             logger.info("Shared WAF configuration reloaded")
         except Exception as e:
-            logger.error(f"Failed to reload shared WAF: {e}")
+            logger.error("Failed to reload shared WAF: %s", e)
 
     def wrap(self, app: ASGIApp) -> ASGIMiddleware:
         """Wrap an ASGI application with middleware.

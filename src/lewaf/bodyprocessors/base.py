@@ -42,9 +42,8 @@ class BaseBodyProcessor:
         Raises:
             BodyProcessorError: If body cannot be parsed
         """
-        raise NotImplementedError(
-            f"{self.__class__.__name__} must implement read() method"
-        )
+        msg = f"{self.__class__.__name__} must implement read() method"
+        raise NotImplementedError(msg)
 
     def get_collections(self) -> dict[str, Any]:
         """Return populated variable collections.

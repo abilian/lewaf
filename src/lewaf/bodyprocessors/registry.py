@@ -29,7 +29,7 @@ def register_body_processor(
     """
     name_upper = name.upper()
     _BODY_PROCESSORS[name_upper] = factory
-    logger.debug(f"Registered body processor: {name_upper}")
+    logger.debug("Registered body processor: %s", name_upper)
 
 
 def get_body_processor(name: str) -> BodyProcessorProtocol:
@@ -49,9 +49,8 @@ def get_body_processor(name: str) -> BodyProcessorProtocol:
 
     if factory is None:
         available = ", ".join(sorted(_BODY_PROCESSORS.keys()))
-        raise ValueError(
-            f"Unknown body processor: {name}. Available processors: {available}"
-        )
+        msg = f"Unknown body processor: {name}. Available processors: {available}"
+        raise ValueError(msg)
 
     return factory()
 

@@ -223,7 +223,7 @@ class AuditLogger:
         }
         extra.update(kwargs)
 
-        self.logger.info(f"Configuration change: {description}", extra=extra)
+        self.logger.info("Configuration change: %s", description, extra=extra)
 
     def log_performance_metric(
         self,
@@ -251,7 +251,9 @@ class AuditLogger:
 
         extra.update(kwargs)
 
-        self.logger.debug(f"Performance: {metric_name} = {metric_value}", extra=extra)
+        self.logger.debug(
+            "Performance: %s = %s", metric_name, metric_value, extra=extra
+        )
 
 
 # Global audit logger instance
