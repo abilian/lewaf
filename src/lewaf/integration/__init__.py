@@ -66,6 +66,38 @@ class SecLangParser:
         # Preprocess line continuations: remove backslash-newline sequences
         normalized_rule = self._normalize_line_continuations(rule_str)
 
+        # List of configuration directives that should be skipped (not rules)
+        config_directives = {
+            "SecRuleEngine", "SecRequestBodyAccess", "SecResponseBodyAccess",
+            "SecRequestBodyLimit", "SecRequestBodyNoFilesLimit",
+            "SecRequestBodyLimitAction", "SecResponseBodyLimit",
+            "SecTmpDir", "SecDataDir", "SecDebugLog", "SecDebugLogLevel",
+            "SecAuditEngine", "SecAuditLog", "SecAuditLogType",
+            "SecAuditLogFormat", "SecAuditLogParts", "SecAuditLogRelevantStatus",
+            "SecArgumentSeparator", "SecCookieFormat", "SecUnicodeMapFile",
+            "SecStatusEngine", "SecServerSignature", "SecComponentSignature",
+            "SecUploadDir", "SecUploadKeepFiles", "SecUploadFileMode",
+            "SecCollectionTimeout", "SecHttpBlKey", "SecGeoLookupDB",
+            "SecPcreMatchLimit", "SecPcreMatchLimitRecursion",
+            "SecWebAppId", "SecSensorId", "SecHashEngine", "SecHashKey",
+            "SecHashParam", "SecHashMethodRx", "SecHashMethodPm",
+            "SecGsbLookupDb", "SecGuardianLog", "SecInterceptOnError",
+            "SecConnEngine", "SecConnReadStateLimit", "SecConnWriteStateLimit",
+            "SecSensorId", "SecRemoteRules", "SecRemoteRulesFailAction",
+            "SecAction", "SecMarker", "Include", "IncludeOptional"
+        }
+
+        # Check if this is a configuration directive (not a rule)
+        stripped = normalized_rule.strip()
+        for directive in config_directives:
+            if stripped.startswith(directive):
+                # Skip configuration directives with a debug message
+                # In a real implementation, you might want to process these
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.debug(f"Skipping configuration directive: {directive}")
+                return  # Skip this line, don't add a rule
+
         parts = normalized_rule.split('"')
         if len(parts) < 5 or not parts[0].strip().startswith("SecRule"):
             msg = f"Invalid rule format: {rule_str}"
