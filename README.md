@@ -56,7 +56,7 @@ LeWAF is a modern, high-performance WAF implementation for Python applications t
 
 ```bash
 # Clone repository
-git clone https://github.com/yourorg/lewaf.git
+git clone https://github.com/abilian/lewaf.git
 cd lewaf
 
 # Install with uv
@@ -111,7 +111,6 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 **Version**: 1.3.0-rc
 **Status**: ✅ **Production Ready**
 **Test Coverage**: 835 tests, 100% passing
-**Production Readiness**: 95%
 **Code Quality**: Zero linting/type errors
 
 ### Completed Features
