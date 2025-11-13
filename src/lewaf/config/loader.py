@@ -63,7 +63,7 @@ class ConfigLoader:
             )
 
         if not isinstance(data, dict):
-            raise ValueError("Configuration file must contain a dictionary/object")
+            raise TypeError("Configuration file must contain a dictionary/object")
 
         # Handle nested "waf" key (common pattern)
         if "waf" in data and isinstance(data["waf"], dict):

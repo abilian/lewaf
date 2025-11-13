@@ -159,8 +159,8 @@ class ASGIMiddleware:
             # Call wrapped application with replay receive
             await self.app(scope, replay_receive, wrapped_send)
 
-        except Exception as e:
-            logger.error(f"WAF middleware error: {e}", exc_info=True)
+        except Exception:
+            logger.exception("WAF middleware error")
             # Continue with original app on WAF errors
             await self.app(scope, receive, send)
 
