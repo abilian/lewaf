@@ -806,6 +806,7 @@ app = ASGIMiddleware(
 
 - [Quickstart Guide](quickstart.md)
 - [API Reference](../api/reference.md)
+- [Django Integration](integration-django.md)
 - [FastAPI Integration](integration-fastapi.md)
 - [Starlette Integration](integration-starlette.md)
 - [Custom Rules Guide](custom-rules.md)

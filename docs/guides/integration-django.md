@@ -26,130 +26,57 @@ pip install lewaf django
 
 ### Minimal Example
 
-LeWAF provides native Django middleware. Just add it to your `settings.py`:
-
-**File**: `settings.py`
+**File**: `myapp.py`
 
 ```python
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'lewaf.integrations.django.LeWAFMiddleware',  # Add early in chain
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    # ... other middleware
-]
+from django.conf import settings
+from django.http import HttpResponse, JsonResponse
+from django.urls import path
+from django.core.wsgi import get_wsgi_application
 
-# WAF Configuration
-LEWAF_CONFIG = {
-    "rules": [
-        'SecRule ARGS "@rx <script" "id:1,phase:2,deny,msg:\'XSS blocked\'"',
-    ]
-}
+# Configure Django
+if not settings.configured:
+    settings.configure(
+        DEBUG=True,
+        SECRET_KEY='your-secret-key',
+        ROOT_URLCONF=__name__,
+        MIDDLEWARE=[
+            'django.middleware.common.CommonMiddleware',
+            '__main__.LeWAFMiddleware',
+        ],
+        LEWAF_CONFIG={
+            "rules": [
+                'SecRule ARGS "@rx <script" "id:1,phase:2,deny,msg:\'XSS blocked\'"',
+            ],
+            "rule_files": []
+        }
+    )
 
-# Optional: Custom block response
-LEWAF_BLOCK_STATUS = 403
-LEWAF_BLOCK_MESSAGE = "Request blocked by WAF"
-```
-
-That's it! The middleware will automatically protect all your Django views.
-
-**Test**:
-```bash
-# Safe request
-curl http://localhost:8000/api/search?q=test
-# ✅ {"results": ["test"]}
-
-# Attack attempt
-curl "http://localhost:8000/api/search?q=<script>alert(1)</script>"
-# ⛔ 403 Forbidden
-```
-
-### Alternative: Configuration File
-
-```python
-# settings.py
-MIDDLEWARE = [
-    'lewaf.integrations.django.LeWAFMiddleware',
-    # ... other middleware
-]
-
-LEWAF_CONFIG_FILE = 'config/lewaf.yaml'
-```
-
----
-
-## Basic Integration
-
-### Full Example Project
-
-**File**: `myproject/settings.py`
-
-```python
-# ... standard Django settings ...
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'lewaf.integrations.django.LeWAFMiddleware',  # WAF protection
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-]
-
-# LeWAF Configuration
-LEWAF_CONFIG = {
-    "rules": [
-        # SQL Injection protection
-        'SecRule ARGS "@rx (union|select|insert|update|delete)" '
-        '"id:1001,phase:2,deny,log,msg:\'SQL injection attempt\'"',
-        # XSS protection
-        'SecRule ARGS "@rx (<script|javascript:)" '
-        '"id:1002,phase:2,deny,log,msg:\'XSS attempt\'"',
-        # Path traversal protection
-        'SecRule ARGS "@rx \\.\\.\\/|\\.\\.\\\\|" '
-        '"id:1003,phase:2,deny,log,msg:\'Path traversal attempt\'"',
-    ]
-}
-```
-
-**File**: `myproject/views.py`
-
-```python
-from django.http import JsonResponse
-
-def search(request):
-    query = request.GET.get('q', '')
-    # WAF already filtered malicious input
-    return JsonResponse({"results": [query]})
-```
-
----
-
-### Legacy: Custom Middleware (Pre-0.7.1)
-
-For reference, here's how custom middleware was done before native support:
-
-```python
-class LegacyLeWAFMiddleware:
-    """Legacy Django middleware (use lewaf.integrations.django instead)."""
+# LeWAF Middleware
+class LeWAFMiddleware:
+    """Django middleware for LeWAF integration."""
 
     def __init__(self, get_response):
         self.get_response = get_response
         from lewaf.integration import WAF
-        from django.conf import settings
         self.waf = WAF(settings.LEWAF_CONFIG)
 
     def __call__(self, request):
+        # Create transaction
         tx = self.waf.new_transaction()
+
+        # Process request
         tx.process_uri(request.get_full_path(), request.method)
 
+        # Add headers
         for key, value in request.META.items():
             if key.startswith('HTTP_'):
                 header_name = key[5:].replace('_', '-').lower()
                 tx.variables.request_headers.add(header_name, value)
 
+        # Evaluate Phase 1
         tx.process_request_headers()
+
         if tx.interruption:
             return self._blocked_response(tx)
 
