@@ -6,8 +6,6 @@ This example shows how to integrate LeWAF with Django using middleware.
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from django.conf import settings
 from django.core.wsgi import get_wsgi_application
 from django.http import HttpResponse, JsonResponse
@@ -24,7 +22,7 @@ if not settings.configured:
             "django.middleware.security.SecurityMiddleware",
             "django.middleware.common.CommonMiddleware",
             # LeWAF middleware (see below)
-            "django_example.LeWAFMiddleware",
+            f"{__name__}.LeWAFMiddleware",
         ],
         INSTALLED_APPS=[
             "django.contrib.contenttypes",
@@ -32,14 +30,11 @@ if not settings.configured:
         ],
         # LeWAF configuration
         LEWAF_CONFIG={
-            "engine": "DetectionOnly",
-            "rule_files": [
-                str(Path(__file__).parent.parent.parent / "coraza.conf"),
-            ],
-            "request_body_limit": 13107200,
-            "custom_rules": [
+            "rules": [
                 'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
+                'SecRule ARGS "@rx <script" "id:9002,phase:2,deny,msg:\'XSS Attack\'"',
             ],
+            "rule_files": [],
         },
     )
 
@@ -57,27 +52,27 @@ class LeWAFMiddleware:
         self.get_response = get_response
 
         # Import here to avoid issues if lewaf is not installed
-        from lewaf.engine import WAF  # noqa: PLC0415 - Avoids circular import
+        from lewaf.integration import WAF  # noqa: PLC0415 - Avoids circular import
 
         # Initialize WAF
         config = settings.LEWAF_CONFIG
-        self.waf = WAF(**config)
+        self.waf = WAF(config)
 
     def __call__(self, request):
         # Create WAF transaction
         tx = self.waf.new_transaction()
 
-        # Process request headers
-        headers = {
-            key: value for key, value in request.META.items() if key.startswith("HTTP_")
-        }
+        # Set URI and method
+        tx.process_uri(request.get_full_path(), request.method)
 
-        tx.process_request_headers(
-            method=request.method,
-            uri=request.get_full_path(),
-            protocol=request.META.get("SERVER_PROTOCOL", "HTTP/1.1"),
-            headers=headers,
-        )
+        # Add request headers
+        for key, value in request.META.items():
+            if key.startswith("HTTP_"):
+                header_name = key[5:].replace("_", "-").lower()
+                tx.variables.request_headers.add(header_name, value)
+
+        # Process Phase 1 (request headers)
+        tx.process_request_headers()
 
         # Check for interruption after headers
         if tx.interruption:
@@ -85,7 +80,9 @@ class LeWAFMiddleware:
 
         # Process request body if present
         if request.body:
-            tx.process_request_body(request.body)
+            content_type = request.META.get("CONTENT_TYPE", "")
+            tx.add_request_body(request.body, content_type)
+            tx.process_request_body()
 
             # Check for interruption after body
             if tx.interruption:
@@ -94,16 +91,20 @@ class LeWAFMiddleware:
         # Get response from Django
         response = self.get_response(request)
 
-        # Process response headers
-        response_headers = dict(response.items())
-        tx.process_response_headers(
-            status=response.status_code,
-            headers=response_headers,
-        )
+        # Add response status
+        tx.add_response_status(response.status_code)
+
+        # Add response headers
+        for key, value in response.items():
+            tx.add_response_headers({key.lower(): value})
+
+        # Process Phase 3 (response headers)
+        tx.process_response_headers()
 
         # Process response body
         if hasattr(response, "content"):
-            tx.process_response_body(response.content)
+            tx.add_response_body(response.content)
+            tx.process_response_body()
 
         # Check for interruption after response
         if tx.interruption:
@@ -116,8 +117,10 @@ class LeWAFMiddleware:
         return JsonResponse(
             {
                 "error": "Request blocked by WAF",
-                "rule_id": tx.interruption.rule_id if tx.interruption else None,
-                "message": tx.interruption.action if tx.interruption else "Unknown",
+                "rule_id": tx.interruption.get("rule_id") if tx.interruption else None,
+                "message": tx.interruption.get("action", "Unknown")
+                if tx.interruption
+                else "Unknown",
             },
             status=403,
         )

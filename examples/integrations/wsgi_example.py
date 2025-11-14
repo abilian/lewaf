@@ -9,20 +9,16 @@ from __future__ import annotations
 
 import json
 from io import BytesIO
-from pathlib import Path
 
-from lewaf.engine import WAF
+from lewaf.integration import WAF
 
 # WAF Configuration
 WAF_CONFIG = {
-    "engine": "DetectionOnly",
-    "rule_files": [
-        str(Path(__file__).parent.parent.parent / "coraza.conf"),
-    ],
-    "request_body_limit": 13107200,
-    "custom_rules": [
+    "rules": [
         'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
+        'SecRule ARGS "@rx <script" "id:9002,phase:2,deny,msg:\'XSS Attack\'"',
     ],
+    "rule_files": [],
 }
 
 
@@ -43,7 +39,7 @@ class LeWAFMiddleware:
             waf_config: WAF configuration dict
         """
         self.app = app
-        self.waf = WAF(**(waf_config or WAF_CONFIG))
+        self.waf = WAF(waf_config or WAF_CONFIG)
 
     def __call__(self, environ, start_response):
         """
@@ -64,28 +60,26 @@ class LeWAFMiddleware:
         path = environ.get("PATH_INFO", "/")
         query_string = environ.get("QUERY_STRING", "")
         uri = f"{path}?{query_string}" if query_string else path
-        protocol = environ.get("SERVER_PROTOCOL", "HTTP/1.1")
 
-        # Extract headers
-        headers = {}
+        # Set URI and method
+        tx.process_uri(uri, method)
+
+        # Add request headers
         for key, value in environ.items():
             if key.startswith("HTTP_"):
-                header_name = key[5:].replace("_", "-").title()
-                headers[header_name] = value
+                header_name = key[5:].replace("_", "-").lower()
+                tx.variables.request_headers.add(header_name, value)
 
         # Also include Content-Type and Content-Length if present
         if "CONTENT_TYPE" in environ:
-            headers["Content-Type"] = environ["CONTENT_TYPE"]
+            tx.variables.request_headers.add("content-type", environ["CONTENT_TYPE"])
         if "CONTENT_LENGTH" in environ:
-            headers["Content-Length"] = environ["CONTENT_LENGTH"]
+            tx.variables.request_headers.add(
+                "content-length", environ["CONTENT_LENGTH"]
+            )
 
-        # Process request headers
-        tx.process_request_headers(
-            method=method,
-            uri=uri,
-            protocol=protocol,
-            headers=headers,
-        )
+        # Process Phase 1 (request headers)
+        tx.process_request_headers()
 
         # Check for interruption after headers
         if tx.interruption:
@@ -100,7 +94,9 @@ class LeWAFMiddleware:
             environ["wsgi.input"] = BytesIO(body)
 
             # Process through WAF
-            tx.process_request_body(body)
+            content_type = environ.get("CONTENT_TYPE", "")
+            tx.add_request_body(body, content_type)
+            tx.process_request_body()
 
             # Check for interruption after body
             if tx.interruption:
@@ -123,18 +119,21 @@ class LeWAFMiddleware:
             # Handle application errors
             return self._error_response(str(e), start_response)
 
-        # Process response headers
+        # Add response status
         status_code = int(response_status[0].split()[0]) if response_status else 500
-        response_headers_dict = dict(response_headers)
+        tx.add_response_status(status_code)
 
-        tx.process_response_headers(
-            status=status_code,
-            headers=response_headers_dict,
-        )
+        # Add response headers
+        for key, value in response_headers:
+            tx.add_response_headers({key.lower(): value})
+
+        # Process Phase 3 (response headers)
+        tx.process_response_headers()
 
         # Process response body
         if response_body:
-            tx.process_response_body(response_body)
+            tx.add_response_body(response_body)
+            tx.process_response_body()
 
         # Check for interruption after response
         if tx.interruption:
@@ -147,8 +146,10 @@ class LeWAFMiddleware:
         """Generate a blocked response."""
         response_data = {
             "error": "Request blocked by WAF",
-            "rule_id": tx.interruption.rule_id if tx.interruption else None,
-            "message": tx.interruption.action if tx.interruption else "Unknown",
+            "rule_id": tx.interruption.get("rule_id") if tx.interruption else None,
+            "message": tx.interruption.get("action", "Unknown")
+            if tx.interruption
+            else "Unknown",
         }
 
         body = json.dumps(response_data).encode("utf-8")

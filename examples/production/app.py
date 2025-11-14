@@ -13,14 +13,13 @@ from __future__ import annotations
 
 import logging
 import time
-from pathlib import Path
 
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.routing import Route
 
-from lewaf.integrations.starlette import WAFMiddleware
+from lewaf.integrations.starlette import CorazaMiddleware
 
 # Setup logging
 logging.basicConfig(
@@ -34,21 +33,15 @@ START_TIME = time.time()
 
 # WAF Configuration
 WAF_CONFIG = {
-    # Rule engine mode
-    # "DetectionOnly" - Log only, don't block
-    # "On" - Block malicious requests
-    "engine": "DetectionOnly",  # Start in detection mode for testing
-    # Load CRS rules (594 rules)
-    "rule_files": [
-        str(Path(__file__).parent.parent.parent / "coraza.conf"),
-    ],
-    # Request limits
-    "request_body_limit": 13107200,  # 12.5 MB
-    # Custom rules (optional)
-    "custom_rules": [
+    # Rules
+    "rules": [
         # Example: Block admin parameter
         'SecRule ARGS:admin "@rx ^true$" "id:9001,phase:1,deny,msg:\'Admin access forbidden\'"',
+        # XSS Protection
+        'SecRule ARGS "@rx <script" "id:9002,phase:2,deny,msg:\'XSS Attack\'"',
     ],
+    # Rule files (if needed)
+    "rule_files": [],
 }
 
 
@@ -106,7 +99,7 @@ async def metrics_endpoint(request):
 
 # Create application with WAF middleware
 middleware = [
-    Middleware(WAFMiddleware, config=WAF_CONFIG),
+    Middleware(CorazaMiddleware, rules=WAF_CONFIG["rules"]),
 ]
 
 routes = [
@@ -123,8 +116,8 @@ app = Starlette(
 
 # Log startup
 logger.info("LeWAF application started")
-logger.info(f"WAF mode: {WAF_CONFIG['engine']}")
-logger.info(f"Loading rules from: {WAF_CONFIG['rule_files']}")
+logger.info(f"WAF rules loaded: {len(WAF_CONFIG['rules'])}")
+logger.info("WAF protection enabled")
 
 
 if __name__ == "__main__":
