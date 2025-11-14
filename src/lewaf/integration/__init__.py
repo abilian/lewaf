@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -68,23 +69,56 @@ class SecLangParser:
 
         # List of configuration directives that should be skipped (not rules)
         config_directives = {
-            "SecRuleEngine", "SecRequestBodyAccess", "SecResponseBodyAccess",
-            "SecRequestBodyLimit", "SecRequestBodyNoFilesLimit",
-            "SecRequestBodyLimitAction", "SecResponseBodyLimit",
-            "SecTmpDir", "SecDataDir", "SecDebugLog", "SecDebugLogLevel",
-            "SecAuditEngine", "SecAuditLog", "SecAuditLogType",
-            "SecAuditLogFormat", "SecAuditLogParts", "SecAuditLogRelevantStatus",
-            "SecArgumentSeparator", "SecCookieFormat", "SecUnicodeMapFile",
-            "SecStatusEngine", "SecServerSignature", "SecComponentSignature",
-            "SecUploadDir", "SecUploadKeepFiles", "SecUploadFileMode",
-            "SecCollectionTimeout", "SecHttpBlKey", "SecGeoLookupDB",
-            "SecPcreMatchLimit", "SecPcreMatchLimitRecursion",
-            "SecWebAppId", "SecSensorId", "SecHashEngine", "SecHashKey",
-            "SecHashParam", "SecHashMethodRx", "SecHashMethodPm",
-            "SecGsbLookupDb", "SecGuardianLog", "SecInterceptOnError",
-            "SecConnEngine", "SecConnReadStateLimit", "SecConnWriteStateLimit",
-            "SecSensorId", "SecRemoteRules", "SecRemoteRulesFailAction",
-            "SecAction", "SecMarker", "Include", "IncludeOptional"
+            "SecRuleEngine",
+            "SecRequestBodyAccess",
+            "SecResponseBodyAccess",
+            "SecRequestBodyLimit",
+            "SecRequestBodyNoFilesLimit",
+            "SecRequestBodyLimitAction",
+            "SecResponseBodyLimit",
+            "SecTmpDir",
+            "SecDataDir",
+            "SecDebugLog",
+            "SecDebugLogLevel",
+            "SecAuditEngine",
+            "SecAuditLog",
+            "SecAuditLogType",
+            "SecAuditLogFormat",
+            "SecAuditLogParts",
+            "SecAuditLogRelevantStatus",
+            "SecArgumentSeparator",
+            "SecCookieFormat",
+            "SecUnicodeMapFile",
+            "SecStatusEngine",
+            "SecServerSignature",
+            "SecComponentSignature",
+            "SecUploadDir",
+            "SecUploadKeepFiles",
+            "SecUploadFileMode",
+            "SecCollectionTimeout",
+            "SecHttpBlKey",
+            "SecGeoLookupDB",
+            "SecPcreMatchLimit",
+            "SecPcreMatchLimitRecursion",
+            "SecWebAppId",
+            "SecSensorId",
+            "SecHashEngine",
+            "SecHashKey",
+            "SecHashParam",
+            "SecHashMethodRx",
+            "SecHashMethodPm",
+            "SecGsbLookupDb",
+            "SecGuardianLog",
+            "SecInterceptOnError",
+            "SecConnEngine",
+            "SecConnReadStateLimit",
+            "SecConnWriteStateLimit",
+            "SecRemoteRules",
+            "SecRemoteRulesFailAction",
+            "SecAction",
+            "SecMarker",
+            "Include",
+            "IncludeOptional",
         }
 
         # Check if this is a configuration directive (not a rule)
@@ -93,7 +127,6 @@ class SecLangParser:
             if stripped.startswith(directive):
                 # Skip configuration directives with a debug message
                 # In a real implementation, you might want to process these
-                import logging
                 logger = logging.getLogger(__name__)
                 logger.debug(f"Skipping configuration directive: {directive}")
                 return  # Skip this line, don't add a rule

@@ -76,15 +76,17 @@ class MultipartProcessor(BaseBodyProcessor):
         # Extract boundary from Content-Type
         boundary = self._extract_boundary(content_type)
         if not boundary:
-            raise InvalidMultipartError("Missing boundary in Content-Type header")
+            msg = "Missing boundary in Content-Type header"
+            raise InvalidMultipartError(msg)
 
         # Parse multipart body
         try:
             self.parts = self._parse_multipart(body, boundary)
         except Exception as e:
             snippet = body[:100].decode("utf-8", errors="replace")
+            msg = f"Failed to parse multipart body: {e}"
             raise InvalidMultipartError(
-                f"Failed to parse multipart body: {e}", body_snippet=snippet, cause=e
+                msg, body_snippet=snippet, cause=e
             ) from e
 
         # Populate collections
