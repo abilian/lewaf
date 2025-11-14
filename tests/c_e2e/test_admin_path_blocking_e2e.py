@@ -290,7 +290,7 @@ def test_e2e_with_multiple_blocking_rules():
 def test_e2e_custom_block_status_code():
     """E2E: Test custom block response status code."""
     from lewaf.integrations.starlette import (  # noqa: PLC0415 - Avoids circular import
-        CorazaMiddleware,
+        LeWAFMiddleware,
     )
 
     base_app = create_test_app()
@@ -303,7 +303,7 @@ def test_e2e_custom_block_status_code():
     waf = WAF({"rules": rules})
 
     # Create middleware with custom status code
-    app = CorazaMiddleware(base_app, waf=waf, block_response_status=401)
+    app = LeWAFMiddleware(base_app, waf=waf, block_response_status=401)
 
     client = TestClient(app)
 

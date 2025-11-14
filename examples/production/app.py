@@ -19,7 +19,7 @@ from starlette.middleware import Middleware
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.routing import Route
 
-from lewaf.integrations.starlette import CorazaMiddleware
+from lewaf.integrations.starlette import LeWAFMiddleware
 
 # Setup logging
 logging.basicConfig(
@@ -99,7 +99,7 @@ async def metrics_endpoint(request):
 
 # Create application with WAF middleware
 middleware = [
-    Middleware(CorazaMiddleware, rules=WAF_CONFIG["rules"]),
+    Middleware(LeWAFMiddleware, rules=WAF_CONFIG["rules"]),
 ]
 
 routes = [

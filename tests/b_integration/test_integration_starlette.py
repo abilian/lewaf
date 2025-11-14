@@ -10,7 +10,7 @@ from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from lewaf.integration import WAF
-from lewaf.integrations.starlette import CorazaMiddleware, create_waf_app
+from lewaf.integrations.starlette import LeWAFMiddleware, create_waf_app
 
 if TYPE_CHECKING:
     from starlette.requests import Request
@@ -39,10 +39,10 @@ def create_test_app():
 
 
 def test_coraza_middleware_initialization():
-    """Test CorazaMiddleware initialization with rules."""
+    """Test LeWAFMiddleware initialization with rules."""
     app = Starlette()
     rules = ['SecRule ARGS "@rx test" "id:1,phase:2,deny"']
-    middleware = CorazaMiddleware(app, rules=rules)
+    middleware = LeWAFMiddleware(app, rules=rules)
 
     assert middleware.waf is not None
     assert middleware.block_response_status == 403
@@ -52,7 +52,7 @@ def test_middleware_with_preconfigured_waf():
     """Test middleware with pre-configured WAF instance."""
     app = Starlette()
     waf = WAF({"rules": ['SecRule ARGS "@rx attack" "id:1001,phase:2,deny"']})
-    middleware = CorazaMiddleware(app, waf=waf)
+    middleware = LeWAFMiddleware(app, waf=waf)
 
     assert middleware.waf is waf
 
