@@ -107,7 +107,7 @@ config = {
 }
 
 # Apply LeWAF middleware
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 
 # Run with Uvicorn
 if __name__ == "__main__":
@@ -233,7 +233,7 @@ app = Starlette(routes=[...])
 
 # Initial config
 config = {"rules": [], "rule_files": []}
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 
 # Access WAF instance
 waf_instance = protected_app.waf
@@ -324,14 +324,14 @@ async def public_search(request):
     return JSONResponse({"results": []})
 
 public_app = Starlette(routes=[Route("/search", public_search)])
-protected_public = ASGIMiddleware(public_app, config_dict=public_config)
+protected_public = ASGIMiddleware(public_app, config=public_config)
 
 # Admin routes
 async def admin_users(request):
     return JSONResponse({"users": []})
 
 admin_app = Starlette(routes=[Route("/users", admin_users)])
-protected_admin = ASGIMiddleware(admin_app, config_dict=admin_config)
+protected_admin = ASGIMiddleware(admin_app, config=admin_config)
 
 # Main app with mounted sub-apps
 app = Starlette(routes=[
@@ -500,7 +500,7 @@ config = {
     "rule_files": []
 }
 
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 ```
 
 ### Pattern 6: GraphQL Protection
@@ -554,7 +554,7 @@ config = {
     "rule_files": []
 }
 
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 ```
 
 ### Pattern 7: WebSocket Protection
@@ -621,7 +621,7 @@ config = {
     "rule_files": []
 }
 
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 ```
 
 **Note**: LeWAF inspects the initial HTTP upgrade request but not the WebSocket frames. You must validate WebSocket messages in your endpoint logic.
@@ -655,7 +655,7 @@ config = {
     "rule_files": []
 }
 
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 
 def test_safe_request():
     """Test that safe requests pass through"""
@@ -699,7 +699,7 @@ config = {
     "rule_files": []
 }
 
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 
 @pytest.mark.asyncio
 async def test_safe_user_request():
@@ -750,7 +750,7 @@ config = {
     "rule_files": []
 }
 
-protected_app = CustomWAFMiddleware(app, config_dict=config)
+protected_app = CustomWAFMiddleware(app, config=config)
 
 @pytest.mark.asyncio
 async def test_custom_error_response():
@@ -1245,7 +1245,7 @@ config = {
     "rule_files": []
 }
 
-protected_app = ASGIMiddleware(app, config_dict=config)
+protected_app = ASGIMiddleware(app, config=config)
 
 if __name__ == "__main__":
     import uvicorn
@@ -1379,7 +1379,7 @@ class TenantAwareWAFMiddleware(ASGIMiddleware):
         # Call parent
         await super().__call__(scope, receive, send)
 
-protected_app = TenantAwareWAFMiddleware(app, config_dict={"rules": [], "rule_files": []})
+protected_app = TenantAwareWAFMiddleware(app, config={"rules": [], "rule_files": []})
 
 if __name__ == "__main__":
     import uvicorn
@@ -1482,7 +1482,7 @@ config = {
     "rule_files": []
 }
 
-protected_gateway = ASGIMiddleware(gateway, config_dict=config)
+protected_gateway = ASGIMiddleware(gateway, config=config)
 
 if __name__ == "__main__":
     import uvicorn
@@ -1533,12 +1533,9 @@ if __name__ == "__main__":
 ## Next Steps
 
 - **[Custom Rules Guide](./custom-rules.md)** - Learn to write advanced WAF rules
-- **[Django Integration](./integration-django.md)** - Django integration examples
-- **[FastAPI Integration](./integration-fastapi.md)** - FastAPI integration examples
-- **[Flask Integration](./integration-flask.md)** - Flask integration examples
-- **[API Reference](../api/reference.md)** - Complete API documentation
-- **[Troubleshooting Guide](../troubleshooting/runbook.md)** - Common issues and solutions
-- **[Performance Tuning](../performance/tuning.md)** - Optimize WAF performance
+- **[API Reference](./api-reference.md)** - Complete API documentation
+- **[Troubleshooting Guide](./troubleshooting.md)** - Common issues and solutions
+- **[Performance Tuning](./performance.md)** - Optimize WAF performance
 
 ---
 
@@ -1546,7 +1543,7 @@ if __name__ == "__main__":
 
 - **Starlette Documentation**: https://www.starlette.io/
 - **OWASP ModSecurity Core Rule Set**: https://coreruleset.org/
-- **LeWAF GitHub**: https://github.com/abilian/lewaf
+- **LeWAF GitHub**: https://github.com/yourusername/lewaf
 - **Security Best Practices**: https://owasp.org/www-project-web-security-testing-guide/
 
 ---
