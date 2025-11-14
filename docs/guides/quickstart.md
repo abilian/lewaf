@@ -614,6 +614,7 @@ rules = [
 
 ### 2. Integration Guides
 
+- **[Django Integration](integration-django.md)** - Django examples
 - **[FastAPI Integration](integration-fastapi.md)** - FastAPI examples
 - **[Flask Integration](integration-flask.md)** - Flask examples
 - **[Starlette Integration](integration-starlette.md)** - Starlette examples

@@ -31,13 +31,10 @@ class TestDjangoExample:
     def test_django_allows_safe_requests(self):
         """Test that Django example allows safe requests."""
         pytest.importorskip("django")
-        from django.test import (  # noqa: PLC0415
-            Client,
-        )
+        from django.test import Client
 
         django_example = EXAMPLES_DIR / "integrations" / "django_example.py"
-        # Import to trigger Django configuration in the example module
-        _module = import_module_from_file("django_safe_test", django_example)
+        module = import_module_from_file("django_safe_test", django_example)
 
         client = Client()
 
@@ -62,13 +59,10 @@ class TestDjangoExample:
     def test_django_blocks_admin_access(self):
         """Test that Django example blocks admin parameter."""
         pytest.importorskip("django")
-        from django.test import (  # noqa: PLC0415
-            Client,
-        )
+        from django.test import Client
 
         django_example = EXAMPLES_DIR / "integrations" / "django_example.py"
-        # Import to trigger Django configuration in the example module
-        _module = import_module_from_file("django_admin_test", django_example)
+        module = import_module_from_file("django_admin_test", django_example)
 
         client = Client()
 
@@ -84,13 +78,10 @@ class TestDjangoExample:
     def test_django_blocks_xss_attacks(self):
         """Test that Django example blocks XSS attacks in form data."""
         pytest.importorskip("django")
-        from django.test import (  # noqa: PLC0415
-            Client,
-        )
+        from django.test import Client
 
         django_example = EXAMPLES_DIR / "integrations" / "django_example.py"
-        # Import to trigger Django configuration in the example module
-        _module = import_module_from_file("django_xss_test", django_example)
+        module = import_module_from_file("django_xss_test", django_example)
 
         client = Client()
 

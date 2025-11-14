@@ -19,12 +19,4 @@ def examples(session):
     # Sync dev dependencies and examples dependency group
     session.run("uv", "sync", "--active", "--group", "examples", external=True)
     # Run only the examples tests
-    session.run(
-        "uv",
-        "run",
-        "--active",
-        "pytest",
-        "tests/e_examples/test_examples.py",
-        "-v",
-        external=True,
-    )
+    session.run("uv", "run", "--active", "pytest", "tests/e_examples/", external=True)

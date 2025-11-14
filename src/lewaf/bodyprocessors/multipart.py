@@ -85,9 +85,7 @@ class MultipartProcessor(BaseBodyProcessor):
         except Exception as e:
             snippet = body[:100].decode("utf-8", errors="replace")
             msg = f"Failed to parse multipart body: {e}"
-            raise InvalidMultipartError(
-                msg, body_snippet=snippet, cause=e
-            ) from e
+            raise InvalidMultipartError(msg, body_snippet=snippet, cause=e) from e
 
         # Populate collections
         args_post = {}
