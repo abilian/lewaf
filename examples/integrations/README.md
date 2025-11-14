@@ -550,7 +550,7 @@ uv run py-spy record -o profile.svg -- python app.py
 
 - [DEPLOYMENT_GUIDE.md](../production/DEPLOYMENT_GUIDE.md) - Full deployment guide
 - [MONITORING.md](../production/MONITORING.md) - Monitoring and logging
-- [ROADMAP.md](../../ROADMAP.md) - Project status and features
+- [CHANGELOG.md](../../CHANGELOG.md) - Release history and features
 - [OWASP CRS](https://coreruleset.org/) - Core Rule Set docs
 
 ---
