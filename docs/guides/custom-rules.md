@@ -1286,12 +1286,15 @@ waf = WAF(config=config)
 tx = waf.new_transaction()
 
 # Simulate request
-tx.process_uri("/?q=<script>alert(1)</script>", "GET")
-result = tx.process_request_headers()
+tx.process_request_headers(
+    method="GET",
+    uri="/?q=<script>alert(1)</script>",
+    headers={}
+)
 
 # Check if blocked
-print(f"Blocked: {result is not None}")
-print(f"Message: {result.get('message') if result else 'None'}")
+print(f"Blocked: {tx.interruption is not None}")
+print(f"Message: {tx.interruption.action if tx.interruption else 'None'}")
 ```
 
 ### Debug Transformations
@@ -1363,13 +1366,11 @@ print(f"Lowered: {lowered}")  # <script>
 
 ## Next Steps
 
-- **[API Reference](../api/reference.md)** - Complete LeWAF API documentation
-- **[Django Integration](./integration-django.md)** - Integrate with Django
+- **[API Reference](./api-reference.md)** - Complete LeWAF API documentation
 - **[FastAPI Integration](./integration-fastapi.md)** - Integrate with FastAPI
 - **[Flask Integration](./integration-flask.md)** - Integrate with Flask
-- **[Starlette Integration](./integration-starlette.md)** - Integrate with Starlette
-- **[Performance Tuning](../performance/tuning.md)** - Optimize WAF performance
-- **[Troubleshooting](../troubleshooting/runbook.md)** - Common issues and solutions
+- **[Performance Tuning](./performance.md)** - Optimize WAF performance
+- **[Troubleshooting](./troubleshooting.md)** - Common issues and solutions
 
 ---
 

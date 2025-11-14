@@ -21,14 +21,17 @@ Complete guide for integrating LeWAF with Flask applications.
 ### Installation
 
 ```bash
-pip install lewaf flask
+pip install lewaf flask asgiref
 ```
 
-### Minimal Example (Native WSGI Middleware)
+**Note**: LeWAF is an ASGI middleware, so Flask (WSGI) needs `asgiref` to bridge WSGI→ASGI.
+
+### Minimal Example
 
 ```python
 from flask import Flask, request, jsonify
-from lewaf.integrations.flask import FlaskWAFMiddleware
+from lewaf.integration.asgi import ASGIMiddleware
+from asgiref.wsgi import WsgiToAsgi
 
 app = Flask(__name__)
 
@@ -41,41 +44,31 @@ def search():
     query = request.args.get('q', '')
     return jsonify({"results": [query]})
 
-# Add WAF protection
-app.wsgi_app = FlaskWAFMiddleware(
-    app.wsgi_app,
-    rules=['SecRule ARGS "@rx <script" "id:1,phase:2,deny"']
+# Convert Flask (WSGI) to ASGI
+asgi_app = WsgiToAsgi(app)
+
+# Wrap with LeWAF middleware
+protected_app = ASGIMiddleware(
+    asgi_app,
+    config_dict={
+        "rules": ['SecRule ARGS "@rx <script" "id:1,phase:2,deny"'],
+        "rule_files": []
+    }
 )
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Run with uvicorn (ASGI server)
+# uvicorn main:protected_app --reload
 ```
 
 **Test**:
 ```bash
 # Safe request
-curl http://localhost:5000/api/search?q=test
+curl http://localhost:8000/api/search?q=test
 # ✅ {"results": ["test"]}
 
 # Attack attempt
-curl "http://localhost:5000/api/search?q=<script>alert(1)</script>"
+curl "http://localhost:8000/api/search?q=<script>alert(1)</script>"
 # ⛔ 403 Forbidden
-```
-
-### Alternative: Using Helper Function
-
-```python
-from flask import Flask, jsonify
-from lewaf.integrations.flask import create_flask_waf
-
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return jsonify({"message": "Hello World"})
-
-# Add WAF with one line
-app = create_flask_waf(app, rules=['SecRule ARGS "@rx attack" "id:1,phase:2,deny"'])
 ```
 
 ---
@@ -813,7 +806,6 @@ app = ASGIMiddleware(
 
 - [Quickstart Guide](quickstart.md)
 - [API Reference](../api/reference.md)
-- [Django Integration](integration-django.md)
 - [FastAPI Integration](integration-fastapi.md)
 - [Starlette Integration](integration-starlette.md)
 - [Custom Rules Guide](custom-rules.md)

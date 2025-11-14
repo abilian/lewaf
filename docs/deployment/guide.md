@@ -1,8 +1,8 @@
 # LeWAF Production Deployment Guide
 
-**Version**: 0.7.0
-**Last Updated**: 2025-11-26
-**Status**: Bêta
+**Version**: 1.0.0
+**Last Updated**: 2025-11-03
+**Status**: Production-Ready
 
 ---
 
@@ -99,7 +99,7 @@ uvicorn = "^0.30.0"    # ASGI server
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/abilian/lewaf.git
+git clone https://github.com/yourorg/lewaf.git
 cd lewaf
 
 # 2. Install with uv
@@ -891,4 +891,4 @@ app.add_route("/health", health_check)
 ---
 
 **Support**: See PROJECT_STATUS.md for comprehensive documentation
-**Issues**: https://github.com/abilian/lewaf/issues
+**Issues**: https://github.com/yourorg/lewaf/issues
