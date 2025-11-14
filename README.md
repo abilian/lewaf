@@ -1,6 +1,6 @@
 # LeWAF - Python Web Application Firewall
 
-[![Tests](https://img.shields.io/badge/tests-886%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-905%20passing-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.12+-blue)]()
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)]()
 [![Production Ready](https://img.shields.io/badge/status-production%20ready%2098%25-brightgreen)]()
@@ -64,7 +64,7 @@ The system uses the OWASP Core Rule Set (CRS) - 594 security rules maintained by
 - Drop-in middleware with minimal performance impact
 - Configurable through code or YAML files
 - Scales horizontally, no shared state between instances
-- 886 automated tests, load tested at 1000+ requests/second
+- 905 automated tests, load tested at 1000+ requests/second
 
 ## Quick Start
 
@@ -120,13 +120,13 @@ waf_app = create_waf_app(app, rules=[
 ])
 ```
 
-See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
+See [docs/guides/quickstart.md](docs/guides/quickstart.md) for detailed setup instructions.
 
 ## Project Status
 
-**Version**: 1.4.0-rc
-**Status**: ✅ **Production Ready** (98%)
-**Test Coverage**: 886 tests, 100% passing
+**Version**: 0.7.0
+**Status**: Beta
+**Test Coverage**: 905 tests, 100% passing
 **Code Quality**: Zero linting/type errors
 **Documentation**: 10,210+ lines of production documentation
 
@@ -145,7 +145,7 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ### Test Coverage
 
-886 automated tests covering:
+905 automated tests covering:
 - Core WAF engine and rule processing
 - Framework integrations (FastAPI, Flask, Django, Starlette)
 - Attack detection and blocking
@@ -153,7 +153,7 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 - Performance under load
 - Error handling and edge cases
 
-See [STATUS.md](STATUS.md) for detailed project status.
+See [CHANGELOG.md](CHANGELOG.md) for release history and feature details.
 
 ## Documentation
 
@@ -179,8 +179,7 @@ See [STATUS.md](STATUS.md) for detailed project status.
 
 ### For Contributors
 - **[Developer Guide](CLAUDE.md)** - Setup, coding guidelines, testing requirements
-- **[Project Status](STATUS.md)** - Current capabilities and roadmap
-- **[Development Roadmap](ROADMAP.md)** - Planned features and priorities
+- **[Changelog](CHANGELOG.md)** - Release history and feature details
 
 ## Working Examples
 

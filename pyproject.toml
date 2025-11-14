@@ -1,12 +1,23 @@
 [project]
 name = "lewaf"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.7.0"
+description = "A Web Application Firewall for Python that stops attacks before they reach your application code, with comprehensive audit logging and compliance support."
 readme = "README.md"
 authors = [
     { name = "Stefane Fermigier", email = "sf@abilian.com" }
 ]
 requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+keywords = ["waf", "security", "modsecurity", "firewall", "web-security", "owasp"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Middleware",
+]
 dependencies = [
     "starlette>=0.41.0",
     "httpx>=0.27.0",
@@ -16,9 +27,15 @@ dependencies = [
     "click>=8.2.1",
 ]
 
+[project.urls]
+Homepage = "https://github.com/abilian/lewaf"
+Documentation = "https://github.com/abilian/lewaf/tree/main/docs"
+Repository = "https://github.com/abilian/lewaf"
+Issues = "https://github.com/abilian/lewaf/issues"
+
 [project.scripts]
-coraza-poc = "lewaf:main"
-coraza-proxy = "lewaf.proxy.cli:main"
+lewaf = "lewaf:main"
+lewaf-proxy = "lewaf.proxy.cli:main"
 lewaf-validate = "lewaf.cli.validate:validate"
 
 [build-system]
