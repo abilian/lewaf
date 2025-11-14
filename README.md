@@ -7,50 +7,64 @@
 [![Code Quality](https://img.shields.io/badge/code%20quality-100%25-brightgreen)]()
 [![Documentation](https://img.shields.io/badge/docs-10%2C210%2B%20lines-blue)]()
 
-A production-ready Python Web Application Firewall with full OWASP Core Rule Set (CRS) compatibility, comprehensive documentation, audit logging, and zero code quality issues.
+A production-ready Web Application Firewall for Python that stops attacks before they reach your application code, with comprehensive audit logging and compliance support.
+
+## Why Use LeWAF?
+
+### Protect Your Application from Common Attacks
+
+Most web applications handle sensitive data and are exposed to automated attacks. LeWAF blocks SQL injection, XSS, and command injection attempts at the middleware layer, before they reach your business logic. Instead of implementing security checks in every endpoint, deploy LeWAF once and protect your entire application.
+
+### Meet Compliance Requirements
+
+Organizations subject to PCI-DSS, GDPR, or SOC 2 need audit logs showing what security controls are in place and which attacks were blocked. LeWAF provides structured logging with automatic data masking (credit cards, passwords, tokens) and detailed attack records that satisfy auditor requirements.
+
+### Reduce Security Maintenance Burden
+
+Security vulnerabilities evolve constantly. LeWAF uses the OWASP Core Rule Set (CRS), maintained by security experts and updated regularly. Deploy rule updates without changing your application code. When new attack patterns emerge, update your WAF rules instead of patching multiple endpoints.
+
+### Integrate Security Teams with Development
+
+Security teams can write and test WAF rules independently of application deployments. Development teams continue shipping features while security teams tune protection rules. LeWAF's rule language (SecLang) is standard across ModSecurity-compatible systems, enabling knowledge transfer and shared rule sets.
+
+## Use Cases
+
+### API Protection
+Block malicious requests to REST or GraphQL APIs before they consume database resources or trigger expensive operations. Rate limit requests per client, validate JWT tokens at the edge, and log all blocked attempts for security analysis.
+
+### Legacy Application Security
+Add security controls to applications that can't be easily modified. Deploy LeWAF as a reverse proxy or middleware to protect applications written years ago, without source code changes or redeployment.
+
+### Multi-Tenant SaaS
+Different tenants may require different security policies. Load tenant-specific rule sets dynamically, enforce rate limits per organization, and maintain separate audit logs for each customer.
+
+### Microservices Gateway
+Deploy once at the API gateway to protect all downstream microservices. Centralized security policy enforcement reduces duplicated security code across services and provides unified logging.
+
+### Development and Staging Environments
+Test security rules in staging before production deployment. Catch configuration errors early and validate that legitimate traffic passes through while attacks are blocked.
+
+## Who Should Use LeWAF?
+
+- **Python web applications** using FastAPI, Flask, Django, or Starlette
+- **Organizations** requiring audit logs for compliance (PCI-DSS, GDPR, SOC 2)
+- **API providers** needing rate limiting and attack protection
+- **Security teams** wanting centralized rule management
+- **DevOps teams** deploying containerized applications with security requirements
 
 ## What is LeWAF?
 
-LeWAF is a modern, high-performance WAF implementation for Python applications that provides enterprise-grade security with:
+LeWAF is a Python implementation of the ModSecurity/Coraza Web Application Firewall specification. It runs as middleware in your web application, inspecting HTTP requests and responses against security rules before they reach your application code.
 
-- 🛡️ **Full CRS Compatibility**: 594 OWASP CRS rules loaded and validated
-- ⚡ **High Performance**: 886 tests passing in 25.8 seconds
-- 🔒 **Comprehensive Protection**: SQL injection, XSS, command injection, and more
-- 📋 **Audit Logging**: PCI-DSS and GDPR compliant logging with data masking
-- 🔧 **Easy Integration**: Middleware for Starlette, FastAPI, Flask, Django
-- ✅ **Production Ready**: 98% production readiness with zero code quality issues
-- 🎯 **Type-Safe**: Zero type errors with 100% code quality compliance
-- 📚 **Complete Documentation**: 10,210+ lines covering deployment, integration, and operations
+The system uses the OWASP Core Rule Set (CRS) - 594 security rules maintained by security researchers and updated as new threats emerge. LeWAF is compatible with ASGI (async) and WSGI (sync) frameworks: FastAPI, Flask, Django, and Starlette.
 
-## Key Features
-
-### Security
-
-- **Attack Detection**: SQL injection, XSS, command injection, path traversal, protocol violations
-- **Rule Engine**: 100% primitives coverage (32 operators, 36 actions, 48 transformations)
-- **CRS Support**: 92% ModSecurity CRS file compatibility (23/25 files)
-- **Zero False Positives**: Legitimate traffic flows unimpeded
-
-### Compliance
-
-- **Audit Logging**: Structured JSON logging for security events
-- **Data Masking**: PCI-DSS compliant (credit cards, passwords, auth tokens)
-- **GDPR Support**: IP anonymization and data minimization
-- **Event Tracking**: Attack detection, request blocking, performance metrics
-
-### Performance
-
-- **Fast Execution**: Sub-second rule evaluation
-- **Efficient Caching**: LRU caching for regex compilation
-- **Production Tested**: Load tested with realistic traffic patterns
-- **Scalable**: Handles 1000+ requests/second
-
-### Integration
-
-- **Framework Support**: Starlette, FastAPI, Flask, Django
-- **ASGI Compatible**: Works with any ASGI application
-- **Easy Configuration**: Load rules from ModSecurity .conf files
-- **Flexible Deployment**: Docker, Kubernetes, traditional servers
+**Key capabilities:**
+- Blocks SQL injection, XSS, command injection, path traversal attacks
+- PCI-DSS and GDPR compliant audit logging with automatic data masking
+- Drop-in middleware with minimal performance impact
+- Configurable through code or YAML files
+- Scales horizontally, no shared state between instances
+- 886 automated tests, load tested at 1000+ requests/second
 
 ## Quick Start
 
@@ -129,107 +143,76 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 - ✅ **Phase 15**: Error handling improvements (standardized error codes, monitoring)
 - ✅ **Phase 16**: Production documentation (deployment guides, API reference, integration guides)
 
-### Production Ready
-
-LeWAF is now **production-ready** with:
-- Complete deployment guides (Docker, Kubernetes)
-- Comprehensive API documentation
-- Framework integration guides (FastAPI, Flask, Starlette)
-- Operational guides (troubleshooting, performance tuning)
-- 150+ working code examples
-
 ### Test Coverage
 
-| Category | Tests | Status |
-|----------|-------|--------|
-| Unit Tests | ~290 | ✅ 100% |
-| Integration Tests | ~230 | ✅ 100% |
-| E2E Tests | ~315 | ✅ 100% |
-| Error Handling | 52 | ✅ 100% |
-| **Total** | **886** | **✅ 100%** |
+886 automated tests covering:
+- Core WAF engine and rule processing
+- Framework integrations (FastAPI, Flask, Django, Starlette)
+- Attack detection and blocking
+- Compliance logging and data masking
+- Performance under load
+- Error handling and edge cases
 
 See [STATUS.md](STATUS.md) for detailed project status.
 
 ## Documentation
 
 ### Getting Started
-- **[docs/guides/quickstart.md](docs/guides/quickstart.md)** - Get started in 5 minutes
-- **[docs/api/reference.md](docs/api/reference.md)** - Complete API reference (1,538 lines)
+- **[Quickstart Guide](docs/guides/quickstart.md)** - Get LeWAF running in 5 minutes with examples
+- **[API Reference](docs/api/reference.md)** - Complete API documentation (1,538 lines)
 
-### Framework Integration
-- **[docs/guides/integration-fastapi.md](docs/guides/integration-fastapi.md)** - FastAPI integration guide
-- **[docs/guides/integration-flask.md](docs/guides/integration-flask.md)** - Flask integration guide
-- **[docs/guides/integration-starlette.md](docs/guides/integration-starlette.md)** - Starlette integration guide
+### Integration Guides
+- **[Django Integration](docs/guides/integration-django.md)** - Integrate with Django applications
+- **[FastAPI Integration](docs/guides/integration-fastapi.md)** - Integrate with FastAPI applications
+- **[Flask Integration](docs/guides/integration-flask.md)** - Integrate with Flask applications
+- **[Starlette Integration](docs/guides/integration-starlette.md)** - Integrate with Starlette applications
 
-### Deployment & Operations
-- **[docs/deployment/docker.md](docs/deployment/docker.md)** - Docker deployment guide
-- **[docs/deployment/kubernetes.md](docs/deployment/kubernetes.md)** - Kubernetes deployment guide
-- **[docs/deployment/troubleshooting.md](docs/deployment/troubleshooting.md)** - Troubleshooting runbook
-- **[docs/deployment/performance.md](docs/deployment/performance.md)** - Performance tuning guide
+### Deployment
+- **[Docker Deployment](docs/deployment/docker.md)** - Deploy LeWAF in Docker containers
+- **[Kubernetes Deployment](docs/deployment/kubernetes.md)** - Deploy LeWAF in Kubernetes clusters
+- **[Performance Tuning](docs/deployment/performance.md)** - Optimize LeWAF for high-traffic applications
+- **[Troubleshooting](docs/deployment/troubleshooting.md)** - Diagnose and resolve common issues
 
-### Advanced Topics
-- **[docs/guides/custom-rules.md](docs/guides/custom-rules.md)** - Custom WAF rules guide
+### Security Operations
+- **[Custom Rules Guide](docs/guides/custom-rules.md)** - Write application-specific WAF rules
+- **[Audit Logging](examples/audit_logging_example.py)** - Configure compliance logging
 
-### Project Documentation
-- **[CLAUDE.md](CLAUDE.md)** - Developer guide for contributors
-- **[STATUS.md](STATUS.md)** - Complete project status
-- **[ROADMAP.md](ROADMAP.md)** - Development roadmap
-- **[PHASE16_COMPLETION_REPORT.md](PHASE16_COMPLETION_REPORT.md)** - Phase 16 completion report
+### For Contributors
+- **[Developer Guide](CLAUDE.md)** - Setup, coding guidelines, testing requirements
+- **[Project Status](STATUS.md)** - Current capabilities and roadmap
+- **[Development Roadmap](ROADMAP.md)** - Planned features and priorities
 
-## Examples
+## Working Examples
 
-The `examples/` directory contains:
+The `examples/` directory contains ready-to-run code:
+- **Framework integrations**: FastAPI, Flask, Django, Starlette implementations
+- **Audit logging**: PCI-DSS and GDPR compliant logging setup
+- **Production deployment**: Docker and Kubernetes configurations
+- **Custom rules**: Application-specific security rules
 
-- **audit_logging_example.py**: Audit logging integration
-- **integrations/**: Framework integrations (Starlette, FastAPI, Flask, Django)
+## How It Works
 
-## Architecture
+LeWAF operates as middleware in your web application stack. When an HTTP request arrives:
 
-LeWAF follows a modular architecture:
+1. **Request inspection**: Headers, URI, query parameters, and body are extracted
+2. **Rule evaluation**: Security rules run in phases (headers → body → response)
+3. **Pattern matching**: Requests are checked against threat patterns (SQL injection, XSS, etc.)
+4. **Action execution**: Malicious requests are blocked; legitimate requests pass through
+5. **Audit logging**: All security events are logged with masked sensitive data
 
-```
-src/lewaf/
-├── core/              # Regex compilation, caching
-├── primitives/        # Operators, actions, transformations
-├── rules/             # Rule processing engine
-├── engine/            # WAF engine (RuleGroup)
-├── transaction/       # Request/response handling
-├── integration/       # Framework adapters
-├── integrations/      # Middleware (Starlette, etc.)
-├── bodyprocessors/    # Body parsers (JSON, XML, multipart)
-├── storage/           # Persistent storage backends
-├── seclang/           # ModSecurity parser
-└── logging/           # Audit logging system
-```
+The rule engine uses the ModSecurity SecLang specification, the same rule language used by enterprise WAF systems. This means security professionals can apply existing knowledge and rule sets directly to LeWAF.
 
 See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.
 
-## Comparison with Go Coraza
+## Compatibility
 
-| Feature | LeWAF | Go Coraza | Status |
-|---------|-------|-----------|--------|
-| **Operators** | 32 | 32 | ✅ 100% |
-| **Actions** | 36 | 36 | ✅ 100% |
-| **Transformations** | 48 | 33 | ✅ 145% |
-| **Variables** | ~40 | ~106 | ⚠️ 38% |
-| **CRS Rules** | 594 | ~600 | ✅ 99% |
-| **Test Coverage** | 835 | ~3000+ | ✅ Comprehensive |
-| **Code Quality** | 0 errors | N/A | ✅ 100% |
-| **Performance** | Excellent | Excellent | ✅ Production-ready |
+LeWAF implements the ModSecurity/Coraza WAF specification and is compatible with:
+- **OWASP Core Rule Set**: 594 of ~600 rules (99% compatibility)
+- **ModSecurity rules**: Standard SecLang syntax
+- **Python frameworks**: FastAPI, Flask, Django, Starlette
+- **Deployment platforms**: Docker, Kubernetes, traditional servers
 
-**Conclusion**: LeWAF achieves feature parity with Go Coraza for all production use cases.
-
-## Security
-
-LeWAF provides protection against:
-
-- **SQL Injection**: Detects and blocks SQL injection attempts
-- **Cross-Site Scripting (XSS)**: Prevents XSS attacks
-- **Command Injection**: Blocks OS command injection
-- **Path Traversal**: Prevents directory traversal attacks (LFI/RFI)
-- **Protocol Violations**: Enforces HTTP protocol compliance
-- **Brute Force**: Rate limiting and session tracking
-- **Data Leakage**: Response inspection and filtering
+This compatibility means you can use community-maintained rule sets, share security policies across different WAF implementations, and leverage existing security team expertise.
 
 ## Contributing
 
