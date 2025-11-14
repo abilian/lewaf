@@ -1149,11 +1149,11 @@ app2 = factory.wrap(fastapi_app)
 
 ```python
 from starlette.applications import Starlette
-from lewaf.integrations.starlette import CorazaMiddleware
+from lewaf.integrations.starlette import LeWAFMiddleware
 
 app = Starlette()
 app.add_middleware(
-    CorazaMiddleware,
+    LeWAFMiddleware,
     rules=["rules/crs-setup.conf"],
     block_response_status=403,
     block_response_body=b"Forbidden"

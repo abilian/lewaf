@@ -1,4 +1,4 @@
-"""Starlette integration for Coraza WAF."""
+"""Starlette integration for LeWAF."""
 
 from __future__ import annotations
 
@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class CorazaMiddleware(BaseHTTPMiddleware):
-    """Starlette middleware for Coraza WAF protection."""
+class LeWAFMiddleware(BaseHTTPMiddleware):
+    """Starlette middleware for LeWAF protection."""
 
     def __init__(
         self,
@@ -103,7 +103,7 @@ class CorazaMiddleware(BaseHTTPMiddleware):
             return response
 
         except Exception as e:
-            logger.error("Error in Coraza middleware: %s", e)
+            logger.error("Error in LeWAF middleware: %s", e)
             # On error, allow request to proceed (fail open)
             return await call_next(request)
 
@@ -133,12 +133,16 @@ def create_waf_app(
 ) -> Starlette:
     """Create a Starlette app with WAF protection."""
 
-    # Add Coraza middleware to the target app
+    # Add LeWAF middleware to the target app
     target_app.add_middleware(
-        cast("Any", CorazaMiddleware),
+        cast("Any", LeWAFMiddleware),
         config_file=config_file,
         rules=rules,
         **middleware_kwargs,
     )
 
     return target_app
+
+
+# Backward compatibility alias
+CorazaMiddleware = LeWAFMiddleware

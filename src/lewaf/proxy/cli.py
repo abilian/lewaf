@@ -1,4 +1,4 @@
-"""Command-line interface for Coraza reverse proxy."""
+"""Command-line interface for LeWAF reverse proxy."""
 
 from __future__ import annotations
 
@@ -40,9 +40,9 @@ def load_rules_from_file(file_path: str) -> list[str]:
 
 
 def main() -> None:
-    """Main entry point for the Coraza reverse proxy CLI."""
+    """Main entry point for the LeWAF reverse proxy CLI."""
     parser = argparse.ArgumentParser(
-        description="Coraza WAF Reverse Proxy",
+        description="LeWAF Reverse Proxy",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -121,7 +121,7 @@ Examples:
     setup_logging(args.log_level)
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting Coraza reverse proxy")
+    logger.info("Starting LeWAF reverse proxy")
     logger.info(f"Upstream: {args.upstream}")
     logger.info(f"Listening on: {args.host}:{args.port}")
 

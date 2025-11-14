@@ -1,4 +1,4 @@
-"""Coraza integrations for various web frameworks."""
+"""LeWAF integrations for various web frameworks."""
 
 from __future__ import annotations
 

@@ -196,7 +196,7 @@ uv run pytest --tb=short -q
 ## Integration Points
 
 ### Starlette Middleware
-The E2E tests use the Starlette middleware (`lewaf.integrations.starlette.CorazaMiddleware`):
+The E2E tests use the Starlette middleware (`lewaf.integrations.starlette.LeWAFMiddleware`):
 
 **Key Behaviors**:
 - REQUEST_URI contains only the path (no query string)
