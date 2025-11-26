@@ -18,6 +18,7 @@ from lewaf.primitives.actions import (
     SetEnvAction,
     SkipAction,
 )
+from lewaf.primitives.collections import TransactionVariables
 
 
 def test_phase1_actions_registered():
@@ -237,8 +238,6 @@ def test_initcol_action(mock_rule, mock_transaction):
         pass
 
     # Test evaluation with real TransactionVariables
-    from lewaf.primitives.collections import TransactionVariables
-
     mock_transaction.variables = TransactionVariables()
     mock_transaction.variables.remote_addr.set("192.168.1.100")
 
