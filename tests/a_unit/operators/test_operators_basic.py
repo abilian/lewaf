@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from lewaf.primitives.operators import OperatorOptions, get_operator
+from tests.utils import stub_tx
 
 
 def test_rx_operator_basic_match():
@@ -10,8 +11,7 @@ def test_rx_operator_basic_match():
     options = OperatorOptions(r"test.*pattern")
     operator = get_operator("rx", options)
 
-    # Mock transaction (not needed for rx operator)
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "test_some_pattern") is True
     assert operator.evaluate(tx, "other_pattern") is False
@@ -23,7 +23,7 @@ def test_rx_operator_case_insensitive():
     options = OperatorOptions(r"(?i)test")
     operator = get_operator("rx", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "test") is True
     assert operator.evaluate(tx, "TEST") is True
@@ -36,7 +36,7 @@ def test_eq_operator():
     options = OperatorOptions("exact_match")
     operator = get_operator("eq", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "exact_match") is True
     assert operator.evaluate(tx, "other_value") is False
@@ -48,7 +48,7 @@ def test_contains_operator():
     options = OperatorOptions("needle")
     operator = get_operator("contains", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "find_needle_here") is True
     assert operator.evaluate(tx, "needle_at_start") is True
@@ -61,7 +61,7 @@ def test_beginswith_operator():
     options = OperatorOptions("start")
     operator = get_operator("beginswith", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "start_of_string") is True
     assert operator.evaluate(tx, "start") is True
@@ -74,7 +74,7 @@ def test_endswith_operator():
     options = OperatorOptions("end")
     operator = get_operator("endswith", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "string_end") is True
     assert operator.evaluate(tx, "end") is True
@@ -87,7 +87,7 @@ def test_gt_operator():
     options = OperatorOptions("5")
     operator = get_operator("gt", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "10") is True
     assert operator.evaluate(tx, "6") is True
@@ -101,7 +101,7 @@ def test_lt_operator():
     options = OperatorOptions("10")
     operator = get_operator("lt", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "5") is True
     assert operator.evaluate(tx, "9") is True
@@ -115,7 +115,7 @@ def test_ge_operator():
     options = OperatorOptions("5")
     operator = get_operator("ge", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "10") is True
     assert operator.evaluate(tx, "5") is True
@@ -127,7 +127,7 @@ def test_le_operator():
     options = OperatorOptions("10")
     operator = get_operator("le", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "5") is True
     assert operator.evaluate(tx, "10") is True
@@ -139,7 +139,7 @@ def test_within_operator():
     options = OperatorOptions("GET POST PUT")
     operator = get_operator("within", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "GET") is True
     assert operator.evaluate(tx, "POST") is True
@@ -153,7 +153,7 @@ def test_streq_operator():
     options = OperatorOptions("test_string")
     operator = get_operator("streq", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "test_string") is True
     assert operator.evaluate(tx, "other_string") is False
@@ -165,7 +165,7 @@ def test_unconditional_operator():
     options = OperatorOptions("")
     operator = get_operator("unconditional", options)
 
-    tx = None
+    tx = stub_tx()
 
     assert operator.evaluate(tx, "anything") is True
     assert operator.evaluate(tx, "") is True

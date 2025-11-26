@@ -28,101 +28,45 @@ def test_action_registry():
     assert "severity" in ACTIONS
 
 
-def test_log_action():
+def test_log_action(mock_rule, mock_transaction):
     """Test log action functionality."""
     action = LogAction()
 
     assert action.action_type() == ActionType.NONDISRUPTIVE
 
-    # Mock rule and transaction
-    class MockRule:
-        def __init__(self):
-            self.id = 123
-
-    class MockTransaction:
-        pass
-
-    rule = MockRule()
-    tx = MockTransaction()
-
     # Should not raise exception
-    action.evaluate(rule, tx)
+    action.evaluate(mock_rule, mock_transaction)
 
 
-def test_deny_action():
+def test_deny_action(mock_rule, mock_transaction):
     """Test deny action functionality."""
     action = DenyAction()
 
     assert action.action_type() == ActionType.DISRUPTIVE
 
-    class MockRule:
-        def __init__(self):
-            self.id = 456
-
-    class MockTransaction:
-        def __init__(self):
-            self.interruption = None
-
-        def interrupt(self, rule):
-            self.interruption = {"rule_id": rule.id, "action": "deny"}
-
-    rule = MockRule()
-    tx = MockTransaction()
-
-    action.evaluate(rule, tx)
-    assert tx.interruption is not None
-    assert tx.interruption["rule_id"] == 456
-    assert tx.interruption["action"] == "deny"
+    action.evaluate(mock_rule, mock_transaction)
+    assert mock_transaction._interrupted is True
 
 
-def test_allow_action():
+def test_allow_action(mock_rule, mock_transaction):
     """Test allow action functionality."""
     action = AllowAction()
 
     assert action.action_type() == ActionType.DISRUPTIVE
 
-    class MockRule:
-        def __init__(self):
-            self.id = 789
-
-    class MockTransaction:
-        def __init__(self):
-            self.interruption = None
-
-        def interrupt(self, rule):
-            self.interruption = {"rule_id": rule.id, "action": "allow"}
-
-    rule = MockRule()
-    tx = MockTransaction()
-
-    action.evaluate(rule, tx)
+    action.evaluate(mock_rule, mock_transaction)
     # Allow action doesn't interrupt - it just permits the request
-    assert tx.interruption is None
+    assert mock_transaction._interrupted is False
 
 
-def test_block_action():
+def test_block_action(mock_rule, mock_transaction):
     """Test block action functionality."""
     action = BlockAction()
 
     assert action.action_type() == ActionType.DISRUPTIVE
 
-    class MockRule:
-        def __init__(self):
-            self.id = 999
-
-    class MockTransaction:
-        def __init__(self):
-            self.interruption = None
-
-        def interrupt(self, rule):
-            self.interruption = {"rule_id": rule.id, "action": "block"}
-
-    rule = MockRule()
-    tx = MockTransaction()
-
-    action.evaluate(rule, tx)
-    assert tx.interruption is not None
-    assert tx.interruption["action"] == "block"
+    action.evaluate(mock_rule, mock_transaction)
+    assert mock_transaction._interrupted is True
 
 
 def test_id_action():

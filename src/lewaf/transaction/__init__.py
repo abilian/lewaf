@@ -26,6 +26,7 @@ class Transaction:
         self.deprecated_vars: set[str] = set()
         self.var_expiration: dict[str, float] = {}
         self.ctl_directives: dict[str, Any] = {}
+        self.collection_manager: Any = None  # PersistentCollectionManager, set by WAF
 
         # Engine control attributes
         self.rule_engine_enabled: bool = True

@@ -59,6 +59,7 @@ dev = [
     "ty>=0.0.1a25",
     "nox>=2025.11.12",
     "pytest-asyncio>=1.3.0",
+    "typeguard>=4.4.4",
 ]
 examples = [
     # Web frameworks for integration examples
