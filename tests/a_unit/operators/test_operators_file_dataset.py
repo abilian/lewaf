@@ -11,7 +11,7 @@ from lewaf.primitives.operators import (
     get_operator,
     register_dataset,
 )
-from tests.utils import MockOperatorTransaction, stub_tx
+from tests.utils import StubOperatorTransaction, stub_tx
 
 
 def test_register_and_get_dataset():
@@ -37,7 +37,7 @@ def test_pm_from_dataset_operator():
     options = OperatorOptions("attack_patterns")
     operator = get_operator("pmfromdataset", options)
 
-    tx = MockOperatorTransaction()
+    tx = StubOperatorTransaction()
 
     # Should match patterns in dataset
     assert operator.evaluate(tx, "detected malware in file") is True
@@ -53,7 +53,7 @@ def test_pm_from_dataset_empty():
     options = OperatorOptions("empty_dataset")
     operator = get_operator("pmfromdataset", options)
 
-    tx = MockOperatorTransaction()
+    tx = StubOperatorTransaction()
 
     # Should not match anything with empty dataset
     assert operator.evaluate(tx, "any content") is False
@@ -67,7 +67,7 @@ def test_ip_match_from_dataset_operator():
     options = OperatorOptions("bad_ips")
     operator = get_operator("ipmatchfromdataset", options)
 
-    tx = MockOperatorTransaction()
+    tx = StubOperatorTransaction()
 
     # Should match exact IPs
     assert operator.evaluate(tx, "192.168.1.100") is True
