@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 
-class MockOperatorTransaction:
-    """Minimal mock transaction for operator testing.
+class StubOperatorTransaction:
+    """Minimal Stub transaction for operator testing.
 
     Satisfies the TransactionProtocol for operators which only needs
     capturing and capture_field methods.
@@ -25,17 +25,17 @@ class MockOperatorTransaction:
         self.captured_fields[index] = value
 
 
-class MockTransactionVariables:
-    """Mock transaction variables for testing."""
+class StubTransactionVariables:
+    """Stub transaction variables for testing."""
 
     def __init__(self):
         self._vars: dict[str, str] = {}
-        self.tx = MockTxCollection()
-        self.ip = MockCollection()
-        self.session = MockCollection()
-        self.user = MockCollection()
-        self.global_ = MockCollection()
-        self.resource = MockCollection()
+        self.tx = StubTxCollection()
+        self.ip = StubCollection()
+        self.session = StubCollection()
+        self.user = StubCollection()
+        self.global_ = StubCollection()
+        self.resource = StubCollection()
 
     def get(self, name: str) -> str:
         return self._vars.get(name, "")
@@ -44,8 +44,8 @@ class MockTransactionVariables:
         self._vars[name] = value
 
 
-class MockCollection:
-    """Mock collection for testing."""
+class StubCollection:
+    """Stub collection for testing."""
 
     def __init__(self):
         self._data: dict[str, str] = {}
@@ -60,12 +60,12 @@ class MockCollection:
         self._data.pop(key, None)
 
 
-class MockTxCollection(MockCollection):
-    """Mock TX collection for testing."""
+class StubTxCollection(StubCollection):
+    """Stub TX collection for testing."""
 
 
-class MockRule:
-    """Mock rule for testing that satisfies RuleProtocol."""
+class StubRule:
+    """Stub rule for testing that satisfies RuleProtocol."""
 
     def __init__(self, rule_id: int = 1):
         self.id = rule_id
@@ -76,8 +76,8 @@ class MockRule:
         self.tags: list[str] = []
 
 
-class MockTransaction:
-    """Mock transaction for testing that satisfies TransactionProtocol."""
+class StubTransaction:
+    """Stub transaction for testing that satisfies TransactionProtocol."""
 
     def __init__(self):
         # State attributes
@@ -96,23 +96,23 @@ class MockTransaction:
         self.body_limit: int = 131072
 
         # Variables
-        self.variables = MockTransactionVariables()
+        self.variables = StubTransactionVariables()
 
         # Additional state for testing
         self._interrupted = False
-        self._interrupt_rule: MockRule | None = None
+        self._interrupt_rule: StubRule | None = None
 
-    def interrupt(self, rule: MockRule) -> None:
+    def interrupt(self, rule: StubRule) -> None:
         """Interrupt the transaction with the given rule."""
         self._interrupted = True
         self._interrupt_rule = rule
 
 
 # Singleton instance for simple tests that don't need state
-_STUB_OP_TX = MockOperatorTransaction()
+_STUB_OP_TX = StubOperatorTransaction()
 
 
-def stub_tx() -> MockOperatorTransaction:
+def stub_tx() -> StubOperatorTransaction:
     """Get a stub transaction for simple operator tests.
 
     Returns a singleton for tests that don't need state tracking.
