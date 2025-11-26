@@ -63,6 +63,11 @@ class StubTransaction:
         self.body_processor = "URLENCODED"
         self.body_limit = 131072
 
+        # Required by TransactionProtocol
+        self.deprecated_vars: set[str] = set()
+        self.var_expiration: dict[str, float] = {}
+        self.collection_manager = None
+
         # Transaction state
         self.current_phase = 1
         self.interruption = None
@@ -70,6 +75,10 @@ class StubTransaction:
         # Matched data
         self.matched_var = ""
         self.matched_var_name = ""
+
+    def interrupt(self, rule) -> None:
+        """Interrupt the transaction with the given rule."""
+        self.interruption = {"rule_id": rule.id, "action": "deny"}
 
 
 class TestChainAction:

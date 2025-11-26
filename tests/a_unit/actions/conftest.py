@@ -4,16 +4,16 @@ from __future__ import annotations
 
 import pytest
 
-from tests.utils import StubRule, StubTransaction
+from tests.utils import MockRule, MockTransaction
 
 
 @pytest.fixture
 def mock_rule():
     """Create a mock rule for testing."""
-    return StubRule()
+    return MockRule()
 
 
 @pytest.fixture
 def mock_transaction():
     """Create a mock transaction for testing."""
-    return StubTransaction()
+    return MockTransaction()

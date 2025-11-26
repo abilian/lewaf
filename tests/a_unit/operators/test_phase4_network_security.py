@@ -25,6 +25,16 @@ class StubTransaction:
 
     def __init__(self):
         self.variables = TransactionVariables()
+        self.captured_fields: dict[int, str] = {}
+        self._capturing = False
+
+    def capturing(self) -> bool:
+        """Return whether the transaction is capturing matches."""
+        return self._capturing
+
+    def capture_field(self, index: int, value: str) -> None:
+        """Capture a field value at the given index."""
+        self.captured_fields[index] = value
 
 
 class StubDnsResolver:
@@ -105,12 +115,11 @@ class TestGeoLookupOperator:
         assert country_matches[0].value == "US"
 
     def test_transaction_without_variables(self):
-        """Test handling when transaction doesn't have variables attribute."""
-
-        class TransactionWithoutVariables:
-            """Stub transaction without variables."""
-
-        tx_no_vars = TransactionWithoutVariables()
+        """Test handling when transaction's variables is None."""
+        # Create a stub with variables=None to test the defensive code path
+        # The operator uses hasattr() checks, so it handles None gracefully
+        tx_no_vars = StubTransaction()
+        tx_no_vars.variables = None  # type: ignore[assignment]
 
         result = self.operator.evaluate(tx_no_vars, "8.8.8.8")
         # Should still return True for successful geolocation
