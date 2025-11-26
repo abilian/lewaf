@@ -69,6 +69,12 @@ examples = [
     "uvicorn>=0.35.0",
     "gunicorn>=23.0.0",
 ]
+docs = [
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.27.0",
+    "mike>=2.1.0",
+]
 
 #
 # QA tools
