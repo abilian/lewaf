@@ -1,8 +1,8 @@
 # LeWAF Production Deployment Guide
 
-**Version**: 1.0.0
-**Last Updated**: 2025-11-03
-**Status**: Production-Ready
+**Version**: 0.7.0
+**Last Updated**: 2025-11-26
+**Status**: Bêta
 
 ---
 

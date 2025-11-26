@@ -36,7 +36,7 @@ LeWAF is deployed on Kubernetes using:
 
 ### Key Features
 
-- Production-ready security (non-root, read-only filesystem)
+- Security (non-root, read-only filesystem)
 - Liveness, readiness, and startup probes
 - Resource limits and requests
 - Horizontal pod autoscaling
