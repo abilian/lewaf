@@ -75,10 +75,14 @@ nav:
       - Deployment Guide: deployment/guide.md
       - Docker: deployment/docker.md
       - Kubernetes: deployment/kubernetes.md
+  - Operations:
+      - Security Hardening: security/hardening.md
+      - Monitoring: monitoring/prometheus.md
+      - Performance Tuning: performance/tuning.md
   - Reference:
       - API Reference: api/reference.md
-      - Performance Tuning: performance/tuning.md
   - Troubleshooting:
+      - Debugging Guide: troubleshooting/debugging.md
       - Error Codes: troubleshooting/error-codes.md
       - Runbook: troubleshooting/runbook.md
   - Changelog: CHANGELOG.md

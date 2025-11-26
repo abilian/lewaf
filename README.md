@@ -1,6 +1,6 @@
 # LeWAF - Python Web Application Firewall
 
-[![Tests](https://img.shields.io/badge/tests-905%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-924%20total-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.12+-blue)]()
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)]()
 [![Production Ready](https://img.shields.io/badge/status-production%20ready%2098%25-brightgreen)]()
@@ -64,7 +64,7 @@ The system uses the OWASP Core Rule Set (CRS) - 594 security rules maintained by
 - Drop-in middleware with minimal performance impact
 - Configurable through code or YAML files
 - Scales horizontally, no shared state between instances
-- 905 automated tests, load tested at 1000+ requests/second
+- 924 automated tests, load tested at 1000+ requests/second
 
 ## Quick Start
 
@@ -80,7 +80,7 @@ uv sync
 
 # Run tests
 uv run pytest -q
-# Output: 835 passed in 24.4s
+# Output: 905 passed, 19 skipped in ~25s
 ```
 
 ### Basic Usage
@@ -126,7 +126,7 @@ See [docs/guides/quickstart.md](docs/guides/quickstart.md) for detailed setup in
 
 **Version**: 0.7.0
 **Status**: Beta
-**Test Coverage**: 905 tests, 100% passing
+**Test Coverage**: 924 tests (905 passing, 19 skipped)
 **Code Quality**: Zero linting/type errors
 **Documentation**: 10,210+ lines of production documentation
 
@@ -145,7 +145,7 @@ See [docs/guides/quickstart.md](docs/guides/quickstart.md) for detailed setup in
 
 ### Test Coverage
 
-905 automated tests covering:
+924 automated tests covering:
 - Core WAF engine and rule processing
 - Framework integrations (FastAPI, Flask, Django, Starlette)
 - Attack detection and blocking
@@ -206,7 +206,7 @@ See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.
 ## Compatibility
 
 LeWAF implements the ModSecurity/Coraza WAF specification and is compatible with:
-- **OWASP Core Rule Set**: 594 of ~600 rules (99% compatibility)
+- **OWASP Core Rule Set**: 594 of ~650 rules (92% compatibility)
 - **ModSecurity rules**: Standard SecLang syntax
 - **Python frameworks**: FastAPI, Flask, Django, Starlette
 - **Deployment platforms**: Docker, Kubernetes, traditional servers
@@ -250,7 +250,7 @@ Apache Software License 2.0 (matching OWASP CRS and Coraza)
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourorg/lewaf/issues)
+- **Issues**: [GitHub Issues](https://github.com/abilian/lewaf/issues)
 - **Documentation**: See docs above
 - **CRS Documentation**: https://coreruleset.org/
 - **Coraza Documentation**: https://coraza.io/

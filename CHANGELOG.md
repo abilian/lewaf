@@ -20,8 +20,8 @@ First public release of LeWAF - a Python Web Application Firewall implementing t
 
 - **SecLang Compatibility**: ModSecurity-compatible rule language
   - 32 operators (@rx, @streq, @contains, @pm, etc.)
-  - 48 transformations (urlDecode, lowercase, base64Decode, etc.)
-  - 36 actions (deny, allow, block, log, pass, drop, etc.)
+  - 45 transformations (urlDecode, lowercase, base64Decode, etc.)
+  - 37 actions (deny, allow, block, log, pass, drop, etc.)
   - ~40 variables (REQUEST_URI, ARGS, REQUEST_HEADERS, TX, etc.)
   - Chain rules support
   - Variable expansion and macros
@@ -71,7 +71,7 @@ First public release of LeWAF - a Python Web Application Firewall implementing t
 
 ### Testing & Quality
 
-- 905 automated tests with 100% pass rate
+- 924 automated tests (905 passing, 19 skipped)
 - Zero linting errors (ruff)
 - Zero type checking errors (pyrefly)
 - Load tested at 1000+ requests/second

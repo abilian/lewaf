@@ -1536,9 +1536,9 @@ if __name__ == "__main__":
 - **[Django Integration](./integration-django.md)** - Django integration examples
 - **[FastAPI Integration](./integration-fastapi.md)** - FastAPI integration examples
 - **[Flask Integration](./integration-flask.md)** - Flask integration examples
-- **[API Reference](./api-reference.md)** - Complete API documentation
-- **[Troubleshooting Guide](./troubleshooting.md)** - Common issues and solutions
-- **[Performance Tuning](./performance.md)** - Optimize WAF performance
+- **[API Reference](../api/reference.md)** - Complete API documentation
+- **[Troubleshooting Guide](../troubleshooting/runbook.md)** - Common issues and solutions
+- **[Performance Tuning](../performance/tuning.md)** - Optimize WAF performance
 
 ---
 
@@ -1546,7 +1546,7 @@ if __name__ == "__main__":
 
 - **Starlette Documentation**: https://www.starlette.io/
 - **OWASP ModSecurity Core Rule Set**: https://coreruleset.org/
-- **LeWAF GitHub**: https://github.com/yourusername/lewaf
+- **LeWAF GitHub**: https://github.com/abilian/lewaf
 - **Security Best Practices**: https://owasp.org/www-project-web-security-testing-guide/
 
 ---

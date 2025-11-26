@@ -802,5 +802,5 @@ environment:
 ---
 
 **Questions or Issues?**
-- GitHub Issues: https://github.com/yourorg/lewaf/issues
+- GitHub Issues: https://github.com/abilian/lewaf/issues
 - Documentation: https://lewaf.readthedocs.io
