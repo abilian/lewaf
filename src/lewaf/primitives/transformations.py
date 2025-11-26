@@ -593,7 +593,7 @@ def normalize_path(value: str) -> tuple[str, bool]:
     original_value = value
 
     # Split path into components
-    components = []
+    components: list[str] = []
     for part in value.split("/"):
         if part == "" or part == ".":
             continue

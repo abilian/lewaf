@@ -73,6 +73,7 @@ lint.extend-ignore = [
     "SIM300", # 	[*] yoda-conditions
     "TRY301", # 	[ ] raise-within-try
     "UP012", #  	[*] unnecessary-encode-utf8
+    "FBT003", # 
 ]
 
 [lint.isort]
