@@ -58,6 +58,7 @@ dev = [
     "pytest-cov>=7.0.0",
     "ty>=0.0.1a25",
     "nox>=2025.11.12",
+    "pytest-asyncio>=1.3.0",
 ]
 examples = [
     # Web frameworks for integration examples
@@ -72,3 +73,9 @@ examples = [
 #
 # QA tools
 #
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
