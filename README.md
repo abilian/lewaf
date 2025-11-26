@@ -7,7 +7,7 @@
 [![Code Quality](https://img.shields.io/badge/code%20quality-100%25-brightgreen)]()
 [![Documentation](https://img.shields.io/badge/docs-10%2C210%2B%20lines-blue)]()
 
-A production-ready Web Application Firewall for Python that stops attacks before they reach your application code, with comprehensive audit logging and compliance support.
+A Web Application Firewall for Python that stops attacks before they reach your application code, with comprehensive audit logging and compliance support.
 
 ## Why Use LeWAF?
 

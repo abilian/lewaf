@@ -23,7 +23,7 @@ This guide covers deploying LeWAF in production using Docker and Docker Compose.
 
 ## Overview
 
-LeWAF provides production-ready Docker images optimized for:
+LeWAF provides Docker images optimized for:
 - **Small image size** (multi-stage build)
 - **Security** (non-root user, minimal dependencies)
 - **Performance** (optimized Python runtime)

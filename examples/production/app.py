@@ -1,5 +1,5 @@
 """
-Production-ready LeWAF application example.
+LeWAF application example.
 
 This example shows how to deploy LeWAF with:
 - CRS rules loaded (594 rules)
