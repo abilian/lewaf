@@ -99,7 +99,7 @@ uvicorn = "^0.30.0"    # ASGI server
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/yourorg/lewaf.git
+git clone https://github.com/abilian/lewaf.git
 cd lewaf
 
 # 2. Install with uv
@@ -891,4 +891,4 @@ app.add_route("/health", health_check)
 ---
 
 **Support**: See PROJECT_STATUS.md for comprehensive documentation
-**Issues**: https://github.com/yourorg/lewaf/issues
+**Issues**: https://github.com/abilian/lewaf/issues

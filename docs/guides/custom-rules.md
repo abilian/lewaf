@@ -1363,13 +1363,13 @@ print(f"Lowered: {lowered}")  # <script>
 
 ## Next Steps
 
-- **[API Reference](./api-reference.md)** - Complete LeWAF API documentation
+- **[API Reference](../api/reference.md)** - Complete LeWAF API documentation
 - **[Django Integration](./integration-django.md)** - Integrate with Django
 - **[FastAPI Integration](./integration-fastapi.md)** - Integrate with FastAPI
 - **[Flask Integration](./integration-flask.md)** - Integrate with Flask
 - **[Starlette Integration](./integration-starlette.md)** - Integrate with Starlette
-- **[Performance Tuning](./performance.md)** - Optimize WAF performance
-- **[Troubleshooting](./troubleshooting.md)** - Common issues and solutions
+- **[Performance Tuning](../performance/tuning.md)** - Optimize WAF performance
+- **[Troubleshooting](../troubleshooting/runbook.md)** - Common issues and solutions
 
 ---
 

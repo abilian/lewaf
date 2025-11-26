@@ -1004,5 +1004,5 @@ grep "Rule.*took" /app/logs/debug.log | sort -k6 -n | tail -20
 ---
 
 **Questions or Issues?**
-- GitHub Issues: https://github.com/yourorg/lewaf/issues
+- GitHub Issues: https://github.com/abilian/lewaf/issues
 - Documentation: https://lewaf.readthedocs.io
