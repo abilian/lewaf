@@ -30,7 +30,8 @@ build: clean
 	uv build
 
 clean:
-	rm -rf .pytest_cache .ruff_cache dist build __pycache__ .mypy_cache .coverage htmlcov .coverage.* *.egg-info site
+	rm -rf .pytest_cache .ruff_cache dist build __pycache__ .mypy_cache \
+		.coverage htmlcov .coverage.* *.egg-info site
 
 publish: build
 	uv publish
