@@ -2,22 +2,22 @@
 
 all:
 	uv run pytest
-	uv run ruff format . --check
-	uv run ruff check .
-	uv run pyrefly check src
+	@make lint
 
 
 check: lint
 
 lint:
-	uv run ruff check .
-	uv run ruff format . --check
+	uv run ruff check src tests
+	uv run ruff format --check
 	uv run pyrefly check src
+	uv run ty check src
+	uv run mypy check src
 
 
 format:
 	uv run ruff format .
-	uv run ruff check . --fix
+	uv run ruff check --fix src tests
 	uv run ruff format .
 
 test:
