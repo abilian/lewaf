@@ -12,9 +12,13 @@ from lewaf.core import compile_regex
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from lewaf.primitives.collections import TransactionVariables
+
 
 class TransactionProtocol(Protocol):
-    """Protocol defining the minimal transaction interface needed by operators."""
+    """Protocol defining the transaction interface needed by operators."""
+
+    variables: TransactionVariables
 
     def capturing(self) -> bool:
         """Return whether the transaction is capturing matches."""
@@ -98,15 +102,14 @@ class RxOperator(Operator):
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Evaluate regex against the value."""
-        if hasattr(tx, "capturing") and tx.capturing():
+        if tx.capturing():
             # Handle capture groups if transaction supports it
             match = self._regex.search(value)
             if match:
                 for i, group in enumerate(
                     match.groups()[:9]
                 ):  # Max 9 capture groups like Go
-                    if hasattr(tx, "capture_field"):
-                        tx.capture_field(i + 1, group if group is not None else "")
+                    tx.capture_field(i + 1, group if group is not None else "")
                 return True
             return False
         return self._regex.search(value) is not None
@@ -700,9 +703,8 @@ class ValidateNidOperator(Operator):
         for i, match in enumerate(matches[:10]):  # Max 10 matches
             if self._validator(match):
                 result = True
-                # Capture the valid NID if transaction supports it
-                if hasattr(tx, "capture_field"):
-                    tx.capture_field(i, match)
+                # Capture the valid NID
+                tx.capture_field(i, match)
 
         return result
 
@@ -1173,13 +1175,7 @@ class GeoLookupOperator(Operator):
 
             if geo_data:
                 # Populate GEO collection variables in transaction
-                if hasattr(tx, "variables") and hasattr(tx.variables, "set_geo_data"):
-                    tx.variables.set_geo_data(geo_data)
-                elif hasattr(tx, "variables") and hasattr(tx.variables, "geo"):
-                    # Fallback to direct geo collection access
-                    for key, value_data in geo_data.items():
-                        tx.variables.geo.add(key, value_data)
-
+                tx.variables.set_geo_data(geo_data)
                 return True
 
             return False
@@ -1320,10 +1316,8 @@ class RblOperator(Operator):
                     # Most RBLs return 127.0.0.x for positive matches
                     if result.startswith("127.0.0."):
                         # Log which RBL triggered
-                        if hasattr(tx, "variables") and hasattr(tx.variables, "tx"):
-                            tx.variables.tx.add("RBL_MATCH", rbl_host)
-                            tx.variables.tx.add("RBL_RESULT", result)
-
+                        tx.variables.tx.add("RBL_MATCH", rbl_host)
+                        tx.variables.tx.add("RBL_RESULT", result)
                         return True
 
                 except socket.gaierror:
