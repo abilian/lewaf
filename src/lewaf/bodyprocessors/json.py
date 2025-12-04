@@ -72,7 +72,7 @@ class JSONProcessor(BaseBodyProcessor):
             raise InvalidJSONError(msg, body_snippet=snippet, cause=e) from e
 
         # Flatten JSON to ARGS_POST
-        args_post = {}
+        args_post: dict[str, str] = {}
         if isinstance(self.json_data, dict):
             self._flatten_dict(self.json_data, "", args_post, depth=0)
         elif isinstance(self.json_data, list):

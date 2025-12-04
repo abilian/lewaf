@@ -403,7 +403,7 @@ class ValidateByteRangeOperator(Operator):
     def __init__(self, argument: str):
         super().__init__(argument)
         # Parse byte ranges like "32-126,9,10,13" or "1-255"
-        self._valid_bytes = set()
+        self._valid_bytes: set[int] = set()
         for part in argument.split(","):
             part = part.strip()
             if "-" in part:
@@ -482,7 +482,7 @@ class PmFromFileOperator(Operator):
 
     def __init__(self, argument: str):
         super().__init__(argument)
-        self._phrases = []
+        self._phrases: list[str] = []
         # In a real implementation, we'd read from the file
         # For now, we'll simulate by treating the argument as a filename
         self._filename = argument
@@ -951,7 +951,7 @@ class IpMatchFromFileOperator(Operator):
             msg = f"IpMatchFromFile: Path traversal not allowed: {self._file_path}"
             raise ValueError(msg)
 
-        ip_list = []
+        ip_list: list[str] = []
         try:
             # Check if file exists
             if not os.path.exists(self._file_path):

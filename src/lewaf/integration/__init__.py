@@ -140,7 +140,7 @@ class SecLangParser:
         operator_str = parts[1]
         actions_str = parts[3]
 
-        parsed_vars = []
+        parsed_vars: list[tuple[str, str | None]] = []
         for var in variables_str.split("|"):
             if ":" in var:
                 var_name, key = var.split(":", 1)
@@ -169,10 +169,10 @@ class SecLangParser:
             msg = f"Failed to create operator {op_name}: {e}"
             raise ValueError(msg) from e
 
-        parsed_actions = {}
-        parsed_transformations = []
-        parsed_metadata = {}
-        tags = []
+        parsed_actions: dict[str, Any] = {}
+        parsed_transformations: list[str] = []
+        parsed_metadata: dict[str, int | str] = {}
+        tags: list[str] = []
 
         # Split actions properly, respecting quoted values
         actions = self._split_actions(actions_str)

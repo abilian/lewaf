@@ -38,7 +38,7 @@ class LeWAFMiddleware(BaseHTTPMiddleware):
             self.waf = waf
         else:
             # Create WAF from config
-            config = {}
+            config: dict[str, list[str]] = {}
             if config_file:
                 # TODO: Load rules from file
                 config["rules"] = []
