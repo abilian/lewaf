@@ -192,7 +192,7 @@ class SecLangParser:
         args = parts[1].strip() if len(parts) > 1 else ""
 
         # Remove quotes from arguments if present
-        if len(args) >= 2 and args[0] == '"' and args[-1] == '"':
+        if args.startswith('"') and args.endswith('"') and len(args) >= 2:
             args = args[1:-1]
 
         logger.debug(f"Processing directive: {directive} with args: {args[:100]}...")

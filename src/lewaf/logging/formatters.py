@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from typing import Any
+from typing import Any, cast
 
 
 class JSONFormatter(logging.Formatter):
@@ -115,7 +115,8 @@ class CompactJSONFormatter(JSONFormatter):
             log_data["evt"] = record.event_type
 
         if hasattr(record, "rule"):
-            if isinstance(record.rule, dict) and "id" in record.rule:
-                log_data["rule"] = record.rule["id"]
+            rule = record.rule
+            if isinstance(rule, dict) and "id" in rule:
+                log_data["rule"] = cast("dict[str, Any]", rule)["id"]
 
         return json.dumps(log_data)
