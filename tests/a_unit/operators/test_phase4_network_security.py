@@ -114,17 +114,6 @@ class TestGeoLookupOperator:
         assert len(country_matches) == 1
         assert country_matches[0].value == "US"
 
-    def test_transaction_without_variables(self):
-        """Test handling when transaction's variables is None."""
-        # Create a stub with variables=None to test the defensive code path
-        # The operator uses hasattr() checks, so it handles None gracefully
-        tx_no_vars = StubTransaction()
-        tx_no_vars.variables = None  # type: ignore[assignment]
-
-        result = self.operator.evaluate(tx_no_vars, "8.8.8.8")
-        # Should still return True for successful geolocation
-        assert result is True
-
     def test_geo_data_population_details(self):
         """Test that comprehensive geo data is populated correctly."""
         result = self.operator.evaluate(self.tx, "8.8.8.8")

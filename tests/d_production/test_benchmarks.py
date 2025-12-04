@@ -10,7 +10,22 @@ import pytest
 
 from lewaf.integration import WAF
 from lewaf.primitives import transformations
+from lewaf.primitives.collections import TransactionVariables
 from lewaf.primitives.operators import OperatorOptions, get_operator
+
+
+class StubTransaction:
+    """Minimal stub transaction for benchmarking operators."""
+
+    def __init__(self):
+        self.variables = TransactionVariables()
+
+    def capturing(self) -> bool:
+        return False
+
+    def capture_field(self, index: int, value: str) -> None:
+        pass
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -195,9 +210,10 @@ def test_benchmark_regex_operator(benchmark):
     """Benchmark regex operator performance."""
     options = OperatorOptions("(?i:select.*from)")
     operator = get_operator("rx", options)
+    tx = StubTransaction()
 
     def match_regex():
-        operator.evaluate(None, "SELECT * FROM users")
+        operator.evaluate(tx, "SELECT * FROM users")
 
     avg_time = benchmark.benchmark("regex_operator_us", match_regex) * 1000  # to µs
     print(f"\nRegex operator: {avg_time:.1f}µs")
