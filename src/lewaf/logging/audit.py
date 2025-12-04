@@ -41,12 +41,14 @@ class AuditLogger:
         self.additional_fields = additional_fields or {}
 
         # Configure handler
+        handler: logging.Handler
         if output_file:
             handler = logging.FileHandler(output_file)
         else:
             handler = logging.StreamHandler()
 
         # Set formatter
+        formatter: logging.Formatter
         if format_type == "json":
             formatter = JSONFormatter(additional_fields=self.additional_fields)
         else:

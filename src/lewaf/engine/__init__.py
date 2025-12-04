@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 class RuleGroup:
     def __init__(self):
-        self.rules_by_phase = {1: [], 2: [], 3: [], 4: [], 5: []}
+        self.rules_by_phase: dict[int, list[Rule]] = {1: [], 2: [], 3: [], 4: [], 5: []}
 
     def add(self, rule: Rule):
         phase = cast("int", rule.phase)  # Phase is always int in practice
