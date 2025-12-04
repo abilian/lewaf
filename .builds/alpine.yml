@@ -24,7 +24,8 @@ tasks:
       uv run pytest
   - lint: |
       cd lewaf
-      uv run make lint
+      uv run ruff check
+      uv run mypy src
   - nox: |
       cd lewaf
       uvx nox
