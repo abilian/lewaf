@@ -111,12 +111,21 @@ class MultipartProcessor(BaseBodyProcessor):
                     # Binary data in form field - store as hex
                     args_post[part.name] = part.content.hex()
 
+        # Collect all part headers for MULTIPART_PART_HEADERS
+        # Key format: "partname:headername" -> header value
+        multipart_part_headers: dict[str, str] = {}
+        for part in self.parts:
+            for header_name, header_value in part.headers.items():
+                key = f"{part.name}:{header_name}"
+                multipart_part_headers[key] = header_value
+
         self._set_collection("args_post", args_post)
         self._set_collection("files", files_dict)
         self._set_collection("files_names", files_names)
         self._set_collection("files_sizes", files_sizes)
         self._set_collection("multipart_filename", multipart_filenames)
         self._set_collection("multipart_name", multipart_names)
+        self._set_collection("multipart_part_headers", multipart_part_headers)
         self._set_collection("request_body", body.decode("utf-8", errors="replace"))
         self.body_parsed = True
 
@@ -240,11 +249,15 @@ class MultipartProcessor(BaseBodyProcessor):
         # Get Content-Type
         content_type = msg.get("Content-Type", "text/plain")
 
+        # Extract all headers as dict for MULTIPART_PART_HEADERS
+        headers = {key: str(value) for key, value in msg.items()}
+
         return MultipartPart(
             name=name,
             filename=filename,
             content_type=content_type,
             content=content,
+            headers=headers,
         )
 
     def _extract_param(self, header: str, param: str) -> str:
@@ -321,6 +334,7 @@ class MultipartPart:
         filename: Filename if this is a file upload
         content_type: Content-Type of the part
         content: Raw content bytes
+        headers: Raw headers as dict
     """
 
     def __init__(
@@ -329,6 +343,7 @@ class MultipartPart:
         filename: str,
         content_type: str,
         content: bytes,
+        headers: dict[str, str] | None = None,
     ):
         """Initialize multipart part.
 
@@ -337,11 +352,13 @@ class MultipartPart:
             filename: Filename (empty string if not a file)
             content_type: Content-Type
             content: Raw content bytes
+            headers: Raw headers as dict
         """
         self.name = name
         self.filename = filename
         self.content_type = content_type
         self.content = content
+        self.headers = headers or {}
 
     def __repr__(self) -> str:
         """Return string representation."""

@@ -221,6 +221,7 @@ class TransactionVariables:
     def __init__(self):
         # Core collections from original implementation
         self.args = MapCollection("ARGS")
+        self.args_get = MapCollection("ARGS_GET")
         self.args_post = MapCollection("ARGS_POST")
         self.request_headers = MapCollection("REQUEST_HEADERS")
         self.tx = MapCollection("TX", case_insensitive=False)
@@ -234,6 +235,7 @@ class TransactionVariables:
         self.response_cookies = MapCollection("RESPONSE_COOKIES")
         self.files = FilesCollection("FILES")
         self.multipart_name = MapCollection("MULTIPART_NAME")
+        self.multipart_part_headers = MapCollection("MULTIPART_PART_HEADERS")
 
         # Additional single value collections
         self.request_method = SingleValueCollection("REQUEST_METHOD")
@@ -254,8 +256,14 @@ class TransactionVariables:
 
         # Geographic location collection populated by geoLookup operator
         self.geo = MapCollection("GEO", case_insensitive=False)
+
+        # Match tracking variables - populated during rule evaluation
         self.matched_var = SingleValueCollection("MATCHED_VAR")
         self.matched_var_name = SingleValueCollection("MATCHED_VAR_NAME")
+        self.matched_vars = MapCollection("MATCHED_VARS", case_insensitive=False)
+        self.matched_vars_names = MapCollection(
+            "MATCHED_VARS_NAMES", case_insensitive=False
+        )
 
         # Environment and server variables
         self.env = MapCollection("ENV")
@@ -286,6 +294,7 @@ class TransactionVariables:
         self.response_headers_names = MapCollection("RESPONSE_HEADERS_NAMES")
         self.request_cookies_names = MapCollection("REQUEST_COOKIES_NAMES")
         self.args_names = MapCollection("ARGS_NAMES")
+        self.args_get_names = MapCollection("ARGS_GET_NAMES")
         self.args_post_names = MapCollection("ARGS_POST_NAMES")
         self.args_combined_size = SingleValueCollection("ARGS_COMBINED_SIZE")
 

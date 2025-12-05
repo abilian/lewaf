@@ -48,24 +48,29 @@ class Rule:
             "Evaluating rule %s in phase %s...", self.id, transaction.current_phase
         )
 
-        values_to_test = []
+        # Collect values with their full variable names for match tracking
+        # Each item: (full_var_name, value) where full_var_name is like "ARGS:id"
+        values_to_test: list[tuple[str, str]] = []
         for var_name, key in self.variables:
             collection = getattr(transaction.variables, var_name.lower())
-            # TODO: use match operator
             if isinstance(collection, MapCollection):
                 if key:
-                    values_to_test.extend(collection.get(key))
+                    for val in collection.get(key):
+                        full_name = f"{var_name}:{key}"
+                        values_to_test.append((full_name, val))
                 else:
-                    values_to_test.extend(
-                        match.value for match in collection.find_all()
-                    )
+                    for match in collection.find_all():
+                        full_name = f"{var_name}:{match.key}" if match.key else var_name
+                        values_to_test.append((full_name, match.value))
             elif isinstance(collection, SingleValueCollection):
-                values_to_test.append(collection.get())
+                values_to_test.append((var_name, collection.get()))
             elif hasattr(collection, "find_all"):
                 # Handle other collection types (FilesCollection, etc.)
-                values_to_test.extend(match.value for match in collection.find_all())
+                for match in collection.find_all():
+                    full_name = f"{var_name}:{match.key}" if match.key else var_name
+                    values_to_test.append((full_name, match.value))
 
-        for value in values_to_test:
+        for full_var_name, value in values_to_test:
             transformed_value = value
             for t_name in self.transformations:
                 transformed_value, _ = TRANSFORMATIONS[t_name.lower()](
@@ -90,6 +95,9 @@ class Rule:
                 logging.info(
                     "MATCH! Rule %s matched on value '%s'", self.id, transformed_value
                 )
+                # Update MATCHED_VAR variables for CRS compatibility
+                self._update_matched_vars(transaction, full_var_name, transformed_value)
+
                 for action in self.actions.values():
                     action.evaluate(
                         cast("RuleProtocol", self),
@@ -97,3 +105,27 @@ class Rule:
                     )
                 return True
         return False
+
+    def _update_matched_vars(
+        self, transaction: Transaction, var_name: str, matched_value: str
+    ) -> None:
+        """Update MATCHED_VAR family of variables after a successful match.
+
+        Args:
+            transaction: The current transaction
+            var_name: Full variable name (e.g., "ARGS:id")
+            matched_value: The value that matched
+        """
+        # MATCHED_VAR: The value from the most recent match
+        transaction.variables.matched_var.set(matched_value)
+
+        # MATCHED_VAR_NAME: The name of the variable that matched
+        transaction.variables.matched_var_name.set(var_name)
+
+        # MATCHED_VARS: Collection of all matched values (keyed by index)
+        # Use a counter to handle multiple matches
+        counter = len(list(transaction.variables.matched_vars.find_all()))
+        transaction.variables.matched_vars.add(str(counter), matched_value)
+
+        # MATCHED_VARS_NAMES: Collection of all matched variable names
+        transaction.variables.matched_vars_names.add(str(counter), var_name)

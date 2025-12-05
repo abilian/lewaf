@@ -130,15 +130,7 @@ class TestSecLangParserCRS:
 
     def test_parse_includes_testdata(self):
         """Test parsing files with Include directives from Go testdata."""
-        parent_path = (
-            self.project_root
-            / "coraza-go"
-            / "internal"
-            / "seclang"
-            / "testdata"
-            / "includes"
-            / "parent.conf"
-        )
+        parent_path = self.project_root / "tests" / "data" / "includes" / "parent.conf"
 
         if not parent_path.exists():
             pytest.skip("Go testdata not available")
