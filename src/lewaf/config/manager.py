@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class ConfigVersion:
     """Configuration version tracking.
 

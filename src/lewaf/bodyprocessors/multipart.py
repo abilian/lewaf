@@ -327,7 +327,7 @@ class MultipartProcessor(BaseBodyProcessor):
         return []
 
 
-@dataclass(slots=True, repr=False)
+@dataclass(frozen=True, slots=True, repr=False)
 class MultipartPart:
     """Represents a single part in a multipart body.
 
