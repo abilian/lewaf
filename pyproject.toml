@@ -46,22 +46,22 @@ build-backend = "uv_build"
 dev = [
     # Test
     "pytest>=8.4.2",
+    "nox>=2025.11.12",
+    "pytest-asyncio>=1.3.0",
+    "pytest-cov>=7.0.0",
     # Lint / Check
     "isort>=6.0.1",
     "ruff>=0.12.12",
     "pyrefly>=0.32.0",
+    "ty>=0.0.1a25",
+    "monkeytype>=23.3.0",
+    "mypy>=1.19.0",
+    "typeguard>=4.4.4",
+    "types-pyyaml>=6.0.12.20250915",
     # Other
     "httpx>=0.28.1",
     "starlette>=0.47.3",
     "uvicorn>=0.35.0",
-    "monkeytype>=23.3.0",
-    "pytest-cov>=7.0.0",
-    "ty>=0.0.1a25",
-    "nox>=2025.11.12",
-    "pytest-asyncio>=1.3.0",
-    "typeguard>=4.4.4",
-    "mypy>=1.19.0",
-    "types-pyyaml>=6.0.12.20250915",
 ]
 examples = [
     # Web frameworks for integration examples
