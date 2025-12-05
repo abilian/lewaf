@@ -63,7 +63,8 @@ class SecRuleParser:
 
         parts = self._split_rule_parts(rule_text)
 
-        if len(parts) < 3:
+        # Chained rules may only have 2 parts (variables and operator, no actions)
+        if len(parts) < 2:
             msg = f"Invalid SecRule format: {rule_text[:100]}"
             raise ValueError(msg)
 
