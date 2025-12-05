@@ -122,7 +122,7 @@ class PersistentCollectionManager:
         return self.loaded_collections.get(full_key)
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class LoadedCollection:
     """
     Represents a persistent collection that has been loaded.

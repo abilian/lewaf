@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import re
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class MatchData:
     """Represents a match from a collection with variable name, key, and value."""
 
@@ -119,7 +119,7 @@ class SingleValueCollection(Collection):
         return f"{self._name}: {self._value}"
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class FileData:
     """Represents uploaded file data."""
 
@@ -127,10 +127,11 @@ class FileData:
     filename: str
     content: bytes
     content_type: str = ""
-    size: int = field(init=False)
 
-    def __post_init__(self) -> None:
-        self.size = len(self.content)
+    @property
+    def size(self) -> int:
+        """Return the size of the file content."""
+        return len(self.content)
 
 
 class FilesCollection(Collection):
