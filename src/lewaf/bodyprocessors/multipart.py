@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from dataclasses import dataclass, field
 from email import message_from_bytes
 
 from lewaf.bodyprocessors.base import BaseBodyProcessor
@@ -326,6 +327,7 @@ class MultipartProcessor(BaseBodyProcessor):
         return []
 
 
+@dataclass(slots=True, repr=False)
 class MultipartPart:
     """Represents a single part in a multipart body.
 
@@ -337,28 +339,11 @@ class MultipartPart:
         headers: Raw headers as dict
     """
 
-    def __init__(
-        self,
-        name: str,
-        filename: str,
-        content_type: str,
-        content: bytes,
-        headers: dict[str, str] | None = None,
-    ):
-        """Initialize multipart part.
-
-        Args:
-            name: Field name
-            filename: Filename (empty string if not a file)
-            content_type: Content-Type
-            content: Raw content bytes
-            headers: Raw headers as dict
-        """
-        self.name = name
-        self.filename = filename
-        self.content_type = content_type
-        self.content = content
-        self.headers = headers or {}
+    name: str
+    filename: str
+    content_type: str
+    content: bytes
+    headers: dict[str, str] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         """Return string representation."""

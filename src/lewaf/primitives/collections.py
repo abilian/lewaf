@@ -1,21 +1,19 @@
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import re
 
 
+@dataclass(slots=True)
 class MatchData:
     """Represents a match from a collection with variable name, key, and value."""
 
-    def __init__(self, variable: str, key: str, value: str):
-        self.variable = variable
-        self.key = key
-        self.value = value
-
-    def __repr__(self):
-        return f"MatchData(variable='{self.variable}', key='{self.key}', value='{self.value}')"
+    variable: str
+    key: str
+    value: str
 
 
 class Collection:
@@ -121,17 +119,18 @@ class SingleValueCollection(Collection):
         return f"{self._name}: {self._value}"
 
 
+@dataclass(slots=True)
 class FileData:
     """Represents uploaded file data."""
 
-    def __init__(
-        self, name: str, filename: str, content: bytes, content_type: str = ""
-    ):
-        self.name = name
-        self.filename = filename
-        self.content = content
-        self.content_type = content_type
-        self.size = len(content)
+    name: str
+    filename: str
+    content: bytes
+    content_type: str = ""
+    size: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.size = len(self.content)
 
 
 class FilesCollection(Collection):
