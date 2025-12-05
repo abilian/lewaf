@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class RequestLimits:
     """Request size limits configuration."""
 
@@ -15,7 +15,7 @@ class RequestLimits:
     request_line_limit: int = 8192  # 8 KB
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class StorageConfig:
     """Persistent storage configuration."""
 
@@ -27,7 +27,7 @@ class StorageConfig:
     ttl: int = 3600  # 1 hour default TTL
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class AuditLoggingConfig:
     """Audit logging configuration."""
 
@@ -39,7 +39,7 @@ class AuditLoggingConfig:
     additional_fields: dict[str, Any] = field(default_factory=dict)
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class PerformanceConfig:
     """Performance tuning configuration."""
 
@@ -47,7 +47,7 @@ class PerformanceConfig:
     worker_threads: int = 1  # For future async support
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class WAFConfig:
     """Complete WAF configuration."""
 
