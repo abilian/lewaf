@@ -6,6 +6,7 @@ import logging
 import signal
 import threading
 import time
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -20,20 +21,19 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+@dataclass(slots=True)
 class ConfigVersion:
-    """Configuration version tracking."""
+    """Configuration version tracking.
 
-    def __init__(self, version: int, config: WAFConfig, loaded_at: datetime):
-        """Initialize config version.
+    Attributes:
+        version: Version number
+        config: Configuration data
+        loaded_at: Timestamp when loaded
+    """
 
-        Args:
-            version: Version number
-            config: Configuration data
-            loaded_at: Timestamp when loaded
-        """
-        self.version = version
-        self.config = config
-        self.loaded_at = loaded_at
+    version: int
+    config: WAFConfig
+    loaded_at: datetime
 
 
 class ConfigManager:
