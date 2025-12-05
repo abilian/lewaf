@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lewaf
+spec:
+  template:
+    spec:
+      containers:
+        - name: lewaf
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 1Gi
+            limits:
+              cpu: 4000m
+              memory: 4Gi
+          env:
+            - name: LEWAF_WORKERS
+              value: "4"
+            - name: LEWAF_MAX_CONNECTIONS
+              value: "2000"

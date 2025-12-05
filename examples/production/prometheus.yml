@@ -1,0 +1,60 @@
+# Prometheus configuration for LeWAF monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'lewaf-production'
+    replica: '1'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Load alerting rules
+rule_files:
+  - 'alert_rules.yml'
+
+# Scrape configurations
+scrape_configs:
+  # LeWAF application metrics
+  - job_name: 'lewaf'
+    static_configs:
+      - targets: ['lewaf-app:8000']
+        labels:
+          service: 'lewaf'
+          environment: 'production'
+
+    # Scrape /metrics endpoint
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+    # Relabel configurations
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'lewaf-app'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # Node exporter (optional - for system metrics)
+  # - job_name: 'node'
+  #   static_configs:
+  #     - targets: ['node-exporter:9100']
+  #       labels:
+  #         service: 'node-exporter'
+
+  # cAdvisor (optional - for container metrics)
+  # - job_name: 'cadvisor'
+  #   static_configs:
+  #     - targets: ['cadvisor:8080']
+  #       labels:
+  #         service: 'cadvisor'

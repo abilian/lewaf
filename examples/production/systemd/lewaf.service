@@ -1,0 +1,62 @@
+[Unit]
+Description=LeWAF - Web Application Firewall
+Documentation=https://github.com/yourusername/lewaf
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=lewaf
+Group=lewaf
+WorkingDirectory=/opt/lewaf
+
+# Environment
+Environment="ENV=production"
+Environment="LOG_LEVEL=INFO"
+Environment="PYTHONUNBUFFERED=1"
+
+# Security settings
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/log/lewaf
+ReadOnlyPaths=/opt/lewaf
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=512
+MemoryLimit=512M
+CPUQuota=200%
+
+# Start command
+ExecStart=/usr/local/bin/uv run uvicorn app:app \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --workers 4 \
+    --log-config logging.yaml
+
+# Reload command (graceful restart)
+ExecReload=/bin/kill -HUP $MAINPID
+
+# Stop command (graceful shutdown)
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+# Restart policy
+Restart=on-failure
+RestartSec=5s
+StartLimitInterval=300s
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lewaf
+
+# PID file
+PIDFile=/var/run/lewaf.pid
+
+[Install]
+WantedBy=multi-user.target

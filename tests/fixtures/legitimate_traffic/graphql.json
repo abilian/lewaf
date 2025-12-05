@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Simple query",
+    "method": "POST",
+    "uri": "/graphql",
+    "body": "{\"query\": \"query { user(id: 123) { name email } }\"}"
+  },
+  {
+    "name": "Query with variables",
+    "method": "POST",
+    "uri": "/graphql",
+    "body": "{\"query\": \"query GetUser($id: ID!) { user(id: $id) { name email role } }\", \"variables\": {\"id\": \"123\"}}"
+  },
+  {
+    "name": "Mutation",
+    "method": "POST",
+    "uri": "/graphql",
+    "body": "{\"query\": \"mutation CreateUser($input: UserInput!) { createUser(input: $input) { id name } }\", \"variables\": {\"input\": {\"name\": \"Bob\", \"email\": \"bob@example.com\"}}}"
+  },
+  {
+    "name": "Nested query",
+    "method": "POST",
+    "uri": "/graphql",
+    "body": "{\"query\": \"query { user(id: 123) { name posts { title comments { text author { name } } } } }\"}"
+  },
+  {
+    "name": "Multiple queries",
+    "method": "POST",
+    "uri": "/graphql",
+    "body": "{\"query\": \"query { user(id: 123) { name } post(id: 456) { title } }\"}"
+  },
+  {
+    "name": "Query with fragments",
+    "method": "POST",
+    "uri": "/graphql",
+    "body": "{\"query\": \"fragment UserInfo on User { name email } query { user(id: 123) { ...UserInfo } }\"}"
+  }
+]

@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: lewaf
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - configmap.yaml
+  - deployment.yaml
+  - service.yaml
+  - hpa.yaml
+  - pdb.yaml
+  - ingress.yaml
+
+labels:
+  - pairs:
+      app: lewaf
+      managed-by: kustomize
+
+images:
+  - name: lewaf
+    newTag: latest
+
+# ConfigMap generator for rules (uncomment and provide rules directory when deploying)
+# configMapGenerator:
+#   - name: lewaf-rules
+#     files:
+#       - rules/
+
+generatorOptions:
+  disableNameSuffixHash: true
