@@ -93,9 +93,7 @@ class PersistentCollectionManager:
         """
         for loaded in self.loaded_collections.values():
             # Convert collection to storable format
-            data = {}
-            for key, values in loaded.collection._data.items():
-                data[key] = values
+            data = dict(loaded.collection._data.items())
 
             # Save to storage with TTL
             self.storage.set(
