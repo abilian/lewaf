@@ -1,0 +1,147 @@
+# Prometheus alert rules for LeWAF
+
+groups:
+  - name: lewaf_alerts
+    interval: 30s
+    rules:
+      # Application Health Alerts
+      - alert: LeWAFDown
+        expr: up{job="lewaf"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: lewaf
+        annotations:
+          summary: "LeWAF is down"
+          description: "LeWAF application has been down for more than 1 minute"
+
+      - alert: LeWAFHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: lewaf
+        annotations:
+          summary: "High error rate detected"
+          description: "LeWAF is experiencing {{ $value | humanizePercentage }} error rate"
+
+      # WAF-Specific Alerts
+      - alert: HighBlockedRequestRate
+        expr: rate(waf_requests_blocked_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: lewaf
+        annotations:
+          summary: "High rate of blocked requests"
+          description: "WAF is blocking {{ $value }} requests per second (possible attack)"
+
+      - alert: WAFRuleLoadFailure
+        expr: waf_rules_loaded == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: lewaf
+        annotations:
+          summary: "WAF rules failed to load"
+          description: "No WAF rules are currently loaded"
+
+      # Performance Alerts
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: lewaf
+        annotations:
+          summary: "High response time"
+          description: "95th percentile response time is {{ $value }}s (threshold: 1s)"
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes > 500000000  # 500MB
+        for: 10m
+        labels:
+          severity: warning
+          service: lewaf
+        annotations:
+          summary: "High memory usage"
+          description: "LeWAF is using {{ $value | humanize }}B of memory"
+
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: lewaf
+        annotations:
+          summary: "High CPU usage"
+          description: "LeWAF CPU usage is at {{ $value | humanizePercentage }}"
+
+      # Request Volume Alerts
+      - alert: UnusualRequestVolume
+        expr: |
+          abs(rate(http_requests_total[5m]) - avg_over_time(rate(http_requests_total[5m])[1h:5m]))
+          / avg_over_time(rate(http_requests_total[5m])[1h:5m]) > 3
+        for: 10m
+        labels:
+          severity: warning
+          service: lewaf
+        annotations:
+          summary: "Unusual request volume"
+          description: "Request volume is {{ $value | humanizePercentage }} different from normal"
+
+      # Security Alerts
+      - alert: PossibleDDoSAttack
+        expr: rate(http_requests_total[1m]) > 1000
+        for: 2m
+        labels:
+          severity: critical
+          service: lewaf
+        annotations:
+          summary: "Possible DDoS attack"
+          description: "Receiving {{ $value }} requests per second (possible DDoS)"
+
+      - alert: HighSQLInjectionAttempts
+        expr: rate(waf_rule_matches_total{rule_id=~"942.*"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: lewaf
+          attack_type: sqli
+        annotations:
+          summary: "High SQL injection attempts"
+          description: "Detecting {{ $value }} SQL injection attempts per second"
+
+      - alert: HighXSSAttempts
+        expr: rate(waf_rule_matches_total{rule_id=~"941.*"}[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: lewaf
+          attack_type: xss
+        annotations:
+          summary: "High XSS attempts"
+          description: "Detecting {{ $value }} XSS attempts per second"
+
+  - name: infrastructure_alerts
+    interval: 30s
+    rules:
+      # Container Health
+      - alert: ContainerDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.instance }} is down"
+          description: "Container has been down for more than 1 minute"
+
+      # Disk Space
+      - alert: LowDiskSpace
+        expr: node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} < 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is below 10%"

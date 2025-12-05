@@ -1,0 +1,86 @@
+preview = true
+target-version = "py310"
+exclude = [
+    "tests/ftw_tests/coreruleset",  # External CRS test suite
+    "wafbench",  # Separate benchmarking tool
+]
+
+lint.select = [
+    "ALL",
+]
+
+lint.extend-ignore = [
+    # Never
+    "PD", # We're not using Pandas
+
+    # Later (or never)
+    "ANN", # flake8-annotations
+    "ARG", # flake8-unused-arguments
+    "BLE", # flake8-blind-except
+    "CPY", # Copyright
+    "D", # pydocstyle
+    "DOC", # pydocstyle
+    "ERA", # eradicate
+    "FIX", # flake8-fixme
+    "PTH", # flake8-use-pathlib
+    "S", # flake8-bandit
+    "T20", # flake8-print
+    "TD", # flake8-todos
+    "PLR", # Complexity
+    # False positives
+    "PLR2004", #	[ ] magic-value-comparison
+    "PLR6301", #	[ ] no-self-use
+    "COM812", # 	[*] missing-trailing-comma
+    "E501", #   	[ ] line-too-long
+    "INP001", # 	[ ] implicit-namespace-package
+    "PLC1901", #	[ ] compare-to-empty-string
+    "PLW1514", #	[ ] unspecified-encoding
+    "TRY300", # 	[ ] try-consider-else
+    "TRY400", # 	[ ] error-instead-of-exception
+    "FURB152", #	[*] math-constant
+    "RUF001", # 	[ ] ambiguous-unicode-character-string
+    # Fix
+    "SLF001", # 	[ ] private-member-access
+    "G004", #   	[ ] logging-f-string
+    "LOG015", # 	[ ] root-logger-call
+    "RUF029", # 	[ ] unused-async
+    "PLW2901", #	[ ] redefined-loop-name
+    "FBT001", # 	[ ] boolean-type-hint-positional-argument
+    "C901", #   	[ ] complex-structure
+    "FBT002", # 	[ ] boolean-default-value-positional-argument
+    "PERF203", #	[ ] try-except-in-loop
+    "PERF401", #	[ ] manual-list-comprehension
+    "PLW0603", #	[ ] global-statement
+    "SIM102", # 	[ ] collapsible-if
+    "PT011", #  	[ ] pytest-raises-too-broad
+    "PLR1714", #	[ ] repeated-equality-comparison
+    "RET504", # 	[ ] unnecessary-assign
+    "RUF003", # 	[ ] ambiguous-unicode-character-comment
+    "SIM103", # 	[ ] needless-bool
+    "B007", #   	[ ] unused-loop-control-variable
+    "B017", #   	[ ] assert-raises-exception
+    "F822", #   	[ ] undefined-export
+    "FURB101", #	[ ] read-whole-file
+    "FURB161", #	[ ] bit-count
+    "PERF403", #	[ ] manual-dict-comprehension
+    "PT012", #  	[ ] pytest-raises-with-multiple-statements
+    "SIM110", # 	[ ] reimplemented-builtin
+    "A002", #   	[ ] builtin-argument-shadowing
+    "B904", #   	[ ] raise-without-from-inside-except
+    "B905", #   	[*] zip-without-explicit-strict
+    "FURB110", #	[*] if-exp-instead-of-or-operator
+    "FURB113", #	[ ] repeated-append
+    "FURB188", #	[*] slice-to-remove-prefix-or-suffix
+    "PGH003", # 	[ ] blanket-type-ignore
+    "PLW0127", #	[ ] self-assigning-variable
+    "SIM108", # 	[ ] if-else-block-instead-of-if-exp
+    "SIM300", # 	[*] yoda-conditions
+    "TRY301", # 	[ ] raise-within-try
+    "UP012", #  	[*] unnecessary-encode-utf8
+    "FBT003", # 
+]
+
+[lint.isort]
+combine-as-imports = true
+required-imports = ["from __future__ import annotations"]
+known-first-party = ["lewaf"]

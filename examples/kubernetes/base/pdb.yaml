@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: lewaf
+  namespace: lewaf
+  labels:
+    app: lewaf
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: lewaf

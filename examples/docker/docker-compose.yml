@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # LeWAF service
+  lewaf:
+    build:
+      context: ../..
+      dockerfile: examples/docker/Dockerfile
+    container_name: lewaf
+    ports:
+      - "8000:8000"
+    volumes:
+      # Configuration
+      - ./lewaf.conf:/app/config/lewaf.conf:ro
+      - ./crs-setup.conf:/app/config/crs-setup.conf:ro
+      # Rules directory
+      - ./rules:/app/rules:ro
+      # Persistent data
+      - lewaf-data:/app/data
+      # Logs (optional, consider external logging instead)
+      - lewaf-logs:/app/logs
+    environment:
+      - LEWAF_CONFIG=/app/config/lewaf.conf
+      - LEWAF_RULES_DIR=/app/rules
+      - LEWAF_LOG_LEVEL=INFO
+      - LEWAF_LOG_FORMAT=json
+      # Redis connection (uncomment if using Redis)
+      # - LEWAF_REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - lewaf-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Redis for persistent storage
+  redis:
+    image: redis:7-alpine
+    container_name: lewaf-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - lewaf-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # Prometheus for metrics (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lewaf-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - lewaf-network
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    profiles:
+      - monitoring
+
+  # Grafana for dashboards (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: lewaf-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=redis-datasource
+    networks:
+      - lewaf-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+networks:
+  lewaf-network:
+    driver: bridge
+
+volumes:
+  lewaf-data:
+  lewaf-logs:
+  redis-data:
+  prometheus-data:
+  grafana-data:

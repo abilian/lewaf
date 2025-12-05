@@ -1,0 +1,62 @@
+[
+  {
+    "name": "Get user list",
+    "method": "GET",
+    "uri": "/api/users?page=1&limit=10",
+    "body": null
+  },
+  {
+    "name": "Create user",
+    "method": "POST",
+    "uri": "/api/users",
+    "body": "{\"name\": \"John Doe\", \"email\": \"john@example.com\", \"role\": \"user\"}"
+  },
+  {
+    "name": "Update user",
+    "method": "PUT",
+    "uri": "/api/users/123",
+    "body": "{\"name\": \"John Smith\", \"email\": \"john.smith@example.com\"}"
+  },
+  {
+    "name": "Delete user",
+    "method": "DELETE",
+    "uri": "/api/users/456",
+    "body": null
+  },
+  {
+    "name": "Search with query",
+    "method": "GET",
+    "uri": "/api/search?q=python+programming&category=tutorials",
+    "body": null
+  },
+  {
+    "name": "Filter with multiple params",
+    "method": "GET",
+    "uri": "/api/products?category=electronics&price_min=100&price_max=500&sort=price_asc",
+    "body": null
+  },
+  {
+    "name": "Nested JSON object",
+    "method": "POST",
+    "uri": "/api/orders",
+    "body": "{\"user\": {\"id\": 123, \"name\": \"Alice\"}, \"items\": [{\"product\": \"Laptop\", \"qty\": 1}, {\"product\": \"Mouse\", \"qty\": 2}], \"total\": 1250.99}"
+  },
+  {
+    "name": "Array of objects",
+    "method": "POST",
+    "uri": "/api/bulk-import",
+    "body": "[{\"name\": \"Item 1\", \"value\": 10}, {\"name\": \"Item 2\", \"value\": 20}]"
+  },
+  {
+    "name": "Pagination with offset",
+    "method": "GET",
+    "uri": "/api/posts?offset=50&limit=25&sort=created_at&order=desc",
+    "body": null
+  },
+  {
+    "name": "Complex filter expression",
+    "method": "GET",
+    "uri": "/api/data?filter[status]=active&filter[created_at][gte]=2024-01-01&fields=id,name,status",
+    "body": null
+  }
+]

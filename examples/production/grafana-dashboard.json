@@ -1,0 +1,262 @@
+{
+  "dashboard": {
+    "title": "LeWAF Monitoring Dashboard",
+    "tags": ["lewaf", "waf", "security"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Request Rate",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"lewaf\"}[5m])",
+            "legendFormat": "Requests/sec",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "reqps", "label": "Requests/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Blocked Requests",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(waf_requests_blocked_total{job=\"lewaf\"}[5m])",
+            "legendFormat": "Blocked/sec",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "reqps", "label": "Blocked/sec"},
+          {"format": "short"}
+        ],
+        "alert": {
+          "name": "High Block Rate",
+          "conditions": [
+            {
+              "type": "query",
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "evaluator": {"type": "gt", "params": [10]}
+            }
+          ]
+        }
+      },
+      {
+        "id": 3,
+        "title": "Response Time (p95)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"lewaf\"}[5m]))",
+            "legendFormat": "p95 latency",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"lewaf\"}[5m]))",
+            "legendFormat": "p50 latency",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "Latency"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Status Codes",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(http_requests_total{job=\"lewaf\",status=~\"2..\"}[5m])",
+            "legendFormat": "2xx",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"lewaf\",status=~\"4..\"}[5m])",
+            "legendFormat": "4xx",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"lewaf\",status=~\"5..\"}[5m])",
+            "legendFormat": "5xx",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "reqps", "label": "Requests/sec"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "WAF Rules Loaded",
+        "type": "stat",
+        "gridPos": {"x": 0, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "waf_rules_loaded{job=\"lewaf\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Uptime",
+        "type": "stat",
+        "gridPos": {"x": 6, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "time() - process_start_time_seconds{job=\"lewaf\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "colorMode": "value",
+          "graphMode": "none",
+          "unit": "s"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Memory Usage",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "process_resident_memory_bytes{job=\"lewaf\"}",
+            "legendFormat": "Memory",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "bytes", "label": "Memory"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 8,
+        "title": "CPU Usage",
+        "type": "graph",
+        "gridPos": {"x": 18, "y": 16, "w": 6, "h": 4},
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total{job=\"lewaf\"}[5m])",
+            "legendFormat": "CPU",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percentunit", "label": "CPU %"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Top Attack Types",
+        "type": "table",
+        "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "topk(10, sum by (attack_type) (rate(waf_rule_matches_total{job=\"lewaf\"}[5m])))",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {},
+              "indexByName": {},
+              "renameByName": {
+                "attack_type": "Attack Type",
+                "Value": "Rate (hits/sec)"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Top Blocked IPs",
+        "type": "table",
+        "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "topk(10, sum by (remote_addr) (rate(waf_requests_blocked_total{job=\"lewaf\"}[5m])))",
+            "format": "table",
+            "refId": "A"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "renameByName": {
+                "remote_addr": "IP Address",
+                "Value": "Blocks/sec"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "current": {
+            "text": "Prometheus",
+            "value": "Prometheus"
+          }
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "changes(process_start_time_seconds{job=\"lewaf\"}[5m]) > 0",
+          "tagKeys": "deployment",
+          "textFormat": "Deployment",
+          "titleFormat": "Deployment"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h"]
+    }
+  }
+}

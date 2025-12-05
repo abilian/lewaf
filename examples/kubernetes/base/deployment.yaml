@@ -1,0 +1,197 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lewaf
+  namespace: lewaf
+  labels:
+    app: lewaf
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lewaf
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: lewaf
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security Context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Service Account
+      serviceAccountName: lewaf
+
+      # Init Containers (optional - for rule updates)
+      initContainers:
+        - name: init-rules
+          image: busybox:latest
+          command: ['sh', '-c', 'echo "Rules initialization complete"']
+          volumeMounts:
+            - name: rules
+              mountPath: /app/rules
+
+      # Main Container
+      containers:
+        - name: lewaf
+          image: lewaf:latest
+          imagePullPolicy: IfNotPresent
+
+          # Ports
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+
+          # Environment Variables
+          env:
+            - name: LEWAF_CONFIG
+              value: /app/config/lewaf.conf
+            - name: LEWAF_RULES_DIR
+              value: /app/rules
+            - name: LEWAF_LOG_LEVEL
+              value: INFO
+            - name: LEWAF_LOG_FORMAT
+              value: json
+            - name: LEWAF_STORAGE_BACKEND
+              value: redis
+            - name: LEWAF_REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: lewaf-secrets
+                  key: redis-url
+            - name: PYTHONUNBUFFERED
+              value: "1"
+
+          # Volume Mounts
+          volumeMounts:
+            - name: config
+              mountPath: /app/config
+              readOnly: true
+            - name: rules
+              mountPath: /app/rules
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /app/logs
+
+          # Liveness Probe
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Readiness Probe
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Startup Probe (for slow starts)
+          startupProbe:
+            httpGet:
+              path: /health
+              port: http
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 12
+
+          # Resource Limits
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+
+          # Security Context
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 999
+            capabilities:
+              drop:
+                - ALL
+
+      # Volumes
+      volumes:
+        - name: config
+          configMap:
+            name: lewaf-config
+            items:
+              - key: lewaf.conf
+                path: lewaf.conf
+              - key: crs-setup.conf
+                path: crs-setup.conf
+        - name: rules
+          configMap:
+            name: lewaf-rules
+            optional: true
+        - name: tmp
+          emptyDir:
+            sizeLimit: 1Gi
+        - name: logs
+          emptyDir:
+            sizeLimit: 5Gi
+
+      # Affinity Rules
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - lewaf
+                topologyKey: kubernetes.io/hostname
+
+      # Tolerations (optional)
+      # tolerations:
+      #   - key: "dedicated"
+      #     operator: "Equal"
+      #     value: "waf"
+      #     effect: "NoSchedule"
+
+      # Node Selector (optional)
+      # nodeSelector:
+      #   workload: waf

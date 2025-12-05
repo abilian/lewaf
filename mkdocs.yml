@@ -1,0 +1,97 @@
+site_name: LeWAF Documentation
+site_description: A Web Application Firewall for Python
+site_author: Stefane Fermigier
+site_url: https://abilian.github.io/lewaf/
+
+repo_name: abilian/lewaf
+repo_url: https://github.com/abilian/lewaf
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Quick Start: guides/quickstart.md
+      - Custom Rules: guides/custom-rules.md
+  - Framework Integration:
+      - FastAPI: guides/integration-fastapi.md
+      - Flask: guides/integration-flask.md
+      - Django: guides/integration-django.md
+      - Starlette: guides/integration-starlette.md
+  - Deployment:
+      - Deployment Guide: deployment/guide.md
+      - Docker: deployment/docker.md
+      - Kubernetes: deployment/kubernetes.md
+  - Operations:
+      - Security Hardening: security/hardening.md
+      - Monitoring: monitoring/prometheus.md
+      - Performance Tuning: performance/tuning.md
+  - Reference:
+      - API Reference: api/reference.md
+  - Troubleshooting:
+      - Debugging Guide: troubleshooting/debugging.md
+      - Error Codes: troubleshooting/error-codes.md
+      - Runbook: troubleshooting/runbook.md
+  - Changelog: CHANGELOG.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/abilian/lewaf
+  version:
+    provider: mike
+
+copyright: Copyright &copy; 2024-2025 Abilian SAS

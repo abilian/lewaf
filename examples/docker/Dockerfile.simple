@@ -1,0 +1,34 @@
+# Simplified Dockerfile for testing documentation
+# This doesn't build the full package, just validates the structure
+
+FROM python:3.12-slim
+
+# Install minimal dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r lewaf && useradd -r -g lewaf lewaf
+
+# Create directory structure
+WORKDIR /app
+RUN mkdir -p /app/config /app/rules /app/logs /app/data && \
+    chown -R lewaf:lewaf /app
+
+# Copy configuration files for testing
+COPY examples/docker/lewaf.conf /app/config/lewaf.conf
+COPY examples/docker/crs-setup.conf /app/config/crs-setup.conf
+
+# Switch to non-root user
+USER lewaf
+
+# Expose port
+EXPOSE 8000
+
+# Health check endpoint (mock for testing)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Mock command that just sleeps (for testing container structure)
+CMD ["sh", "-c", "echo 'LeWAF container started (test mode)' && sleep infinity"]

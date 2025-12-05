@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # Example backend application
+  backend:
+    image: httpbin/httpbin:latest
+    container_name: httpbin-backend
+    ports:
+      - "8001:80"
+    networks:
+      - coraza-net
+
+  # Coraza WAF Reverse Proxy
+  coraza-proxy:
+    build:
+      context: ../..
+      dockerfile: examples/reverse-proxy/Dockerfile
+    container_name: coraza-waf-proxy
+    ports:
+      - "8080:8080"
+    environment:
+      - UPSTREAM_URL=http://backend:80
+      - LOG_LEVEL=INFO
+      - HOST=0.0.0.0
+      - PORT=8080
+    volumes:
+      - ./waf.conf:/app/waf.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - coraza-net
+    command: ["python", "-m", "lewaf.proxy.cli", "--upstream", "http://backend:80", "--rules-file", "waf.conf", "--host", "0.0.0.0", "--port", "8080"]
+
+networks:
+  coraza-net:
+    driver: bridge

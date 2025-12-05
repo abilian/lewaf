@@ -1,0 +1,29 @@
+waf:
+  engine: ${WAF_ENGINE:-DetectionOnly}
+
+  rules:
+    - 'SecRule ARGS "@rx attack" "id:1001,phase:2,deny"'
+
+  rule_files:
+    - rules/crs.conf
+
+  request_limits:
+    body_limit: 10485760
+    header_limit: 4096
+
+  storage:
+    backend: ${STORAGE_BACKEND:-memory}
+    redis_host: ${REDIS_HOST:-localhost}
+    redis_port: ${REDIS_PORT:-6379}
+    ttl: 3600
+
+  audit_logging:
+    enabled: true
+    format: json
+    mask_sensitive: true
+    output: ${LOG_PATH:-/var/log/waf.log}
+    level: INFO
+
+  performance:
+    regex_cache_size: 512
+    worker_threads: 4

@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+namespace: lewaf-prod
+
+nameSuffix: -prod
+
+labels:
+  - pairs:
+      environment: production
+
+replicas:
+  - name: lewaf
+    count: 5
+
+images:
+  - name: lewaf
+    newTag: v1.0.0  # Use specific version in production
+
+# Patches for production customization (uncomment to use)
+# patches:
+#   - path: deployment-patch.yaml
+#     target:
+#       kind: Deployment
+#       name: lewaf
+#   - path: hpa-patch.yaml
+#     target:
+#       kind: HorizontalPodAutoscaler
+#       name: lewaf
+
+configMapGenerator:
+  - name: lewaf-env-config
+    literals:
+      - LEWAF_LOG_LEVEL=INFO
+      - LEWAF_LOG_FORMAT=json
