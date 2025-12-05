@@ -9,6 +9,7 @@ from __future__ import annotations
 import pytest
 
 from lewaf.integration import WAF
+from lewaf.rules import VariableSpec
 
 
 @pytest.fixture
@@ -213,7 +214,7 @@ def test_rule_parsing_correctness(admin_blocking_waf):
     rule = rules[0]
     assert rule.id == 101
     assert rule.phase == 1
-    assert rule.variables == [("REQUEST_URI", None)]
+    assert rule.variables == [VariableSpec("REQUEST_URI", None)]
     assert rule.operator.name == "streq"
     assert rule.operator.argument == "/admin"
     assert rule.transformations == ["lowercase"]

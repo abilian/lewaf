@@ -102,10 +102,17 @@ class StubTransaction:
         self._interrupted = False
         self._interrupt_rule: StubRule | None = None
 
-    def interrupt(self, rule: StubRule) -> None:
+    def interrupt(
+        self,
+        rule: StubRule,
+        action: str = "deny",
+        redirect_url: str | None = None,
+    ) -> None:
         """Interrupt the transaction with the given rule."""
         self._interrupted = True
         self._interrupt_rule = rule
+        self._interrupt_action = action
+        self._redirect_url = redirect_url
 
 
 # Singleton instance for simple tests that don't need state
