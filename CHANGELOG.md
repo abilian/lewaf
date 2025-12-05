@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.7.0] - 2025-11-20
+## [0.7.0] - 2025-12-05
 
 First public release of LeWAF - a Python Web Application Firewall implementing the ModSecurity SecLang specification.
 
@@ -26,12 +26,18 @@ First public release of LeWAF - a Python Web Application Firewall implementing t
   - Chain rules support
   - Variable expansion and macros
 
-- **OWASP Core Rule Set (CRS)**: 594 CRS rules loaded successfully
+- **OWASP Core Rule Set (CRS)**: 92% compatibility (594 of ~650 rules load successfully)
   - SQL injection detection
   - Cross-site scripting (XSS) protection
-  - Command injection blocking
+  - Remote code execution (RCE) blocking
+  - Local/Remote file inclusion (LFI/RFI) detection
   - Path traversal detection
   - Protocol violation enforcement
+
+- **FTW Test Suite Integration**: Official OWASP CRS regression test support
+  - FTW (Framework for Testing WAFs) YAML parser
+  - 60% pass rate on 4063 official CRS test cases
+  - Automated test runner for CRS compatibility validation
 
 - **Body Processors**: Multi-format request/response body parsing
   - JSON body processor
@@ -71,10 +77,11 @@ First public release of LeWAF - a Python Web Application Firewall implementing t
 
 ### Testing & Quality
 
-- 924 automated tests (905 passing, 19 skipped)
+- 1258 automated tests
 - Zero linting errors (ruff)
-- Zero type checking errors (pyrefly)
+- Zero type checking errors (pyrefly, mypy, ty)
 - Load tested at 1000+ requests/second
+- Comprehensive CRS validation with 134 attack payloads across 8 categories
 
 ---
 
