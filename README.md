@@ -1,9 +1,8 @@
 # LeWAF - Python Web Application Firewall
 
-[![Tests](https://img.shields.io/badge/tests-924%20total-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-1258%20total-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.12+-blue)]()
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)]()
-[![Production Ready](https://img.shields.io/badge/status-production%20ready%2098%25-brightgreen)]()
 [![Code Quality](https://img.shields.io/badge/code%20quality-100%25-brightgreen)]()
 [![Documentation](https://img.shields.io/badge/docs-10%2C210%2B%20lines-blue)]()
 
@@ -64,7 +63,7 @@ The system uses the OWASP Core Rule Set (CRS) - 594 security rules maintained by
 - Drop-in middleware with minimal performance impact
 - Configurable through code or YAML files
 - Scales horizontally, no shared state between instances
-- 924 automated tests, load tested at 1000+ requests/second
+- 1258 automated tests, load tested at 1000+ requests/second
 
 ## Quick Start
 
@@ -80,7 +79,7 @@ uv sync
 
 # Run tests
 uv run pytest -q
-# Output: 905 passed, 19 skipped in ~25s
+# Output: 1183 passed, 75 skipped in ~38s
 ```
 
 ### Basic Usage
@@ -126,26 +125,13 @@ See [docs/guides/quickstart.md](docs/guides/quickstart.md) for detailed setup in
 
 **Version**: 0.7.0
 **Status**: Beta
-**Test Coverage**: 924 tests (905 passing, 19 skipped)
+**Test Coverage**: 1258 automated tests
 **Code Quality**: Zero linting/type errors
-**Documentation**: 10,210+ lines of production documentation
-
-### Completed Features
-
-- ✅ **Phase 1-7**: Core WAF engine, rule processing, CRS compatibility
-- ✅ **Phase 8**: Body processors (JSON, XML, multipart, URL-encoded)
-- ✅ **Phase 9**: Persistent storage (rate limiting, session tracking)
-- ✅ **Phase 10**: Variable expansion and advanced SecLang features
-- ✅ **Phase 11**: Transformation engine enhancements
-- ✅ **Phase 12**: Production integration tests (load, performance, attack simulation)
-- ✅ **Phase 13**: Audit logging (PCI-DSS, GDPR compliant)
-- ✅ **Phase 14**: Configuration management & code quality (zero errors)
-- ✅ **Phase 15**: Error handling improvements (standardized error codes, monitoring)
-- ✅ **Phase 16**: Production documentation (deployment guides, API reference, integration guides)
+**Documentation**: 15000+ lines of documentation
 
 ### Test Coverage
 
-924 automated tests covering:
+1258 automated tests covering:
 - Core WAF engine and rule processing
 - Framework integrations (FastAPI, Flask, Django, Starlette)
 - Attack detection and blocking
@@ -178,7 +164,7 @@ See [CHANGELOG.md](CHANGELOG.md) for release history and feature details.
 - **[Audit Logging](examples/audit_logging_example.py)** - Configure compliance logging
 
 ### For Contributors
-- **[Developer Guide](CLAUDE.md)** - Setup, coding guidelines, testing requirements
+- **[Developer Guide](CONTRIBUTING.md)** - Setup, coding guidelines, testing requirements
 - **[Changelog](CHANGELOG.md)** - Release history and feature details
 
 ## Working Examples
@@ -201,8 +187,6 @@ LeWAF operates as middleware in your web application stack. When an HTTP request
 
 The rule engine uses the ModSecurity SecLang specification, the same rule language used by enterprise WAF systems. This means security professionals can apply existing knowledge and rule sets directly to LeWAF.
 
-See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation.
-
 ## Compatibility
 
 LeWAF implements the ModSecurity/Coraza WAF specification and is compatible with:
@@ -215,7 +199,7 @@ This compatibility means you can use community-maintained rule sets, share secur
 
 ## Contributing
 
-We welcome contributions! See [CLAUDE.md](CLAUDE.md) for:
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 - Development setup
 - Coding guidelines
@@ -257,4 +241,4 @@ Apache Software License 2.0 (matching OWASP CRS and Coraza)
 
 ---
 
-**LeWAF**: Enterprise-grade Web Application Firewall for Python 🛡️
+**LeWAF**: Lightweight Web Application Firewall for Python 🛡️

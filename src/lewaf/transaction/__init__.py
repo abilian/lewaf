@@ -170,6 +170,11 @@ class Transaction:
             for name, value in collections["multipart_name"].items():
                 self.variables.multipart_name.add(name, value)
 
+        # MULTIPART_PART_HEADERS - headers from each multipart part
+        if "multipart_part_headers" in collections:
+            for key, value in collections["multipart_part_headers"].items():
+                self.variables.multipart_part_headers.add(key, value)
+
         # XML - structured XML data
         if "xml" in collections:
             xml_data = collections["xml"]
@@ -189,6 +194,11 @@ class Transaction:
             for key, values in parse_qs(qs).items():
                 for value in values:
                     self.variables.args.add(key, value)
+                    # Also populate ARGS_GET for query string parameters
+                    self.variables.args_get.add(key, value)
+                # Populate ARGS_GET_NAMES and ARGS_NAMES
+                self.variables.args_get_names.add(key, key)
+                self.variables.args_names.add(key, key)
 
     def process_request_headers(self) -> dict[str, str | int] | None:
         """Process request headers and evaluate Phase 1 rules.
