@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **VariableSpec dataclass**: Replaced tuples with proper dataclass for rule variables
+- **Variable count modifier (`&ARGS`)**: Returns count of items in a collection
+- **Variable negation (`!ARGS:foo`)**: Excludes specific keys from matching
+- **ARGS_PATH collection**: REST path parameters populated by `@restpath` operator
+- **WAF configuration storage**: `SecRuleEngine`, `SecRequestBodyAccess`, `SecResponseBodyAccess` directives now stored
+
+### Changed
+
+- **Redirect action**: Now properly passes redirect URL to middleware
+- **Skip action**: Now integrates with rule engine skip_state
+- **Audit log actions**: `auditlog`/`noauditlog` update transaction state
+- **TransactionProtocol**: Extended with audit and skip attributes
+
+### Fixed
+
+- Starlette middleware now reads request body before processing
+- Response phase 3 (headers) now processed in middleware
+- Config file loading now works via ConfigLoader
+
+### Documentation
+
+- Added "Known Limitations" section to README for `drop` and `exec` actions
+- Updated action docstrings with clear limitation explanations
+
+---
+
 ## [0.7.0] - 2025-12-05
 
 First public release of LeWAF - a Python Web Application Firewall implementing the ModSecurity SecLang specification.
