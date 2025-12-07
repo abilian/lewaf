@@ -1,7 +1,7 @@
 # ADR-001: Kernel Integration for Rule Evaluation
 
 **Status:** Proposed
-**Date:** 2024-12-07
+**Date:** 2025-12-07
 **Authors:** LeWAF Team
 
 ## Context
@@ -146,7 +146,6 @@ set_default_kernel(KernelType.PYTHON)
 ### Phase 3: Documentation
 1. Document kernel selection options
 2. Document how to implement custom kernels
-3. Update CLAUDE.md with kernel architecture
 
 ## Alternatives Considered
 
