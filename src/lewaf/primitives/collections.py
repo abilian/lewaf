@@ -223,6 +223,7 @@ class TransactionVariables:
         self.args = MapCollection("ARGS")
         self.args_get = MapCollection("ARGS_GET")
         self.args_post = MapCollection("ARGS_POST")
+        self.args_path = MapCollection("ARGS_PATH")  # REST path parameters
         self.request_headers = MapCollection("REQUEST_HEADERS")
         self.tx = MapCollection("TX", case_insensitive=False)
         self.request_uri = SingleValueCollection("REQUEST_URI")

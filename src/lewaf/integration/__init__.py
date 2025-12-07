@@ -8,7 +8,7 @@ from typing import Any
 from lewaf.engine import RuleGroup
 from lewaf.primitives.actions import ACTIONS
 from lewaf.primitives.operators import Operator, OperatorOptions, get_operator
-from lewaf.rules import Rule
+from lewaf.rules import Rule, VariableSpec
 from lewaf.transaction import Transaction
 
 
@@ -140,13 +140,27 @@ class SecLangParser:
         operator_str = parts[1]
         actions_str = parts[3]
 
-        parsed_vars: list[tuple[str, str | None]] = []
+        parsed_vars: list[VariableSpec] = []
         for var in variables_str.split("|"):
+            var = var.strip()
+            # Check for negation (!)
+            is_negation = var.startswith("!")
+            if is_negation:
+                var = var[1:]
+            # Check for count (&)
+            is_count = var.startswith("&")
+            if is_count:
+                var = var[1:]
+
             if ":" in var:
                 var_name, key = var.split(":", 1)
-                parsed_vars.append((var_name.upper(), key))
+                parsed_vars.append(
+                    VariableSpec(var_name.upper(), key, is_count, is_negation)
+                )
             else:
-                parsed_vars.append((var.upper(), None))
+                parsed_vars.append(
+                    VariableSpec(var.upper(), None, is_count, is_negation)
+                )
 
         # Handle negated operators like !@rx
         negated = False
@@ -211,6 +225,12 @@ class WAF:
         self.rule_group = RuleGroup()
         self.parser = SecLangParser(self.rule_group)
         self.component_signature: str = ""
+
+        # Configuration directives (set by parser or programmatically)
+        self.rule_engine_mode: str = "on"  # on, off, detectiononly
+        self.request_body_access: bool = True
+        self.response_body_access: bool = False
+
         for rule_str in config["rules"]:
             self.parser.from_string(rule_str)
         self._tx_counter = 0
