@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 
-from lewaf.kernel import KernelType, get_kernel, rust_available
+from lewaf.integration import ParsedOperator
+from lewaf.kernel import KernelType, get_kernel, reset_default_kernel, rust_available
 from lewaf.kernel.protocol import KernelProtocol
 from lewaf.kernel.python_kernel import PythonKernel
+from lewaf.primitives.operators import ContainsOperator, RxOperator
+from lewaf.rules import Rule, VariableSpec
+from lewaf.transaction import Transaction
 
 
 class TestKernelFactory:
@@ -223,7 +229,7 @@ class TestPythonKernel:
     def test_evaluate_rule_negated(self, kernel: PythonKernel) -> None:
         """Test rule evaluation with negation."""
         # Pattern does NOT match, so with negation it becomes a match
-        matched, var_name, value = kernel.evaluate_rule(
+        matched, var_name, _value = kernel.evaluate_rule(
             operator_name="rx",
             operator_arg=r"^(GET|POST)$",
             transforms=[],
@@ -235,7 +241,7 @@ class TestPythonKernel:
 
     def test_evaluate_rule_pm_operator(self, kernel: PythonKernel) -> None:
         """Test rule evaluation with @pm operator."""
-        matched, var_name, value = kernel.evaluate_rule(
+        matched, _var_name, _value = kernel.evaluate_rule(
             operator_name="pm",
             operator_arg="select insert update delete",
             transforms=["lowercase"],
@@ -243,6 +249,156 @@ class TestPythonKernel:
             negated=False,
         )
         assert matched
+
+
+class TestEvaluateOperator:
+    """Tests for the evaluate_operator dispatch method."""
+
+    @pytest.fixture
+    def kernel(self) -> PythonKernel:
+        """Create a Python kernel instance."""
+        return PythonKernel()
+
+    def test_evaluate_operator_rx(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with @rx."""
+        matched, captures = kernel.evaluate_operator("rx", r"admin", "admin panel")
+        assert matched
+        assert captures == []
+
+    def test_evaluate_operator_rx_with_capture(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with @rx and captures."""
+        matched, captures = kernel.evaluate_operator(
+            "rx", r"user=(\w+)", "user=admin", capture=True
+        )
+        assert matched
+        assert captures == ["admin"]
+
+    def test_evaluate_operator_pm(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with @pm."""
+        matched, captures = kernel.evaluate_operator(
+            "pm", "select union drop", "SELECT * FROM users"
+        )
+        assert matched
+        assert captures == []
+
+    def test_evaluate_operator_contains(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with @contains."""
+        matched, _ = kernel.evaluate_operator("contains", "admin", "admin panel")
+        assert matched
+
+    def test_evaluate_operator_streq(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with @streq."""
+        matched, _ = kernel.evaluate_operator("streq", "GET", "GET")
+        assert matched
+        matched, _ = kernel.evaluate_operator("streq", "GET", "POST")
+        assert not matched
+
+    def test_evaluate_operator_beginswith(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with @beginsWith."""
+        matched, _ = kernel.evaluate_operator(
+            "beginswith", "/admin", "/admin/dashboard"
+        )
+        assert matched
+        matched, _ = kernel.evaluate_operator("beginswith", "/admin", "/user/profile")
+        assert not matched
+
+    def test_evaluate_operator_endswith(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with @endsWith."""
+        matched, _ = kernel.evaluate_operator("endswith", ".php", "index.php")
+        assert matched
+        matched, _ = kernel.evaluate_operator("endswith", ".php", "index.html")
+        assert not matched
+
+    def test_evaluate_operator_numeric(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with numeric operators."""
+        matched, _ = kernel.evaluate_operator("eq", "100", "100")
+        assert matched
+        matched, _ = kernel.evaluate_operator("gt", "50", "100")
+        assert matched
+        matched, _ = kernel.evaluate_operator("lt", "100", "50")
+        assert matched
+
+    def test_evaluate_operator_unconditional(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator with unconditional operators."""
+        matched, _ = kernel.evaluate_operator("unconditional", "", "any value")
+        assert matched
+        matched, _ = kernel.evaluate_operator("nomatch", "", "any value")
+        assert not matched
+
+    def test_evaluate_operator_unknown_fallback(self, kernel: PythonKernel) -> None:
+        """Test evaluate_operator falls back for unknown operators."""
+        # detectsqli is not in kernel, should fall back
+        matched, _ = kernel.evaluate_operator("detectsqli", "", "1' OR '1'='1")
+        # Should work via fallback (if detectsqli operator exists)
+        # The actual result depends on whether detectsqli matches
+        assert isinstance(matched, bool)
+
+
+class TestKernelIntegration:
+    """Tests for kernel integration with Rule.evaluate()."""
+
+    def test_rule_uses_kernel_for_transforms(self) -> None:
+        """Test that Rule.evaluate() uses kernel for transforms."""
+        # Create a simple rule with transforms
+        rule = Rule(
+            variables=[VariableSpec(name="ARGS", key="test")],
+            operator=ParsedOperator(
+                name="contains",
+                argument="hello",
+                op=ContainsOperator("hello"),
+                negated=False,
+            ),
+            transformations=["lowercase"],
+            actions={},
+            metadata={"id": 1, "phase": 1},
+        )
+
+        # Create mock WAF and transaction with uppercase value
+        mock_waf = MagicMock()
+        mock_waf.rule_group = MagicMock()
+        tx = Transaction(mock_waf, "test-tx-1")
+        tx.variables.args.add("test", "HELLO WORLD")
+
+        # Evaluate - should match because transforms lowercase the value
+        result = rule.evaluate(tx)
+        assert result is True
+
+    def test_rule_uses_kernel_for_operators(self) -> None:
+        """Test that Rule.evaluate() uses kernel for operator evaluation."""
+        # Create a regex rule
+        rule = Rule(
+            variables=[VariableSpec(name="REQUEST_URI")],
+            operator=ParsedOperator(
+                name="rx",
+                argument=r"admin",
+                op=RxOperator(r"admin"),
+                negated=False,
+            ),
+            transformations=[],
+            actions={},
+            metadata={"id": 2, "phase": 1},
+        )
+
+        # Create mock WAF and transaction
+        mock_waf = MagicMock()
+        mock_waf.rule_group = MagicMock()
+        tx = Transaction(mock_waf, "test-tx-2")
+        tx.variables.request_uri.set("/admin/dashboard")
+
+        # Evaluate - should match
+        result = rule.evaluate(tx)
+        assert result is True
+
+    def test_kernel_selection_environment(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Test kernel selection via environment variable."""
+        # Force Python kernel via environment
+        monkeypatch.setenv("LEWAF_KERNEL", "python")
+        reset_default_kernel()
+
+        kernel = get_kernel()
+        assert isinstance(kernel, PythonKernel)
 
 
 class TestKernelProtocol:

@@ -4,6 +4,9 @@ This module provides the ZigKernel class that wraps the Zig/PCRE2
 implementation via cffi bindings.
 """
 
+# ruff: noqa: PLC0415
+# Late imports are intentional to handle optional Zig dependency.
+
 from __future__ import annotations
 
 import sys

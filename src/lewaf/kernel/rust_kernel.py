@@ -5,6 +5,9 @@ This module wraps the lewaf_core Rust library via PyO3 bindings.
 Currently falls back to PythonKernel until Rust implementation is available.
 """
 
+# ruff: noqa: PLC0415
+# Late imports are intentional to handle optional lewaf_core dependency.
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

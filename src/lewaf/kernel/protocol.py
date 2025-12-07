@@ -238,6 +238,35 @@ class KernelProtocol(Protocol):
         ...
 
     # =========================================================================
+    # Level 2.5: Generic Operator Dispatch
+    # =========================================================================
+
+    def evaluate_operator(
+        self,
+        operator_name: str,
+        operator_arg: str,
+        value: str,
+        capture: bool = False,
+    ) -> tuple[bool, list[str]]:
+        """
+        Evaluate any operator by name.
+
+        This is the primary integration point for Rule.evaluate().
+        Dispatches to the appropriate operator method based on name.
+
+        Args:
+            operator_name: Operator name (rx, pm, contains, streq, eq, etc.).
+            operator_arg: Operator argument (pattern, phrases, threshold, etc.).
+            value: Value to evaluate against.
+            capture: Whether to capture groups (only relevant for @rx).
+
+        Returns:
+            Tuple of (matched: bool, captures: list[str]).
+            Captures are only populated for @rx with capture=True.
+        """
+        ...
+
+    # =========================================================================
     # Level 3: Rule Evaluation
     # =========================================================================
 

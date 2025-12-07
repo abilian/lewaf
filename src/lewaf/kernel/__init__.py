@@ -20,6 +20,9 @@ Usage:
     # LEWAF_KERNEL=zig python your_script.py
 """
 
+# ruff: noqa: PLC0415
+# Late imports are intentional to handle optional Rust/Zig dependencies gracefully.
+
 from __future__ import annotations
 
 import os
