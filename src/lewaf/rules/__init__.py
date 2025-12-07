@@ -4,8 +4,8 @@ import logging
 from dataclasses import dataclass, field as dataclass_field
 from typing import TYPE_CHECKING, Any, cast
 
+from lewaf.kernel import default_kernel
 from lewaf.primitives.collections import MapCollection, SingleValueCollection
-from lewaf.primitives.transformations import TRANSFORMATIONS
 
 if TYPE_CHECKING:
     from lewaf.integration import ParsedOperator
@@ -13,12 +13,29 @@ if TYPE_CHECKING:
     from lewaf.transaction import Transaction
 
 
+@dataclass(frozen=True, slots=True)
+class VariableSpec:
+    """Specification for a variable in a rule.
+
+    Attributes:
+        name: Variable name (e.g., "ARGS", "REQUEST_HEADERS")
+        key: Optional key within collection (e.g., "id" for ARGS:id)
+        is_count: If True, return count of items instead of values
+        is_negation: If True, exclude this variable from matching
+    """
+
+    name: str
+    key: str | None = None
+    is_count: bool = False
+    is_negation: bool = False
+
+
 @dataclass(frozen=True)
 class Rule:
     """Immutable rule definition for WAF evaluation.
 
     Attributes:
-        variables: List of (variable_name, key) tuples to extract values from transaction
+        variables: List of VariableSpec objects to extract values from transaction
         operator: Parsed operator to match against values
         transformations: List of transformation names to apply before matching
         actions: Dictionary of action name to Action instances
@@ -26,7 +43,7 @@ class Rule:
         tags: List of tag strings for rule categorization and targeting
     """
 
-    variables: list[tuple[str, str | None]]
+    variables: list[VariableSpec]
     operator: ParsedOperator
     transformations: list[Any | str]
     actions: dict[str, Action]
@@ -51,31 +68,70 @@ class Rule:
         # Collect values with their full variable names for match tracking
         # Each item: (full_var_name, value) where full_var_name is like "ARGS:id"
         values_to_test: list[tuple[str, str]] = []
-        for var_name, key in self.variables:
+
+        # Track negated keys for filtering
+        negated_keys: set[tuple[str, str | None]] = set()
+        for var_spec in self.variables:
+            if var_spec.is_negation:
+                negated_keys.add((var_spec.name, var_spec.key))
+
+        for var_spec in self.variables:
+            # Skip negated variables in main loop - they're exclusions
+            if var_spec.is_negation:
+                continue
+
+            var_name = var_spec.name
+            key = var_spec.key
             collection = getattr(transaction.variables, var_name.lower())
-            if isinstance(collection, MapCollection):
+
+            if var_spec.is_count:
+                # Return count of items instead of values
+                if isinstance(collection, MapCollection):
+                    if key:
+                        count = len(collection.get(key))
+                    else:
+                        count = len(list(collection.find_all()))
+                elif isinstance(collection, SingleValueCollection):
+                    count = 1 if collection.get() else 0
+                elif hasattr(collection, "find_all"):
+                    count = len(list(collection.find_all()))
+                else:
+                    count = 0
+                full_name = f"&{var_name}:{key}" if key else f"&{var_name}"
+                values_to_test.append((full_name, str(count)))
+            elif isinstance(collection, MapCollection):
                 if key:
                     for val in collection.get(key):
-                        full_name = f"{var_name}:{key}"
-                        values_to_test.append((full_name, val))
+                        # Check if this key is negated
+                        if (var_name, key) not in negated_keys:
+                            full_name = f"{var_name}:{key}"
+                            values_to_test.append((full_name, val))
                 else:
                     for match in collection.find_all():
-                        full_name = f"{var_name}:{match.key}" if match.key else var_name
-                        values_to_test.append((full_name, match.value))
+                        # Check if this specific key is negated
+                        if (var_name, match.key) not in negated_keys:
+                            full_name = (
+                                f"{var_name}:{match.key}" if match.key else var_name
+                            )
+                            values_to_test.append((full_name, match.value))
             elif isinstance(collection, SingleValueCollection):
                 values_to_test.append((var_name, collection.get()))
             elif hasattr(collection, "find_all"):
                 # Handle other collection types (FilesCollection, etc.)
                 for match in collection.find_all():
-                    full_name = f"{var_name}:{match.key}" if match.key else var_name
-                    values_to_test.append((full_name, match.value))
+                    # Check if this specific key is negated
+                    if (var_name, match.key) not in negated_keys:
+                        full_name = f"{var_name}:{match.key}" if match.key else var_name
+                        values_to_test.append((full_name, match.value))
+
+        # Get the kernel for transforms and operator evaluation
+        kernel = default_kernel()
 
         for full_var_name, value in values_to_test:
-            transformed_value = value
-            for t_name in self.transformations:
-                transformed_value, _ = TRANSFORMATIONS[t_name.lower()](
-                    transformed_value
-                )
+            # Use kernel for transform chain
+            transformed_value = kernel.transform_chain(
+                [str(t) for t in self.transformations], value
+            )
 
             logging.debug(
                 "Testing operator '%s' with arg '%s' against value '%s'",
@@ -84,9 +140,20 @@ class Rule:
                 transformed_value,
             )
 
-            match_result = self.operator.op.evaluate(
-                cast("Any", transaction), transformed_value
+            # Use kernel for operator evaluation
+            capturing = hasattr(transaction, "capturing") and transaction.capturing()
+            match_result, captures = kernel.evaluate_operator(
+                self.operator.name,
+                self.operator.argument,
+                transformed_value,
+                capture=capturing,
             )
+
+            # Handle captures from regex operators
+            if captures and capturing:
+                for i, capture in enumerate(captures[:9]):
+                    transaction.capture_field(i + 1, capture)
+
             # Handle negation
             if self.operator.negated:
                 match_result = not match_result

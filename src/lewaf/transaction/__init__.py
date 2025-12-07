@@ -34,6 +34,13 @@ class Transaction:
         self.body_processor: str = "URLENCODED"
         self.body_limit: int = 131072
 
+        # Audit logging control
+        self.audit_log_enabled: bool = True
+        self.force_audit_log: bool = False
+
+        # Skip rules counter (for skip action)
+        self.skip_rules_count: int = 0
+
     def add_request_body(self, body: bytes, content_type: str = "") -> None:
         """Add request body content to transaction.
 
@@ -334,8 +341,19 @@ class Transaction:
         self.waf.rule_group.evaluate(4, self)
         return self.interruption
 
-    def interrupt(self, rule: Rule):
-        self.interruption = {"rule_id": rule.id, "action": "deny"}
+    def interrupt(
+        self, rule: Rule, action: str = "deny", redirect_url: str | None = None
+    ) -> None:
+        """Interrupt the transaction with the given action.
+
+        Args:
+            rule: The rule that triggered the interruption
+            action: The action type (deny, redirect, drop)
+            redirect_url: Optional redirect URL for redirect action
+        """
+        self.interruption = {"rule_id": rule.id, "action": action}
+        if redirect_url:
+            self.interruption["redirect_url"] = redirect_url
 
     def capturing(self) -> bool:
         """Return whether the transaction is capturing matches."""

@@ -612,10 +612,7 @@ class ValidateUrlEncodingOperator(Operator):
 
         # Check for incomplete percent encodings (% followed by less than 2 hex chars)
         incomplete_pattern = r"%(?:[0-9A-Fa-f]?(?![0-9A-Fa-f])|(?![0-9A-Fa-f]))"
-        if re.search(incomplete_pattern, value):
-            return True
-
-        return False
+        return bool(re.search(incomplete_pattern, value))
 
 
 @register_operator("validateschema")
@@ -798,10 +795,7 @@ class ValidateNidOperator(Operator):
                 break
             prev_digit = curr_digit
 
-        if is_sequential:
-            return False
-
-        return True
+        return not is_sequential
 
 
 @register_operator("restpath")
@@ -840,8 +834,19 @@ class RestPathOperator(Operator):
 
         match = re.match(self._pattern, value)
         if match:
-            # TODO: In a full implementation, we would populate ARGS_PATH, ARGS_NAMES, and ARGS
-            # with the captured groups from the match
+            # Populate ARGS_PATH with captured path segments
+            # and add to ARGS for unified access
+            for name, captured_value in match.groupdict().items():
+                if hasattr(tx, "variables"):
+                    # Add to args_path collection (path parameters)
+                    if hasattr(tx.variables, "args_path"):
+                        tx.variables.args_path.add(name, captured_value)
+                    # Also add to general args collection
+                    if hasattr(tx.variables, "args"):
+                        tx.variables.args.add(name, captured_value)
+                    # Add parameter names
+                    if hasattr(tx.variables, "args_names"):
+                        tx.variables.args_names.add(name, name)
             return True
         return False
 

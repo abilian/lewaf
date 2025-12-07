@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 from lewaf.primitives.actions import ACTIONS, Action
 from lewaf.primitives.operators import OperatorOptions, get_operator
-from lewaf.rules import Rule
+from lewaf.rules import Rule, VariableSpec
 
 if TYPE_CHECKING:
     from lewaf.seclang.parser import SecLangParser
@@ -38,7 +38,7 @@ class SecRuleParser:
             parser: Parent SecLang parser for context
         """
         self.parser = parser
-        self.variables: list[tuple[str, str | None]] = []
+        self.variables: list[VariableSpec] = []
         self.operator_name = ""
         self.operator_negated = False
         self.operator_argument = ""
@@ -161,8 +161,6 @@ class SecRuleParser:
             is_count = var_part.startswith("&")
             if is_count:
                 var_part = var_part[1:]
-                # For now, we'll treat count as regular variable
-                # TODO: Implement count handling
 
             # Split variable name and key
             if ":" in var_part:
@@ -182,10 +180,14 @@ class SecRuleParser:
             # Normalize variable name
             var_name = var_name.strip().upper()
 
-            # For negations, we'll need special handling
-            # For now, add as regular variable
-            # TODO: Implement proper negation handling
-            self.variables.append((var_name, key))
+            # Create VariableSpec with all modifiers
+            var_spec = VariableSpec(
+                name=var_name,
+                key=key,
+                is_count=is_count,
+                is_negation=is_negation,
+            )
+            self.variables.append(var_spec)
 
     def _parse_operator(self, operator_str: str) -> None:
         """Parse operator specification.

@@ -197,6 +197,20 @@ LeWAF implements the ModSecurity/Coraza WAF specification and is compatible with
 
 This compatibility means you can use community-maintained rule sets, share security policies across different WAF implementations, and leverage existing security team expertise.
 
+## Known Limitations
+
+### `drop` Action
+
+The `drop` action in ModSecurity forcefully terminates TCP connections. This requires low-level socket access that is **not available in Python WSGI/ASGI middleware**. In LeWAF, `drop` behaves identically to `deny` - it returns an error response but the TCP connection may remain open.
+
+**Workaround**: Use `deny` instead. For true connection dropping, deploy a native WAF (nginx ModSecurity module, Apache mod_security) in front of your Python application.
+
+### `exec` Action
+
+The `exec` action is **intentionally disabled** for security reasons. Executing arbitrary shell commands from WAF rules creates significant security risks including remote code execution and privilege escalation.
+
+**Workaround**: If you need external command execution, implement it through a secure hook mechanism outside the WAF rule engine with proper auditing and access controls.
+
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:

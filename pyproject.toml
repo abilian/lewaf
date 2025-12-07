@@ -1,6 +1,6 @@
 [project]
 name = "lewaf"
-version = "0.7.0"
+version = "0.7.1"
 description = "A Web Application Firewall for Python that stops attacks before they reach your application code, with comprehensive audit logging and compliance support."
 readme = "README.md"
 authors = [

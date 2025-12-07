@@ -285,8 +285,7 @@ class SecLangParser:
         """
         mode = args.lower()
         logger.info("Setting rule engine to: %s", mode)
-        # TODO: Store in WAF configuration
-        # self.waf.rule_engine = mode
+        self.waf.rule_engine_mode = mode
 
     def _handle_secrequestbodyaccess(self, args: str) -> None:
         """Handle SecRequestBodyAccess directive.
@@ -296,7 +295,7 @@ class SecLangParser:
         """
         enabled = args.lower() == "on"
         logger.info("Request body access: %s", enabled)
-        # TODO: Store in WAF configuration
+        self.waf.request_body_access = enabled
 
     def _handle_secresponsebodyaccess(self, args: str) -> None:
         """Handle SecResponseBodyAccess directive.
@@ -306,7 +305,7 @@ class SecLangParser:
         """
         enabled = args.lower() == "on"
         logger.info("Response body access: %s", enabled)
-        # TODO: Store in WAF configuration
+        self.waf.response_body_access = enabled
 
     def _handle_secdefaultaction(self, args: str) -> None:
         """Handle SecDefaultAction directive.

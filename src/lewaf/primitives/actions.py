@@ -35,10 +35,22 @@ class TransactionProtocol(Protocol):
     body_processor: str
     body_limit: int
 
+    # Audit logging control
+    audit_log_enabled: bool
+    force_audit_log: bool
+
+    # Skip rules counter (for skip action)
+    skip_rules_count: int
+
     # Variables (required)
     variables: Any  # TransactionVariables object
 
-    def interrupt(self, rule: RuleProtocol) -> None:
+    def interrupt(
+        self,
+        rule: RuleProtocol,
+        action: str = "deny",
+        redirect_url: str | None = None,
+    ) -> None:
         """Interrupt the transaction with the given rule."""
         ...
 
@@ -596,7 +608,7 @@ class AuditLogAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         logging.info(f"Rule {rule.id} marked transaction for audit logging")
-        # TODO: In full implementation, mark transaction for audit logging
+        transaction.force_audit_log = True
 
 
 @register_action("noauditlog")
@@ -608,7 +620,7 @@ class NoAuditLogAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         logging.debug(f"Rule {rule.id} disabled audit logging for transaction")
-        # TODO: In full implementation, disable audit logging for transaction
+        transaction.audit_log_enabled = False
 
 
 @register_action("redirect")
@@ -627,8 +639,7 @@ class RedirectAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         logging.warning(f"Rule {rule.id} redirecting to {self.redirect_url}")
-        transaction.interrupt(rule)
-        # TODO: In full implementation, set redirect response
+        transaction.interrupt(rule, action="redirect", redirect_url=self.redirect_url)
 
 
 @register_action("skip")
@@ -651,7 +662,11 @@ class SkipAction(Action):
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
         logging.debug(f"Rule {rule.id} skipping {self.skip_count} rules")
-        # TODO: In full implementation, skip the specified number of rules
+        # Use skip_state mechanism for rule skipping
+        if hasattr(transaction, "skip_state"):
+            transaction.skip_state["skip_next_count"] = self.skip_count
+        else:
+            transaction.skip_rules_count = self.skip_count
 
 
 @register_action("rev")
@@ -674,20 +689,44 @@ class RevAction(Action):
 
 @register_action("drop")
 class DropAction(Action):
-    """Drop action terminates connection."""
+    """Drop action terminates connection.
+
+    LIMITATION: True TCP connection termination requires low-level socket access
+    that is not available in Python WSGI/ASGI middleware. This action behaves
+    identically to 'deny' - it interrupts the transaction and returns an error
+    response. The actual TCP connection may remain open depending on the server.
+
+    For true connection dropping, you need:
+    - Native server integration (nginx, Apache modules)
+    - Low-level socket access not available in middleware
+
+    In practice, 'deny' achieves the same security outcome in most cases.
+    """
 
     def action_type(self) -> ActionType:
         return ActionType.DISRUPTIVE
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        logging.warning(f"Rule {rule.id} dropping connection")
-        transaction.interrupt(rule)
-        # TODO: In full implementation, terminate the connection
+        logging.warning(f"Rule {rule.id} dropping connection (via deny)")
+        transaction.interrupt(rule, action="drop")
 
 
 @register_action("exec")
 class ExecAction(Action):
-    """Exec action executes external command (SECURITY RISK)."""
+    """Exec action executes external command.
+
+    SECURITY: This action is INTENTIONALLY DISABLED. Executing arbitrary shell
+    commands from WAF rules is a significant security risk that can lead to:
+    - Remote code execution vulnerabilities
+    - Privilege escalation
+    - System compromise
+
+    This action is rarely needed in production. If you require external command
+    execution, implement it through a secure, audited hook mechanism outside
+    the WAF rule engine.
+
+    The action is recognized for CRS compatibility but will only log a warning.
+    """
 
     def action_type(self) -> ActionType:
         return ActionType.NONDISRUPTIVE
@@ -700,12 +739,8 @@ class ExecAction(Action):
         self.command = data
 
     def evaluate(self, rule: RuleProtocol, transaction: TransactionProtocol) -> None:
-        # WARNING: exec action is a significant security risk
-        # In production, this should be heavily restricted or disabled
-        logging.warning(f"Rule {rule.id} would execute: {self.command}")
-        logging.warning("SECURITY WARNING: exec action disabled for safety")
-        # TODO: In full implementation with proper security controls:
-        # subprocess.run(self.command, shell=True, timeout=10)
+        logging.warning(f"Rule {rule.id} exec action disabled: {self.command}")
+        logging.warning("SECURITY: exec action is intentionally disabled in LeWAF")
 
 
 @register_action("setenv")

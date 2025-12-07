@@ -78,9 +78,11 @@ class JSONFormatter(logging.Formatter):
             "taskName",
         }
 
-        for key, value in record.__dict__.items():
-            if key not in skip_attrs and not key.startswith("_"):
-                log_data[key] = value
+        log_data.update({
+            key: value
+            for key, value in record.__dict__.items()
+            if key not in skip_attrs and not key.startswith("_")
+        })
 
         # Add exception info if present
         if record.exc_info:
