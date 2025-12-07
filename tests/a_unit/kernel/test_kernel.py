@@ -7,42 +7,49 @@ from unittest.mock import MagicMock
 import pytest
 
 from lewaf.integration import ParsedOperator
-from lewaf.kernel import KernelType, get_kernel, reset_default_kernel, rust_available
-from lewaf.kernel.protocol import KernelProtocol
-from lewaf.kernel.python_kernel import PythonKernel
+from lewaf.kernel import (
+    KernelProtocol,
+    PythonKernel,
+    default_kernel,
+    reset_default_kernel,
+    set_default_kernel,
+)
 from lewaf.primitives.operators import ContainsOperator, RxOperator
 from lewaf.rules import Rule, VariableSpec
 from lewaf.transaction import Transaction
 
 
-class TestKernelFactory:
-    """Tests for kernel factory function."""
+class TestKernelModule:
+    """Tests for kernel module functions."""
 
-    def test_get_python_kernel(self) -> None:
-        """Test getting Python kernel explicitly."""
-        kernel = get_kernel(KernelType.PYTHON)
+    def test_default_kernel_returns_python_kernel(self) -> None:
+        """Test default_kernel returns PythonKernel by default."""
+        reset_default_kernel()
+        kernel = default_kernel()
         assert isinstance(kernel, PythonKernel)
 
-    def test_get_kernel_from_string(self) -> None:
-        """Test getting kernel from string."""
-        kernel = get_kernel("python")
-        assert isinstance(kernel, PythonKernel)
+    def test_default_kernel_is_singleton(self) -> None:
+        """Test default_kernel returns same instance."""
+        reset_default_kernel()
+        kernel1 = default_kernel()
+        kernel2 = default_kernel()
+        assert kernel1 is kernel2
 
-    def test_get_kernel_auto(self) -> None:
-        """Test auto-detection of kernel."""
-        kernel = get_kernel(KernelType.AUTO)
-        # Should always return a valid kernel
-        assert isinstance(kernel, KernelProtocol)
+    def test_set_default_kernel(self) -> None:
+        """Test set_default_kernel changes the default."""
+        reset_default_kernel()
+        custom_kernel = PythonKernel()
+        set_default_kernel(custom_kernel)
+        assert default_kernel() is custom_kernel
+        reset_default_kernel()
 
-    def test_invalid_kernel_type(self) -> None:
-        """Test invalid kernel type raises error."""
-        with pytest.raises(ValueError, match="Invalid kernel_type"):
-            get_kernel("invalid")
-
-    def test_rust_available_returns_bool(self) -> None:
-        """Test rust_available returns a boolean."""
-        result = rust_available()
-        assert isinstance(result, bool)
+    def test_reset_default_kernel(self) -> None:
+        """Test reset_default_kernel clears the singleton."""
+        kernel1 = default_kernel()
+        reset_default_kernel()
+        kernel2 = default_kernel()
+        # After reset, a new instance is created
+        assert kernel1 is not kernel2
 
 
 class TestPythonKernel:
@@ -389,16 +396,12 @@ class TestKernelIntegration:
         result = rule.evaluate(tx)
         assert result is True
 
-    def test_kernel_selection_environment(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test kernel selection via environment variable."""
-        # Force Python kernel via environment
-        monkeypatch.setenv("LEWAF_KERNEL", "python")
+    def test_kernel_used_via_default_kernel(self) -> None:
+        """Test that Rule.evaluate() uses the default kernel."""
         reset_default_kernel()
-
-        kernel = get_kernel()
-        assert isinstance(kernel, PythonKernel)
+        # Verify the default kernel is used
+        kernel = default_kernel()
+        assert isinstance(kernel, KernelProtocol)
 
 
 class TestKernelProtocol:

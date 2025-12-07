@@ -30,7 +30,20 @@ This ADR outlines the strategy for developing and integrating native extensions 
 
 ## Decision
 
-### 1. Two Integration Levels: Kernel and Engine
+### 1. Design Principle: Clean Separation
+
+**The main LeWAF codebase does not know about native implementations.**
+
+The main repo provides:
+- `KernelProtocol` - The interface definition
+- `PythonKernel` - Pure Python reference implementation
+- `set_default_kernel()` - Registration function for external kernels
+
+External packages (e.g., `lewaf-kernel-rust`) provide:
+- Native kernel implementation
+- Registration with LeWAF via `set_default_kernel()`
+
+### 2. Two Integration Levels: Kernel and Engine
 
 We define two distinct integration points with different trade-offs:
 
@@ -59,7 +72,7 @@ We define two distinct integration points with different trade-offs:
 - Kernel: Quick wins, low risk, validates approach
 - Engine: Maximum performance when needed
 
-### 2. Protocol Definitions
+### 3. Protocol Definitions
 
 #### Kernel Protocol (ADR-001)
 
@@ -76,10 +89,13 @@ class KernelProtocol(Protocol):
     # Level 2: Operators
     def evaluate_rx(self, pattern: str, value: str, capture: bool) -> tuple[bool, list[str]]: ...
     def evaluate_pm(self, phrases: list[str], value: str) -> bool: ...
-    # ... all 32 operators
+    # ... all operators
+
+    # Level 2.5: Generic dispatch
+    def evaluate_operator(self, name: str, arg: str, value: str, capture: bool) -> tuple[bool, list[str]]: ...
 ```
 
-#### Engine Protocol (New)
+#### Engine Protocol (Future)
 
 ```python
 class TransactionData(TypedDict):
@@ -121,7 +137,7 @@ class EngineProtocol(Protocol):
         ...
 ```
 
-### 3. Native Extensions Live Outside Main Repo
+### 4. Native Extensions Live Outside Main Repo
 
 ```
 lewaf/              # Main Python library (this repo)
@@ -134,71 +150,84 @@ lewaf-kernel-zig/   # Zig kernel + engine (separate repo, future)
 - Different build toolchains don't complicate CI
 - Can version independently
 - Easier for contributors
+- **Main codebase doesn't import or reference native packages**
 
-### 4. Optional Dependencies
+### 5. Explicit Kernel Registration
+
+External packages explicitly register their kernel implementation:
+
+```python
+# In lewaf-kernel-rust package
+from lewaf.kernel import set_default_kernel
+from .kernel import RustKernel
+
+# Option 1: Auto-register on import
+set_default_kernel(RustKernel())
+
+# Option 2: Let user control registration
+def register():
+    set_default_kernel(RustKernel())
+```
+
+User code:
+```python
+# Explicit registration
+import lewaf_kernel_rust
+lewaf_kernel_rust.register()
+
+# Or if auto-registering:
+import lewaf_kernel_rust  # Registers RustKernel as default
+
+# Then use LeWAF normally
+from lewaf import WAF
+waf = WAF()  # Uses RustKernel automatically
+```
+
+### 6. Optional Dependencies
 
 ```bash
 # Python-only (default)
 pip install lewaf
 
-# With Rust extensions
+# With Rust extensions (user installs separately)
 pip install lewaf lewaf-kernel-rust
 
-# Or via extras
+# Or via extras (if we configure pyproject.toml)
 pip install lewaf[rust]
-pip install lewaf[native]  # Best available
 ```
 
-### 5. Auto-Detection with Graceful Fallback
+### 7. Engine Integration Point (Future)
 
-```python
-from lewaf.kernel import default_kernel
-from lewaf.engine import default_engine
-
-# Kernel: Tries Rust > Zig > Python
-kernel = default_kernel()
-
-# Engine: Tries Rust > Zig > None (falls back to kernel-based evaluation)
-engine = default_engine()
-
-# Environment override
-# LEWAF_KERNEL=python pytest
-# LEWAF_ENGINE=none pytest  # Disable engine, use kernel only
-```
-
-### 6. Engine Integration Point
+When Engine level is implemented:
 
 ```python
 class RuleGroup:
-    def __init__(self, rules: list[Rule]):
+    def __init__(self, rules: list[Rule], engine: EngineProtocol | None = None):
         self._rules = rules
+        self._engine = engine
         self._compiled: CompiledRuleset | None = None
-        self._engine: EngineProtocol | None = None
 
-    def _ensure_compiled(self) -> tuple[EngineProtocol | None, CompiledRuleset | None]:
-        if self._engine is None:
-            self._engine = default_engine()
-            if self._engine:
-                self._compiled = self._engine.compile_rules(self._rules)
-        return self._engine, self._compiled
+    def _ensure_compiled(self) -> CompiledRuleset | None:
+        if self._engine and self._compiled is None:
+            self._compiled = self._engine.compile_rules(self._rules)
+        return self._compiled
 
     def evaluate(self, tx: Transaction, phase: int) -> None:
-        engine, compiled = self._ensure_compiled()
+        compiled = self._ensure_compiled()
 
-        if engine and compiled:
+        if self._engine and compiled:
             # Fast path: native engine (30-50x faster)
             tx_data = tx.to_dict()
-            result = engine.evaluate_phase(compiled, tx_data, phase)
+            result = self._engine.evaluate_phase(compiled, tx_data, phase)
             tx.apply_result(result)
         else:
-            # Fallback: kernel-based evaluation (2-10x faster)
-            # Or pure Python if no kernel available
+            # Fallback: kernel-based evaluation
             for rule in self._rules:
                 if rule.phase == phase:
                     rule.evaluate(tx)
 ```
 
-### 7. Data Flow Comparison
+### 8. Data Flow Comparison
 
 **Kernel Level (many FFI calls):**
 ```
@@ -231,7 +260,7 @@ to_dict(transaction) ─────────────> TransactionData
 apply_result(result)
 ```
 
-### 8. Performance Projections
+### 9. Performance Projections
 
 | Scenario | Python | Kernel (2-10x) | Engine (30-50x) |
 |----------|--------|----------------|-----------------|
@@ -248,13 +277,13 @@ apply_result(result)
 - SIMD for transforms
 - Aho-Corasick compiled once
 
-### 9. Rust Implementation Architecture
+### 10. Rust Implementation Architecture
 
 ```
 lewaf-kernel-rust/
 ├── Cargo.toml
 ├── src/
-│   ├── lib.rs              # PyO3 bindings
+│   ├── lib.rs              # PyO3 bindings + set_default_kernel()
 │   ├── kernel/
 │   │   ├── mod.rs          # KernelProtocol impl
 │   │   ├── regex.rs        # DFA regex (regex crate)
@@ -267,7 +296,7 @@ lewaf-kernel-rust/
 │       └── transaction.rs  # Native TransactionData
 ├── python/
 │   └── lewaf_kernel_rust/
-│       └── __init__.py
+│       └── __init__.py     # Calls set_default_kernel()
 └── pyproject.toml          # maturin config
 ```
 
@@ -277,7 +306,7 @@ lewaf-kernel-rust/
 - `pyo3` - Python bindings
 - `bumpalo` - Arena allocator
 
-### 10. Zig Implementation (Future/Research)
+### 11. Zig Implementation (Future/Research)
 
 ```
 lewaf-kernel-zig/
@@ -296,24 +325,26 @@ lewaf-kernel-zig/
 - Comptime rule compilation (rules baked into binary)
 - Smaller binary size
 
-### 11. Migration Path
+### 12. Migration Path
 
-#### Phase 1: Kernel Integration (ADR-001)
+#### Phase 1: Kernel Integration (ADR-001) ✅ DONE
 - Wire up KernelProtocol in Rule.evaluate()
 - Python kernel as default
+- Explicit registration via set_default_kernel()
 - All tests pass
 
-#### Phase 2: Rust Kernel
+#### Phase 2: Rust Kernel (External Repo)
+- Create lewaf-kernel-rust repo
 - Implement KernelProtocol in Rust
 - Publish lewaf-kernel-rust 0.1.0
 - Target: 2-10x speedup
 
 #### Phase 3: Engine Protocol
-- Define EngineProtocol
+- Define EngineProtocol in main repo
 - Add integration point in RuleGroup
 - Implement Python reference engine (uses kernel)
 
-#### Phase 4: Rust Engine
+#### Phase 4: Rust Engine (External Repo)
 - Implement rule compilation
 - Implement evaluate_phase
 - Target: 30-50x speedup
@@ -322,36 +353,41 @@ lewaf-kernel-zig/
 - WASM target
 - Comptime optimization research
 
-### 12. Versioning and Compatibility
+### 13. Versioning and Compatibility
 
 ```python
-# Protocol versions
+# Protocol versions (in main repo)
 KERNEL_PROTOCOL_VERSION = "1.0"
 ENGINE_PROTOCOL_VERSION = "1.0"
 
 # Native package declares compatibility
-SUPPORTED_LEWAF_VERSIONS = ["0.7.*", "0.8.*"]
+# In lewaf-kernel-rust/pyproject.toml:
+# dependencies = ["lewaf>=0.7.0,<0.9.0"]
 ```
 
-### 13. Testing Strategy
+### 14. Testing Strategy
 
 ```bash
-# Test with specific implementations
-LEWAF_KERNEL=rust LEWAF_ENGINE=rust pytest
-LEWAF_KERNEL=python LEWAF_ENGINE=none pytest  # Pure Python
+# Test with Python kernel (default)
+pytest
 
-# Performance regression tests
-pytest tests/benchmarks/ --kernel=rust --engine=rust
+# Test with Rust kernel (if installed)
+python -c "import lewaf_kernel_rust" && pytest
+
+# In CI, test both configurations
+pytest  # Python
+pip install lewaf-kernel-rust && pytest  # Rust
 ```
 
 ## Consequences
 
 ### Positive
 
-1. **Two optimization tiers** - Choose based on needs
-2. **Clean separation** - Main repo stays simple
-3. **Graceful degradation** - Python always works
-4. **Maximum performance available** - 30-50x with engine
+1. **Clean separation** - Main repo doesn't know about native code
+2. **Explicit control** - Users choose which kernel to use
+3. **Two optimization tiers** - Choose based on needs
+4. **Graceful degradation** - Python always works
+5. **Maximum performance available** - 30-50x with engine
 
 ### Negative
 
@@ -376,28 +412,19 @@ pytest tests/benchmarks/ --kernel=rust --engine=rust
 
 1. Start with Kernel (quick wins, validates approach)
 2. Add Engine when performance requirements demand it
-3. Auto-select based on ruleset size and available implementations
+3. Users explicitly install and register native kernels
 
 ```python
-def get_evaluator(rules: list[Rule]) -> Evaluator:
-    engine = default_engine()
-    kernel = default_kernel()
+# User code
+import lewaf_kernel_rust  # Optional - registers RustKernel
 
-    # Engine beneficial for many rules
-    if engine and len(rules) > 50:
-        return EngineEvaluator(engine, rules)
-
-    # Kernel for smaller rulesets
-    if kernel:
-        return KernelEvaluator(kernel, rules)
-
-    # Pure Python fallback
-    return PythonEvaluator(rules)
+from lewaf import WAF
+waf = WAF()  # Uses RustKernel if available, else PythonKernel
 ```
 
 ## References
 
-- ADR-001 - Kernel integration (immediate refactoring)
+- ADR-001 - Kernel integration (implemented)
 - `experimental/notes/BENCHMARK-REPORT.md` - Performance analysis
 - `experimental/notes/extended-kernel-analysis.md` - Engine-level analysis
 - `experimental/notes/future-vision.md` - Architecture vision
