@@ -7,6 +7,9 @@ This serves as the baseline for performance comparison with Rust.
 
 from __future__ import annotations
 
+import fnmatch
+import logging
+
 from lewaf.core import compile_regex
 from lewaf.primitives.transformations import TRANSFORMATIONS
 
@@ -128,6 +131,130 @@ class PythonKernel:
         except (ValueError, TypeError):
             return False
 
+    def evaluate_beginswith(self, prefix: str, value: str) -> bool:
+        """Evaluate @beginsWith operator."""
+        return value.startswith(prefix)
+
+    def evaluate_endswith(self, suffix: str, value: str) -> bool:
+        """Evaluate @endsWith operator."""
+        return value.endswith(suffix)
+
+    def evaluate_within(self, allowed: str, value: str) -> bool:
+        """Evaluate @within operator (value must be in allowed list)."""
+        allowed_values = allowed.split()
+        return value in allowed_values
+
+    def evaluate_strmatch(self, pattern: str, value: str) -> bool:
+        """Evaluate @strmatch operator (glob-style pattern matching)."""
+        return fnmatch.fnmatch(value, pattern)
+
+    # =========================================================================
+    # Level 2.5: Generic Operator Dispatch
+    # =========================================================================
+
+    def evaluate_operator(
+        self,
+        operator_name: str,
+        operator_arg: str,
+        value: str,
+        capture: bool = False,
+    ) -> tuple[bool, list[str]]:
+        """
+        Evaluate any operator by name.
+
+        This dispatches to the appropriate operator method based on name.
+        """
+        op_name = operator_name.lower()
+
+        # Regex operator (supports captures)
+        if op_name == "rx":
+            return self.evaluate_rx(operator_arg, value, capture)
+
+        # Phrase match operator
+        if op_name == "pm":
+            phrases = operator_arg.split()
+            return self.evaluate_pm(phrases, value), []
+
+        # String operators
+        if op_name == "contains":
+            return self.evaluate_contains(operator_arg, value), []
+        if op_name == "streq":
+            return self.evaluate_streq(operator_arg, value), []
+        if op_name == "beginswith":
+            return self.evaluate_beginswith(operator_arg, value), []
+        if op_name == "endswith":
+            return self.evaluate_endswith(operator_arg, value), []
+        if op_name == "within":
+            return self.evaluate_within(operator_arg, value), []
+        if op_name == "strmatch":
+            return self.evaluate_strmatch(operator_arg, value), []
+
+        # Numeric operators
+        if op_name == "eq":
+            try:
+                return self.evaluate_eq(int(operator_arg), value), []
+            except ValueError:
+                return False, []
+        if op_name == "gt":
+            try:
+                return self.evaluate_gt(int(operator_arg), value), []
+            except ValueError:
+                return False, []
+        if op_name == "lt":
+            try:
+                return self.evaluate_lt(int(operator_arg), value), []
+            except ValueError:
+                return False, []
+        if op_name == "ge":
+            try:
+                return self.evaluate_ge(int(operator_arg), value), []
+            except ValueError:
+                return False, []
+        if op_name == "le":
+            try:
+                return self.evaluate_le(int(operator_arg), value), []
+            except ValueError:
+                return False, []
+
+        # Unconditional operators (always match or never match)
+        if op_name in ("unconditional", "unconditionalmatch"):
+            return True, []
+        if op_name == "nomatch":
+            return False, []
+
+        # Unknown operator - fall back to existing operator implementation
+        # This allows operators not yet in the kernel to still work
+        return self._fallback_evaluate(operator_name, operator_arg, value, capture)
+
+    def _fallback_evaluate(
+        self,
+        operator_name: str,
+        operator_arg: str,
+        value: str,
+        capture: bool,
+    ) -> tuple[bool, list[str]]:
+        """
+        Fall back to the existing operator implementation for unsupported operators.
+
+        This ensures backwards compatibility while we migrate operators to the kernel.
+        """
+        # Lazy import to avoid circular dependency
+        from lewaf.primitives.operators import (  # noqa: PLC0415
+            OperatorOptions,
+            get_operator,
+        )
+
+        try:
+            options = OperatorOptions(arguments=operator_arg)
+            op = get_operator(operator_name, options)
+            # Create a minimal transaction-like object for evaluation
+            matched = op.evaluate(_DummyTransaction(capture), value)
+            return matched, []
+        except (ValueError, KeyError, TypeError) as e:
+            # Unknown operator or error - no match
+            logging.debug("Fallback operator %s failed: %s", operator_name, e)
+            return False, []
+
     # =========================================================================
     # Level 3: Rule Evaluation
     # =========================================================================
@@ -168,29 +295,28 @@ class PythonKernel:
     def _evaluate_operator(
         self, operator_name: str, operator_arg: str, value: str
     ) -> bool:
-        """Dispatch to the appropriate operator evaluation method."""
-        op_name = operator_name.lower()
+        """Dispatch to evaluate_operator (without captures)."""
+        matched, _ = self.evaluate_operator(
+            operator_name, operator_arg, value, capture=False
+        )
+        return matched
 
-        if op_name == "rx":
-            matched, _ = self.evaluate_rx(operator_arg, value, capture=False)
-            return matched
-        if op_name == "pm":
-            phrases = operator_arg.split()
-            return self.evaluate_pm(phrases, value)
-        if op_name == "contains":
-            return self.evaluate_contains(operator_arg, value)
-        if op_name == "streq":
-            return self.evaluate_streq(operator_arg, value)
-        if op_name == "eq":
-            return self.evaluate_eq(int(operator_arg), value)
-        if op_name == "gt":
-            return self.evaluate_gt(int(operator_arg), value)
-        if op_name == "lt":
-            return self.evaluate_lt(int(operator_arg), value)
-        if op_name == "ge":
-            return self.evaluate_ge(int(operator_arg), value)
-        if op_name == "le":
-            return self.evaluate_le(int(operator_arg), value)
 
-        # Unknown operator - no match
-        return False
+class _DummyTransaction:
+    """Minimal transaction-like object for operator fallback evaluation."""
+
+    def __init__(self, capture: bool = False):
+        self._capture = capture
+        self._captures: list[str] = []
+
+    def capturing(self) -> bool:
+        return self._capture
+
+    def capture_field(self, index: int, value: str) -> None:
+        # Pad captures list if needed
+        while len(self._captures) < index:
+            self._captures.append("")
+        if index <= len(self._captures):
+            self._captures[index - 1] = value
+        else:
+            self._captures.append(value)

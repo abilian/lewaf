@@ -4,8 +4,8 @@ import logging
 from dataclasses import dataclass, field as dataclass_field
 from typing import TYPE_CHECKING, Any, cast
 
+from lewaf.kernel import default_kernel
 from lewaf.primitives.collections import MapCollection, SingleValueCollection
-from lewaf.primitives.transformations import TRANSFORMATIONS
 
 if TYPE_CHECKING:
     from lewaf.integration import ParsedOperator
@@ -124,12 +124,14 @@ class Rule:
                         full_name = f"{var_name}:{match.key}" if match.key else var_name
                         values_to_test.append((full_name, match.value))
 
+        # Get the kernel for transforms and operator evaluation
+        kernel = default_kernel()
+
         for full_var_name, value in values_to_test:
-            transformed_value = value
-            for t_name in self.transformations:
-                transformed_value, _ = TRANSFORMATIONS[t_name.lower()](
-                    transformed_value
-                )
+            # Use kernel for transform chain
+            transformed_value = kernel.transform_chain(
+                [str(t) for t in self.transformations], value
+            )
 
             logging.debug(
                 "Testing operator '%s' with arg '%s' against value '%s'",
@@ -138,9 +140,20 @@ class Rule:
                 transformed_value,
             )
 
-            match_result = self.operator.op.evaluate(
-                cast("Any", transaction), transformed_value
+            # Use kernel for operator evaluation
+            capturing = hasattr(transaction, "capturing") and transaction.capturing()
+            match_result, captures = kernel.evaluate_operator(
+                self.operator.name,
+                self.operator.argument,
+                transformed_value,
+                capture=capturing,
             )
+
+            # Handle captures from regex operators
+            if captures and capturing:
+                for i, capture in enumerate(captures[:9]):
+                    transaction.capture_field(i + 1, capture)
+
             # Handle negation
             if self.operator.negated:
                 match_result = not match_result
