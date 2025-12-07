@@ -15,15 +15,16 @@ if TYPE_CHECKING:
 
 # Add the lewaf-zig python package to the path
 # Path: src/lewaf/kernel/zig_kernel.py -> project_root/lewaf-zig/python
-_project_root = Path(__file__).parent.parent.parent.parent  # src/lewaf/kernel -> project root
+_project_root = Path(
+    __file__
+).parent.parent.parent.parent  # src/lewaf/kernel -> project root
 _zig_python_path = _project_root / "lewaf-zig" / "python"
 if _zig_python_path.exists():
     sys.path.insert(0, str(_zig_python_path))
 
 # Try to import the Zig kernel
 try:
-    from lewaf_zig import Kernel as _ZigKernel
-    from lewaf_zig import is_available as _is_available
+    from lewaf_zig import Kernel as _ZigKernel, is_available as _is_available
 
     ZIG_AVAILABLE = _is_available()
 except ImportError:

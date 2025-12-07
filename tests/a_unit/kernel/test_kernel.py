@@ -108,9 +108,7 @@ class TestPythonKernel:
 
     def test_transform_chain(self, kernel: PythonKernel) -> None:
         """Test transformation chain."""
-        result = kernel.transform_chain(
-            ["urldecode", "lowercase"], "HELLO%20WORLD"
-        )
+        result = kernel.transform_chain(["urldecode", "lowercase"], "HELLO%20WORLD")
         assert result == "hello world"
 
     # --- Level 2: Operator Evaluation ---
