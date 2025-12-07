@@ -248,7 +248,7 @@ class PythonKernel:
             options = OperatorOptions(arguments=operator_arg)
             op = get_operator(operator_name, options)
             # Create a minimal transaction-like object for evaluation
-            matched = op.evaluate(_DummyTransaction(capture), value)
+            matched = op.evaluate(_DummyTransaction(capture), value)  # type: ignore[arg-type]
             return matched, []
         except (ValueError, KeyError, TypeError) as e:
             # Unknown operator or error - no match

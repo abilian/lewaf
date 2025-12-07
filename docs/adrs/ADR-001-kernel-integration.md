@@ -1,6 +1,6 @@
 # ADR-001: Kernel Integration for Rule Evaluation
 
-**Status:** Proposed
+**Status:** Implemented
 **Date:** 2025-12-07
 **Authors:** LeWAF Team
 
@@ -10,33 +10,29 @@ LeWAF has a well-designed `KernelProtocol` in `src/lewaf/kernel/protocol.py` tha
 
 - **Level 1:** Primitive operations (regex_match, transform, phrase_match)
 - **Level 2:** Operator evaluation (evaluate_rx, evaluate_pm, etc.)
+- **Level 2.5:** Generic operator dispatch (evaluate_operator)
 - **Level 3:** Complete rule evaluation (evaluate_rule)
 
-Three kernel implementations exist:
+The main codebase provides:
+- `KernelProtocol` - The interface that all kernels must implement
 - `PythonKernel` - Pure Python reference implementation
-- `RustKernel` - Stub for Rust/PyO3 bindings
-- `ZigKernel` - Stub for Zig/cffi bindings
 
-**Problem:** The kernel infrastructure is not yet integrated into the main rule evaluation loop. `Rule.evaluate()` still calls operators directly, bypassing the kernel abstraction.
-
-This creates two issues:
-1. **No benefit from pluggable kernels** - Native implementations cannot be used
-2. **Duplicated logic** - Operators implement evaluation logic that could be delegated to kernels
+**Design Principle:** The main LeWAF codebase does not know about native implementations (Rust, Zig, etc.). External packages (e.g., `lewaf-kernel-rust`) provide their own kernel implementations and register them explicitly.
 
 ## Decision
 
-We will complete the kernel integration by:
+We have completed the kernel integration by:
 
 1. **Making `Rule.evaluate()` use the kernel** for the hot path
 2. **Keeping operators for parsing and configuration** but delegating execution
 3. **Maintaining full backwards compatibility** - existing code continues to work
-4. **Using auto-detection** for kernel selection with environment override
+4. **Using explicit kernel registration** - external packages call `set_default_kernel()`
 
 ### Integration Points
 
 #### 1. Rule Evaluation (Primary Change)
 
-**Current** (`rules/__init__.py`):
+**Before**:
 ```python
 # Direct operator call
 match_result = self.operator.op.evaluate(
@@ -44,7 +40,7 @@ match_result = self.operator.op.evaluate(
 )
 ```
 
-**Proposed**:
+**After**:
 ```python
 from lewaf.kernel import default_kernel
 
@@ -54,41 +50,45 @@ match_result, captures = kernel.evaluate_operator(
     self.operator.name,
     self.operator.argument,
     transformed_value,
+    capture=capturing,
 )
-if captures and transaction.capturing():
+if captures and capturing:
     for i, capture in enumerate(captures[:9]):
         transaction.capture_field(i + 1, capture)
 ```
 
 #### 2. Transformation Chain (Secondary Change)
 
-**Current**:
+**Before**:
 ```python
 for t_name in self.transformations:
     transformed_value, _ = TRANSFORMATIONS[t_name.lower()](transformed_value)
 ```
 
-**Proposed**:
+**After**:
 ```python
 kernel = default_kernel()
-transformed_value = kernel.transform_chain(self.transformations, value)
+transformed_value = kernel.transform_chain(
+    [str(t) for t in self.transformations], value
+)
 ```
 
-#### 3. Kernel Selection
+#### 3. Kernel Selection (Explicit Registration)
 
-The kernel is selected once at startup via `default_kernel()`:
+The kernel is managed via explicit registration:
 
 ```python
-# Auto-detection (default)
-kernel = default_kernel()  # Tries: Rust > Zig > Python
+from lewaf.kernel import default_kernel, set_default_kernel, reset_default_kernel
 
-# Environment override
-# LEWAF_KERNEL=python python app.py  # Force Python kernel
-# LEWAF_KERNEL=rust python app.py    # Force Rust kernel
+# Get current kernel (PythonKernel by default)
+kernel = default_kernel()
 
-# Programmatic override
-from lewaf.kernel import set_default_kernel, KernelType
-set_default_kernel(KernelType.PYTHON)
+# External packages register their kernel:
+from lewaf_kernel_rust import RustKernel
+set_default_kernel(RustKernel())
+
+# Reset to default (useful for testing)
+reset_default_kernel()
 ```
 
 ### What Changes
@@ -113,16 +113,17 @@ set_default_kernel(KernelType.PYTHON)
 
 ### Positive
 
-1. **Enables native kernels** - Rust/Zig implementations can now accelerate hot paths
-2. **Single source of truth** - Evaluation logic lives in kernel, not scattered across operators
-3. **Easier testing** - Can test kernels in isolation
-4. **No breaking changes** - Existing code works unchanged
-5. **Gradual migration** - Can switch kernels without code changes
+1. **Enables native kernels** - External packages can provide Rust/Zig implementations
+2. **Clean separation** - Main codebase doesn't know about native implementations
+3. **Single source of truth** - Evaluation logic lives in kernel, not scattered across operators
+4. **Easier testing** - Can test kernels in isolation
+5. **No breaking changes** - Existing code works unchanged
+6. **Explicit control** - Users explicitly choose which kernel to use
 
 ### Negative
 
 1. **Slight indirection** - One additional function call per evaluation
-2. **Kernel must implement all operators** - 32 operators to support
+2. **Kernel must implement all operators** - 32 operators to support (with fallback for unknown operators)
 3. **Captures handling complexity** - Kernel returns captures, caller handles transaction
 
 ### Neutral
@@ -130,43 +131,52 @@ set_default_kernel(KernelType.PYTHON)
 1. **Operators become "dumb"** - Just store configuration, don't execute
 2. **PythonKernel wraps existing code** - No duplication, just delegation
 
-## Implementation Plan
+## Implementation Notes
 
-### Phase 1: Wire Up Kernel (Minimal Change)
-1. Add `kernel.evaluate_operator()` calls in `Rule.evaluate()`
-2. Add `kernel.transform_chain()` calls for transforms
-3. Ensure `PythonKernel` delegates to existing operator/transform code
-4. All tests must pass with Python kernel
+### Fallback Mechanism
 
-### Phase 2: Validate Equivalence
-1. Run full test suite with each kernel type
-2. Benchmark to ensure no regression
-3. Verify CRS compatibility unchanged
+The `PythonKernel.evaluate_operator()` includes a fallback for operators not yet implemented in the kernel:
 
-### Phase 3: Documentation
-1. Document kernel selection options
-2. Document how to implement custom kernels
+```python
+def evaluate_operator(self, operator_name, operator_arg, value, capture=False):
+    # Try kernel-native operators first
+    if op_name == "rx":
+        return self.evaluate_rx(operator_arg, value, capture)
+    # ... other operators ...
 
-## Alternatives Considered
+    # Unknown operator - fall back to existing operator implementation
+    return self._fallback_evaluate(operator_name, operator_arg, value, capture)
+```
 
-### Alternative 1: Keep Operators as Primary
-Leave operators as the execution path, have them optionally call kernel.
+This ensures backwards compatibility while operators are migrated to the kernel.
 
-**Rejected:** Creates two code paths, harder to maintain.
+### External Kernel Registration
 
-### Alternative 2: Remove Operator Classes
-Replace operators entirely with kernel methods.
+External packages should register their kernel at import time or application startup:
 
-**Rejected:** Breaks backwards compatibility, operators useful for configuration.
+```python
+# In lewaf_kernel_rust/__init__.py
+from lewaf.kernel import set_default_kernel
+from .kernel import RustKernel
 
-### Alternative 3: Lazy Integration
-Only use kernel for specific operators (@rx, @pm).
+# Auto-register when package is imported
+set_default_kernel(RustKernel())
+```
 
-**Rejected:** Inconsistent behavior, harder to reason about.
+Or let users explicitly register:
+
+```python
+# In user's application
+import lewaf_kernel_rust  # Provides RustKernel
+from lewaf.kernel import set_default_kernel
+
+set_default_kernel(lewaf_kernel_rust.RustKernel())
+```
 
 ## References
 
 - `src/lewaf/kernel/protocol.py` - KernelProtocol definition
 - `src/lewaf/kernel/python_kernel.py` - Python reference implementation
-- `src/lewaf/rules/__init__.py` - Rule.evaluate() (lines 63-161)
-- `experimental/notes/extended-kernel-analysis.md` - Performance analysis
+- `src/lewaf/kernel/__init__.py` - Kernel module with registration functions
+- `src/lewaf/rules/__init__.py` - Rule.evaluate() using kernel
+- ADR-002 - Native kernel strategy (separate repos)
