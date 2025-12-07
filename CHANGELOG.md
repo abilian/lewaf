@@ -5,10 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.7.1] - 2025-12-07
 
 ### Added
 
+- **Pluggable kernel architecture**: `KernelProtocol` for performance-critical operations
+  - Level 1: Primitive operations (regex_match, transform, phrase_match)
+  - Level 2: Operator evaluation (evaluate_rx, evaluate_pm, etc.)
+  - Level 3: Complete rule evaluation
+  - `PythonKernel` reference implementation
+  - Enables future native kernel implementations (Rust/Zig)
 - **VariableSpec dataclass**: Replaced tuples with proper dataclass for rule variables
 - **Variable count modifier (`&ARGS`)**: Returns count of items in a collection
 - **Variable negation (`!ARGS:foo`)**: Excludes specific keys from matching
@@ -30,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
+- Added ADR-001: Kernel integration design
+- Added ADR-002: Native kernel strategy (Rust/Zig roadmap)
 - Added "Known Limitations" section to README for `drop` and `exec` actions
 - Updated action docstrings with clear limitation explanations
 
