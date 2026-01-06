@@ -917,9 +917,6 @@ class InspectFileOperator(Operator):
                 with contextlib.suppress(OSError):
                     os.unlink(temp_file_path)
 
-            # If we get here, the script ran but we didn't parse the output correctly
-            return True
-
         except subprocess.TimeoutExpired:
             # Script timed out, treat as error
             return True

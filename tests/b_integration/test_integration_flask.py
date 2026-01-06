@@ -1,4 +1,5 @@
 """Integration tests for Flask framework integration."""
+# ruff: noqa: E402 - Import after pytest.importorskip() to check dependency availability
 
 from __future__ import annotations
 

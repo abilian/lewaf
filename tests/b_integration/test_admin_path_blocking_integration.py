@@ -3,6 +3,7 @@
 This module tests the complete WAF flow: rule parsing, transaction processing,
 and request blocking for admin paths.
 """
+# ruff: noqa: ISC004 - Multi-line SecLang rules use implicit string concatenation for readability
 
 from __future__ import annotations
 

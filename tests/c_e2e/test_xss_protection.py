@@ -3,6 +3,7 @@
 This module tests that the WAF correctly detects and blocks various XSS attacks
 using real-world attack vectors and CRS rules.
 """
+# ruff: noqa: ISC004 - Multi-line SecLang rules use implicit string concatenation for readability
 
 from __future__ import annotations
 

@@ -6,6 +6,7 @@ without requiring Django to be fully configured with URL routing.
 IMPORTANT: Django configuration is done in a fixture, not at module import time,
 to avoid conflicts with other Django tests in the test suite.
 """
+# ruff: noqa: PLC0415 - Lazy imports required to avoid Django configuration conflicts
 
 from __future__ import annotations
 
@@ -44,6 +45,7 @@ def configure_django():
     )
 
     import django
+
     django.setup()
     yield
 
@@ -51,12 +53,14 @@ def configure_django():
 # Minimal URL patterns for ROOT_URLCONF (imported lazily)
 def _dummy_view(request):
     from django.http import HttpResponse
+
     return HttpResponse("OK")
 
 
 # URL patterns - use try/except for import to handle collection phase
 try:
     from django.urls import path
+
     urlpatterns = [path("", _dummy_view)]
 except Exception:
     urlpatterns = []
@@ -66,6 +70,7 @@ except Exception:
 def reset_waf_fixture():
     """Reset WAF instance between tests."""
     from lewaf.integrations.django import reset_waf
+
     reset_waf()
     yield
     reset_waf()
@@ -202,9 +207,7 @@ def test_uri_based_rules():
 
     with override_settings(
         LEWAF_CONFIG={
-            "rules": [
-                'SecRule REQUEST_URI "@rx admin" "id:3010,phase:1,deny,log"'
-            ]
+            "rules": ['SecRule REQUEST_URI "@rx admin" "id:3010,phase:1,deny,log"']
         }
     ):
         reset_waf()
@@ -236,9 +239,7 @@ def test_query_parameter_validation():
 
     with override_settings(
         LEWAF_CONFIG={
-            "rules": [
-                'SecRule ARGS:id "@rx [^0-9]" "id:3006,phase:2,deny,log"'
-            ]
+            "rules": ['SecRule ARGS:id "@rx [^0-9]" "id:3006,phase:2,deny,log"']
         }
     ):
         reset_waf()
@@ -310,9 +311,7 @@ def test_request_body_inspection():
 
     with override_settings(
         LEWAF_CONFIG={
-            "rules": [
-                'SecRule REQUEST_BODY "@rx malicious" "id:3020,phase:2,deny,log"'
-            ]
+            "rules": ['SecRule REQUEST_BODY "@rx malicious" "id:3020,phase:2,deny,log"']
         }
     ):
         reset_waf()
@@ -352,7 +351,9 @@ def test_case_sensitivity_handling():
 
     with override_settings(
         LEWAF_CONFIG={
-            "rules": ['SecRule ARGS:test "@rx ATTACK" "id:3015,phase:2,deny,log,t:uppercase"']
+            "rules": [
+                'SecRule ARGS:test "@rx ATTACK" "id:3015,phase:2,deny,log,t:uppercase"'
+            ]
         }
     ):
         reset_waf()
@@ -434,9 +435,7 @@ def test_custom_block_response():
     with override_settings(
         LEWAF_BLOCK_STATUS=429,
         LEWAF_BLOCK_MESSAGE="Rate limited",
-        LEWAF_CONFIG={
-            "rules": ['SecRule ARGS "@rx blocked" "id:3004,phase:2,deny"']
-        }
+        LEWAF_CONFIG={"rules": ['SecRule ARGS "@rx blocked" "id:3004,phase:2,deny"']},
     ):
         reset_waf()
 

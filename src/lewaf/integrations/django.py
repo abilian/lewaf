@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from django.http import HttpRequest, HttpResponse
+    from django.http import HttpRequest, HttpResponse  # type: ignore[import-untyped]
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ def get_waf() -> Any:
     if _waf_instance is not None:
         return _waf_instance
 
-    from django.conf import settings  # noqa: PLC0415
+    from django.conf import settings  # type: ignore[import-untyped]  # noqa: PLC0415
 
     from lewaf.integration import WAF  # noqa: PLC0415
 
@@ -61,9 +61,9 @@ def get_waf() -> Any:
         return _waf_instance
 
     # Check for inline config
-    config = getattr(settings, "LEWAF_CONFIG", None)
-    if config:
-        _waf_instance = WAF(config)
+    inline_config: dict[str, Any] | None = getattr(settings, "LEWAF_CONFIG", None)
+    if inline_config:
+        _waf_instance = WAF(inline_config)  # type: ignore[arg-type]
         return _waf_instance
 
     # Default: empty WAF (no rules)
@@ -212,7 +212,9 @@ class LeWAFMiddleware:
 
         # Special headers
         if "CONTENT_TYPE" in request.META:
-            tx.variables.request_headers.add("content-type", request.META["CONTENT_TYPE"])
+            tx.variables.request_headers.add(
+                "content-type", request.META["CONTENT_TYPE"]
+            )
         if "CONTENT_LENGTH" in request.META:
             tx.variables.request_headers.add(
                 "content-length", request.META["CONTENT_LENGTH"]

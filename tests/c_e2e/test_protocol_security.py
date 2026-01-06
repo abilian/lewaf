@@ -3,6 +3,7 @@
 This module tests protection against protocol-level attacks, malformed requests,
 and HTTP security violations using CRS rules.
 """
+# ruff: noqa: ISC004 - Multi-line SecLang rules use implicit string concatenation for readability
 
 from __future__ import annotations
 

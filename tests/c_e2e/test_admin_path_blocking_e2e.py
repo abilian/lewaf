@@ -3,6 +3,7 @@
 This module tests the complete stack: HTTP server, WAF middleware,
 rule evaluation, and HTTP responses using Starlette TestClient.
 """
+# ruff: noqa: ISC004 - Multi-line SecLang rules use implicit string concatenation for readability
 
 from __future__ import annotations
 
