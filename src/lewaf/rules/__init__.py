@@ -65,6 +65,11 @@ class Rule:
             "Evaluating rule %s in phase %s...", self.id, transaction.current_phase
         )
 
+        # Enable capture mode if rule has 'capture' action
+        has_capture = "capture" in self.actions
+        if has_capture and hasattr(transaction, "set_capturing"):
+            transaction.set_capturing(True)
+
         # Collect values with their full variable names for match tracking
         # Each item: (full_var_name, value) where full_var_name is like "ARGS:id"
         values_to_test: list[tuple[str, str]] = []
@@ -170,7 +175,14 @@ class Rule:
                         cast("RuleProtocol", self),
                         cast("TransactionProtocol", transaction),
                     )
+                # Reset capture mode before returning
+                if has_capture and hasattr(transaction, "set_capturing"):
+                    transaction.set_capturing(False)
                 return True
+
+        # Reset capture mode before returning
+        if has_capture and hasattr(transaction, "set_capturing"):
+            transaction.set_capturing(False)
         return False
 
     def _update_matched_vars(
