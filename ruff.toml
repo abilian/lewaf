@@ -41,6 +41,7 @@ lint.extend-ignore = [
     "TRY400", # 	[ ] error-instead-of-exception
     "FURB152", #	[*] math-constant
     "RUF001", # 	[ ] ambiguous-unicode-character-string
+    "RUF022", #
     # Fix
     "SLF001", # 	[ ] private-member-access
     "G004", #   	[ ] logging-f-string

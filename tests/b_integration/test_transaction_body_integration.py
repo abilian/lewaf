@@ -1,5 +1,4 @@
 """Tests for Transaction body processor integration."""
-# ruff: noqa: ISC004 - Implicit string concatenation used for SecLang rule readability
 
 from __future__ import annotations
 
@@ -497,8 +496,7 @@ def test_rule_with_capture_action():
     waf = WAF({
         "rules": [
             # Query strings split on &, so use pattern matching single value
-            'SecRule ARGS:input "@rx (\\w+)=(\\w+)" '
-            '"id:2001,phase:2,capture,log,pass"'
+            'SecRule ARGS:input "@rx (\\w+)=(\\w+)" "id:2001,phase:2,capture,log,pass"'
         ]
     })
     tx = waf.new_transaction()
@@ -517,10 +515,7 @@ def test_rule_with_capture_action():
 def test_rule_without_capture_action():
     """Test that rules without capture action don't store groups."""
     waf = WAF({
-        "rules": [
-            'SecRule ARGS:input "@rx (\\w+)=(\\w+)" '
-            '"id:2002,phase:2,log,pass"'
-        ]
+        "rules": ['SecRule ARGS:input "@rx (\\w+)=(\\w+)" "id:2002,phase:2,log,pass"']
     })
     tx = waf.new_transaction()
 
@@ -539,11 +534,9 @@ def test_capture_reset_between_rules():
     waf = WAF({
         "rules": [
             # First rule with capture
-            'SecRule ARGS:first "@rx val=(\\w+)" '
-            '"id:2003,phase:2,capture,log,pass"',
+            'SecRule ARGS:first "@rx val=(\\w+)" "id:2003,phase:2,capture,log,pass"',
             # Second rule without capture
-            'SecRule ARGS:second "@rx other=(\\w+)" '
-            '"id:2004,phase:2,log,pass"',
+            'SecRule ARGS:second "@rx other=(\\w+)" "id:2004,phase:2,log,pass"',
         ]
     })
     tx = waf.new_transaction()
