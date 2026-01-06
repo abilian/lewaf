@@ -25,14 +25,25 @@ logger = logging.getLogger(__name__)
 class SecLangParser:
     """Parser for ModSecurity SecLang configuration files.
 
-    This parser can load .conf files containing SecLang directives and convert them
-    into LeWAF Rule objects and configuration settings.
+    This parser loads .conf files containing SecLang directives and converts them
+    into LeWAF Rule objects and configuration settings. It handles:
+    - Include/IncludeOptional directives with glob patterns
+    - SecDefaultAction for setting default rule actions
+    - SecMarker for flow control
+    - Multi-line rules with backslash continuation
+    - Backtick-quoted sections
+
+    Note: For parsing individual rule strings from configuration dicts, the WAF
+    class uses a simpler inline parser (`lewaf.integration.SecLangParser`).
 
     Example:
+        from lewaf.seclang import SecLangParser
+
         parser = SecLangParser(waf)
         parser.from_file("rules/REQUEST-920-PROTOCOL-ENFORCEMENT.conf")
     """
 
+    # Maximum depth for nested Include directives to prevent infinite recursion
     MAX_INCLUDE_RECURSION = 100
 
     def __init__(self, waf: WAF):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import re
+import uuid
 from dataclasses import dataclass
 from typing import Any
 
@@ -24,6 +25,23 @@ class ParsedOperator:
 
 @dataclass(frozen=True)
 class SecLangParser:
+    """Simple inline SecLang parser for individual rule strings.
+
+    This parser handles single SecRule directives passed as strings (e.g., from
+    configuration dicts). For parsing .conf files with Include directives,
+    default actions, and markers, use `lewaf.seclang.SecLangParser` instead.
+
+    Note: This class shares the same name as `lewaf.seclang.SecLangParser` but
+    serves a different purpose. This one is for inline rules in WAF config:
+        WAF({"rules": ['SecRule ARGS "@rx attack" "id:1,phase:1,deny"']})
+
+    The file parser in lewaf.seclang handles:
+        - Include/IncludeOptional directives
+        - SecDefaultAction
+        - SecMarker
+        - Multi-file loading with glob patterns
+    """
+
     rule_group: RuleGroup
 
     def _normalize_line_continuations(self, rule_str: str) -> str:
@@ -249,8 +267,11 @@ class WAF:
 
         for rule_str in config["rules"]:
             self.parser.from_string(rule_str)
-        self._tx_counter = 0
 
     def new_transaction(self) -> Transaction:
-        self._tx_counter += 1
-        return Transaction(self, f"tx-{self._tx_counter}")
+        """Create a new transaction with a unique ID.
+
+        Returns:
+            A new Transaction instance with a UUID-based identifier.
+        """
+        return Transaction(self, f"tx-{uuid.uuid4().hex[:12]}")

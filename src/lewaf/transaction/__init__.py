@@ -10,6 +10,10 @@ if TYPE_CHECKING:
     from lewaf.integration import WAF
     from lewaf.rules import Rule
 
+# Default configuration constants
+DEFAULT_BODY_LIMIT = 131072  # 128 KB - Maximum request body size
+DEFAULT_HTTP_PROTOCOL = "HTTP/1.1"
+
 
 class Transaction:
     """Transaction representing a single HTTP request/response cycle.
@@ -55,7 +59,7 @@ class Transaction:
         self.rule_engine_enabled: bool = True
         self.rule_engine_mode: str = "on"
         self.body_processor: str = "URLENCODED"
-        self.body_limit: int = 131072
+        self.body_limit: int = DEFAULT_BODY_LIMIT
 
         # Audit logging control
         self.audit_log_enabled: bool = True
@@ -218,7 +222,7 @@ class Transaction:
         self.variables.request_uri.set(uri)
         self.variables.request_method.set(method)
         # Set default HTTP protocol version
-        self.variables.request_protocol.set("HTTP/1.1")
+        self.variables.request_protocol.set(DEFAULT_HTTP_PROTOCOL)
         if "?" in uri:
             qs = uri.split("?", 1)[1]
             for key, values in parse_qs(qs).items():
@@ -280,7 +284,9 @@ class Transaction:
             except ValueError:
                 pass
 
-    def add_response_status(self, status: int, protocol: str = "HTTP/1.1") -> None:
+    def add_response_status(
+        self, status: int, protocol: str = DEFAULT_HTTP_PROTOCOL
+    ) -> None:
         """Add response status to transaction.
 
         Args:
