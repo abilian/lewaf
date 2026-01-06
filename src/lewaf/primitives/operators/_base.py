@@ -56,12 +56,20 @@ class Operator:
         raise NotImplementedError
 
 
-def register_operator(name: str) -> Callable:
-    """Register an operator class by name."""
+class OperatorFactory:
+    """Factory function type for creating operators."""
 
-    def decorator(cls: type[Operator]) -> type[Operator]:
-        OPERATORS[name.lower()] = cls
-        return cls
+    @staticmethod
+    def create(options: OperatorOptions) -> Any:
+        raise NotImplementedError
+
+
+def register_operator(name: str) -> Callable:
+    """Register an operator factory by name."""
+
+    def decorator(factory_cls):
+        OPERATORS[name.lower()] = factory_cls
+        return factory_cls
 
     return decorator
 
@@ -71,8 +79,8 @@ def get_operator(name: str, options: OperatorOptions) -> Operator:
     if name.lower() not in OPERATORS:
         msg = f"Unknown operator: {name}"
         raise ValueError(msg)
-    operator_cls = OPERATORS[name.lower()]
-    return operator_cls(options.arguments)
+    factory = OPERATORS[name.lower()]
+    return factory.create(options)
 
 
 def register_dataset(name: str, data: list[str]) -> None:

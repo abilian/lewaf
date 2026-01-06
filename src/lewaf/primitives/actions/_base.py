@@ -95,56 +95,83 @@ class MacroExpander:
             )
 
         # Handle special variables
-        match var_spec:
-            case "MATCHED_VAR":
-                return getattr(transaction, "matched_var", "0")
-            case "MATCHED_VAR_NAME":
-                return getattr(transaction, "matched_var_name", "")
-            case "TIME":
-                return str(int(time.time() * 1000))  # Milliseconds
-            case "TIME_SEC":
-                return str(int(time.time()))  # Seconds
-            case "UNIQUE_ID":
-                return transaction.variables.unique_id.get()
-            case "REQUEST_URI":
-                return transaction.variables.request_uri.get()
-            case "REQUEST_METHOD":
-                return transaction.variables.request_method.get()
-            case "REMOTE_ADDR":
-                return transaction.variables.remote_addr.get()
-            case "SERVER_NAME":
-                return transaction.variables.server_name.get()
-            case _:
-                return ""
+        if var_spec == "MATCHED_VAR":
+            return getattr(transaction, "matched_var", "0")
+        if var_spec == "MATCHED_VAR_NAME":
+            return getattr(transaction, "matched_var_name", "")
+        if var_spec == "TIME":
+            return str(int(time.time() * 1000))  # Milliseconds
+        if var_spec == "TIME_SEC":
+            return str(int(time.time()))  # Seconds
+        if var_spec == "UNIQUE_ID":
+            return (
+                transaction.variables.unique_id.get()
+                if hasattr(transaction, "variables")
+                else ""
+            )
+        if var_spec == "REQUEST_URI":
+            return (
+                transaction.variables.request_uri.get()
+                if hasattr(transaction, "variables")
+                else ""
+            )
+        if var_spec == "REQUEST_METHOD":
+            return (
+                transaction.variables.request_method.get()
+                if hasattr(transaction, "variables")
+                else ""
+            )
+        if var_spec == "REMOTE_ADDR":
+            return (
+                transaction.variables.remote_addr.get()
+                if hasattr(transaction, "variables")
+                else ""
+            )
+        if var_spec == "SERVER_NAME":
+            return (
+                transaction.variables.server_name.get()
+                if hasattr(transaction, "variables")
+                else ""
+            )
+
+        # Default return for unknown variables
+        return ""
 
     @staticmethod
     def _resolve_collection_member(
         collection_name: str, member_key: str, transaction: TransactionProtocol
     ) -> str:
         """Resolve a collection member access."""
+        if not hasattr(transaction, "variables"):
+            return ""
+
         collection_name = collection_name.upper()
         member_key = member_key.lower()
 
         # Handle different collection types
-        match collection_name:
-            case "TX":
-                values = transaction.variables.tx.get(member_key)
-            case "REQUEST_HEADERS":
-                values = transaction.variables.request_headers.get(member_key)
-            case "RESPONSE_HEADERS":
-                values = transaction.variables.response_headers.get(member_key)
-            case "ARGS":
-                values = transaction.variables.args.get(member_key)
-            case "REQUEST_COOKIES":
-                values = transaction.variables.request_cookies.get(member_key)
-            case "ENV":
-                return os.environ.get(member_key.upper(), "")
-            case "GEO":
-                values = transaction.variables.geo.get(member_key)
-            case _:
-                return ""
+        if collection_name == "TX":
+            values = transaction.variables.tx.get(member_key)
+            return values[0] if values else ""
+        if collection_name == "REQUEST_HEADERS":
+            values = transaction.variables.request_headers.get(member_key)
+            return values[0] if values else ""
+        if collection_name == "RESPONSE_HEADERS":
+            values = transaction.variables.response_headers.get(member_key)
+            return values[0] if values else ""
+        if collection_name == "ARGS":
+            values = transaction.variables.args.get(member_key)
+            return values[0] if values else ""
+        if collection_name == "REQUEST_COOKIES":
+            values = transaction.variables.request_cookies.get(member_key)
+            return values[0] if values else ""
+        if collection_name == "ENV":
+            # Environment variables
+            return os.environ.get(member_key.upper(), "")
+        if collection_name == "GEO":
+            values = transaction.variables.geo.get(member_key)
+            return values[0] if values else ""
 
-        return values[0] if values else ""
+        return ""
 
 
 # Global action registry

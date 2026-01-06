@@ -13,12 +13,14 @@ Operators are organized by category:
 All operators are registered automatically on import and accessible via get_operator().
 """
 
+# Import base classes and registry first
 from __future__ import annotations
 
 from ._base import (
     DATASETS,
     OPERATORS,
     Operator,
+    OperatorFactory,
     OperatorOptions,
     TransactionProtocol,
     get_dataset,
@@ -30,48 +32,79 @@ from ._base import (
 # Import operator implementations (registration happens on import)
 from .comparison import (
     BeginsWithOperator,
+    BeginsWithOperatorFactory,
     ContainsOperator,
+    ContainsOperatorFactory,
     EndsWithOperator,
+    EndsWithOperatorFactory,
     EqOperator,
+    EqOperatorFactory,
     GeOperator,
+    GeOperatorFactory,
     GtOperator,
+    GtOperatorFactory,
     LeOperator,
+    LeOperatorFactory,
     LtOperator,
+    LtOperatorFactory,
     StrEqOperator,
+    StrEqOperatorFactory,
 )
 from .control import (
     NoMatchOperator,
+    NoMatchOperatorFactory,
     UnconditionalOperator,
+    UnconditionalOperatorFactory,
 )
 from .detection import (
     DetectSQLiOperator,
+    DetectSQLiOperatorFactory,
     DetectXSSOperator,
+    DetectXSSOperatorFactory,
 )
 from .inspection import (
     InspectFileOperator,
+    InspectFileOperatorFactory,
 )
 from .matching import (
     PmFromDatasetOperator,
+    PmFromDatasetOperatorFactory,
     PmFromFileOperator,
+    PmFromFileOperatorFactory,
     PmOperator,
+    PmOperatorFactory,
     RestPathOperator,
+    RestPathOperatorFactory,
     RxOperator,
+    RxOperatorFactory,
     StrMatchOperator,
+    StrMatchOperatorFactory,
     WithinOperator,
+    WithinOperatorFactory,
 )
 from .network import (
     GeoLookupOperator,
+    GeoLookupOperatorFactory,
     IpMatchFromDatasetOperator,
+    IpMatchFromDatasetOperatorFactory,
     IpMatchFromFileOperator,
+    IpMatchFromFileOperatorFactory,
     IpMatchOperator,
+    IpMatchOperatorFactory,
     RblOperator,
+    RblOperatorFactory,
 )
 from .validation import (
     ValidateByteRangeOperator,
+    ValidateByteRangeOperatorFactory,
     ValidateNidOperator,
+    ValidateNidOperatorFactory,
     ValidateSchemaOperator,
+    ValidateSchemaOperatorFactory,
     ValidateUrlEncodingOperator,
+    ValidateUrlEncodingOperatorFactory,
     ValidateUtf8EncodingOperator,
+    ValidateUtf8EncodingOperatorFactory,
 )
 
 __all__ = [
@@ -79,6 +112,7 @@ __all__ = [
     "DATASETS",
     "OPERATORS",
     "Operator",
+    "OperatorFactory",
     "OperatorOptions",
     "TransactionProtocol",
     "get_dataset",
@@ -87,40 +121,71 @@ __all__ = [
     "register_operator",
     # Comparison operators
     "BeginsWithOperator",
+    "BeginsWithOperatorFactory",
     "ContainsOperator",
+    "ContainsOperatorFactory",
     "EndsWithOperator",
+    "EndsWithOperatorFactory",
     "EqOperator",
+    "EqOperatorFactory",
     "GeOperator",
+    "GeOperatorFactory",
     "GtOperator",
+    "GtOperatorFactory",
     "LeOperator",
+    "LeOperatorFactory",
     "LtOperator",
+    "LtOperatorFactory",
     "StrEqOperator",
+    "StrEqOperatorFactory",
     # Control operators
     "NoMatchOperator",
+    "NoMatchOperatorFactory",
     "UnconditionalOperator",
+    "UnconditionalOperatorFactory",
     # Detection operators
     "DetectSQLiOperator",
+    "DetectSQLiOperatorFactory",
     "DetectXSSOperator",
+    "DetectXSSOperatorFactory",
     # Inspection operators
     "InspectFileOperator",
+    "InspectFileOperatorFactory",
     # Matching operators
     "PmFromDatasetOperator",
+    "PmFromDatasetOperatorFactory",
     "PmFromFileOperator",
+    "PmFromFileOperatorFactory",
     "PmOperator",
+    "PmOperatorFactory",
     "RestPathOperator",
+    "RestPathOperatorFactory",
     "RxOperator",
+    "RxOperatorFactory",
     "StrMatchOperator",
+    "StrMatchOperatorFactory",
     "WithinOperator",
+    "WithinOperatorFactory",
     # Network operators
     "GeoLookupOperator",
+    "GeoLookupOperatorFactory",
     "IpMatchFromDatasetOperator",
+    "IpMatchFromDatasetOperatorFactory",
     "IpMatchFromFileOperator",
+    "IpMatchFromFileOperatorFactory",
     "IpMatchOperator",
+    "IpMatchOperatorFactory",
     "RblOperator",
+    "RblOperatorFactory",
     # Validation operators
     "ValidateByteRangeOperator",
+    "ValidateByteRangeOperatorFactory",
     "ValidateNidOperator",
+    "ValidateNidOperatorFactory",
     "ValidateSchemaOperator",
+    "ValidateSchemaOperatorFactory",
     "ValidateUrlEncodingOperator",
+    "ValidateUrlEncodingOperatorFactory",
     "ValidateUtf8EncodingOperator",
+    "ValidateUtf8EncodingOperatorFactory",
 ]

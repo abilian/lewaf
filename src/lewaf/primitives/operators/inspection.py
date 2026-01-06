@@ -9,12 +9,22 @@ import tempfile
 
 from ._base import (
     Operator,
+    OperatorFactory,
+    OperatorOptions,
     TransactionProtocol,
     register_operator,
 )
 
 
 @register_operator("inspectfile")
+class InspectFileOperatorFactory(OperatorFactory):
+    """Factory for InspectFile operators."""
+
+    @staticmethod
+    def create(options: OperatorOptions) -> InspectFileOperator:
+        return InspectFileOperator(options.arguments)
+
+
 class InspectFileOperator(Operator):
     """File inspection operator that executes external programs."""
 
