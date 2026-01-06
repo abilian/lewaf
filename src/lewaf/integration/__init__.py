@@ -221,6 +221,22 @@ class SecLangParser:
 
 
 class WAF:
+    """Web Application Firewall instance.
+
+    Public API (stable for 1.0):
+        new_transaction() -> Transaction - Create a new transaction
+
+    Internal API (may change between versions):
+        rule_group, parser, component_signature, rule_engine_mode,
+        request_body_access, response_body_access
+
+    Example:
+        waf = WAF({"rules": ['SecRule ARGS "@rx attack" "id:1,phase:1,deny"']})
+        tx = waf.new_transaction()
+        tx.process_uri("/api", "GET")
+        result = tx.process_request_headers()
+    """
+
     def __init__(self, config: dict[str, list[Any] | list[str]]):
         self.rule_group = RuleGroup()
         self.parser = SecLangParser(self.rule_group)
