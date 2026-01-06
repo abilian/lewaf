@@ -12,6 +12,29 @@ if TYPE_CHECKING:
 
 
 class Transaction:
+    """Transaction representing a single HTTP request/response cycle.
+
+    Public API (stable for 1.0):
+        id: str - Unique transaction identifier
+        interruption: dict | None - Interruption info if request was blocked
+
+        process_uri(uri, method) - Set request URI and method
+        add_request_body(body, content_type) - Add request body
+        process_request_headers() -> dict | None - Evaluate Phase 1 rules
+        process_request_body() -> dict | None - Evaluate Phase 2 rules
+        add_response_headers(headers) - Add response headers
+        add_response_status(status, protocol) - Add response status
+        process_response_headers() -> dict | None - Evaluate Phase 3 rules
+        add_response_body(body, content_type) - Add response body
+        process_response_body() -> dict | None - Evaluate Phase 4 rules
+
+    Internal API (may change between versions):
+        waf, variables, chain_state, skip_state, multimatch_state,
+        deprecated_vars, var_expiration, ctl_directives, collection_manager,
+        rule_engine_enabled, rule_engine_mode, body_processor, body_limit,
+        audit_log_enabled, force_audit_log, skip_rules_count, current_phase
+    """
+
     def __init__(self, waf: WAF, id: str):
         self.id = id
         self.waf = waf

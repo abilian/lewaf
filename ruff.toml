@@ -3,6 +3,8 @@ target-version = "py310"
 exclude = [
     "tests/ftw_tests/coreruleset",  # External CRS test suite
     "wafbench",  # Separate benchmarking tool
+    "benchmarks", # Same
+    "experimental", # One-shot experiments
 ]
 
 lint.select = [

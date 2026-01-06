@@ -1,7 +1,17 @@
-"""Audit logging and compliance features for lewaf."""
+"""Audit logging and compliance features for LeWAF.
+
+Public API:
+    AuditLogger - Main audit logging class
+    configure_audit_logging - Convenience setup function
+
+Internal API (implementation details):
+    Formatters, masking utilities, error loggers
+"""
 
 from __future__ import annotations
 
+# Public API
+# Internal API - exposed for advanced use cases
 from lewaf.logging.audit import (
     AuditLogger,
     configure_audit_logging,
@@ -22,8 +32,11 @@ from lewaf.logging.masking import (
     set_masking_config,
 )
 
+# Only export the minimal public API
 __all__ = [
+    # Public API (stable for 1.0)
     "AuditLogger",
+    # Internal API (may change between versions)
     "CompactJSONFormatter",
     "DataMasker",
     "JSONFormatter",

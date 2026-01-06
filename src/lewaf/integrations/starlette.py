@@ -170,7 +170,3 @@ def create_waf_app(
     )
 
     return target_app
-
-
-# Backward compatibility alias
-CorazaMiddleware = LeWAFMiddleware

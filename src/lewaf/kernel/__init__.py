@@ -1,21 +1,25 @@
-"""
-Pluggable kernel module for LeWAF.
+"""Pluggable kernel module for LeWAF.
 
 This module provides a strategy pattern for swapping between different
-kernel implementations at runtime. The main codebase only provides the
-PythonKernel as default. External packages (e.g., lewaf-kernel-rust)
-can register their own implementations.
+kernel implementations at runtime. The main codebase provides PythonKernel
+as the default. External packages (e.g., lewaf-kernel-rust) can register
+their own implementations.
 
-Usage:
-    from lewaf.kernel import default_kernel, set_default_kernel
+Plugin API (for kernel authors):
+    KernelProtocol - Interface that kernel implementations must satisfy
+    set_default_kernel - Register a custom kernel implementation
 
-    # Get the current kernel (PythonKernel by default)
-    kernel = default_kernel()
+Internal API:
+    PythonKernel, default_kernel, reset_default_kernel
 
-    # External packages can register their kernel:
-    from lewaf.kernel import set_default_kernel
-    from lewaf_kernel_rust import RustKernel
-    set_default_kernel(RustKernel())
+Example (for plugin authors):
+    from lewaf.kernel import KernelProtocol, set_default_kernel
+
+    class MyKernel:
+        # Implement KernelProtocol methods...
+        pass
+
+    set_default_kernel(MyKernel())
 """
 
 from __future__ import annotations
@@ -23,8 +27,11 @@ from __future__ import annotations
 from lewaf.kernel.protocol import KernelProtocol
 from lewaf.kernel.python_kernel import PythonKernel
 
+# Only export the minimal public API
 __all__ = [
+    # Plugin API (stable for 1.0)
     "KernelProtocol",
+    # Internal API (may change between versions)
     "PythonKernel",
     "default_kernel",
     "reset_default_kernel",
