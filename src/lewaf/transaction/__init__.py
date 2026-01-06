@@ -68,6 +68,9 @@ class Transaction:
         # Skip rules counter (for skip action)
         self.skip_rules_count: int = 0
 
+        # Capture state for regex match groups (TX:0 through TX:9)
+        self._capturing: bool = False
+
     def add_request_body(self, body: bytes, content_type: str = "") -> None:
         """Add request body content to transaction.
 
@@ -384,11 +387,32 @@ class Transaction:
         if redirect_url:
             self.interruption["redirect_url"] = redirect_url
 
+    def set_capturing(self, enabled: bool) -> None:
+        """Enable or disable capture mode for the current rule evaluation.
+
+        Args:
+            enabled: Whether to capture regex match groups
+        """
+        self._capturing = enabled
+
     def capturing(self) -> bool:
-        """Return whether the transaction is capturing matches."""
-        # For now, always return False. This can be extended later.
-        return False
+        """Return whether the transaction is capturing matches.
+
+        Returns:
+            True if the current rule has the 'capture' action enabled
+        """
+        return self._capturing
 
     def capture_field(self, index: int, value: str) -> None:
-        """Capture a field value at the given index."""
-        # Placeholder implementation - can be extended to store captures
+        """Capture a field value at the given index.
+
+        Stores captured regex groups in TX:0 through TX:9, following
+        ModSecurity convention. TX:0 contains the full match, TX:1-TX:9
+        contain capture groups.
+
+        Args:
+            index: Capture group index (0-9)
+            value: Captured value
+        """
+        if 0 <= index <= 9:
+            self.variables.tx.add(str(index), value)
