@@ -9,8 +9,6 @@ from lewaf.core import compile_regex
 
 from ._base import (
     Operator,
-    OperatorFactory,
-    OperatorOptions,
     TransactionProtocol,
     get_dataset,
     register_operator,
@@ -18,14 +16,6 @@ from ._base import (
 
 
 @register_operator("rx")
-class RxOperatorFactory(OperatorFactory):
-    """Factory for regex operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> RxOperator:
-        return RxOperator(options.arguments)
-
-
 class RxOperator(Operator):
     """Regular expression operator."""
 
@@ -49,14 +39,6 @@ class RxOperator(Operator):
 
 
 @register_operator("pm")
-class PmOperatorFactory(OperatorFactory):
-    """Factory for phrase match operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> PmOperator:
-        return PmOperator(options.arguments)
-
-
 class PmOperator(Operator):
     """Phrase match operator for exact string matching."""
 
@@ -74,14 +56,6 @@ class PmOperator(Operator):
 
 
 @register_operator("pmfromfile")
-class PmFromFileOperatorFactory(OperatorFactory):
-    """Factory for phrase match from file operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> PmFromFileOperator:
-        return PmFromFileOperator(options.arguments)
-
-
 class PmFromFileOperator(Operator):
     """Phrase match from file operator."""
 
@@ -111,14 +85,6 @@ class PmFromFileOperator(Operator):
 
 
 @register_operator("strmatch")
-class StrMatchOperatorFactory(OperatorFactory):
-    """Factory for string match operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> StrMatchOperator:
-        return StrMatchOperator(options.arguments)
-
-
 class StrMatchOperator(Operator):
     """String match operator with wildcards."""
 
@@ -133,14 +99,6 @@ class StrMatchOperator(Operator):
 
 
 @register_operator("within")
-class WithinOperatorFactory(OperatorFactory):
-    """Factory for within operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> WithinOperator:
-        return WithinOperator(options.arguments)
-
-
 class WithinOperator(Operator):
     """Within range operator."""
 
@@ -155,14 +113,6 @@ class WithinOperator(Operator):
 
 
 @register_operator("restpath")
-class RestPathOperatorFactory(OperatorFactory):
-    """Factory for RestPath operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> RestPathOperator:
-        return RestPathOperator(options.arguments)
-
-
 class RestPathOperator(Operator):
     """REST path pattern matching operator."""
 
@@ -204,14 +154,6 @@ class RestPathOperator(Operator):
 
 
 @register_operator("pmfromdataset")
-class PmFromDatasetOperatorFactory(OperatorFactory):
-    """Factory for PmFromDataset operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> PmFromDatasetOperator:
-        return PmFromDatasetOperator(options.arguments)
-
-
 class PmFromDatasetOperator(Operator):
     """Pattern matching from dataset operator."""
 

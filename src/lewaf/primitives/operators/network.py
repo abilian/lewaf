@@ -9,8 +9,6 @@ import socket
 
 from ._base import (
     Operator,
-    OperatorFactory,
-    OperatorOptions,
     TransactionProtocol,
     get_dataset,
     register_operator,
@@ -18,14 +16,6 @@ from ._base import (
 
 
 @register_operator("ipmatch")
-class IpMatchOperatorFactory(OperatorFactory):
-    """Factory for IP match operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> IpMatchOperator:
-        return IpMatchOperator(options.arguments)
-
-
 class IpMatchOperator(Operator):
     """IP address/network matching operator."""
 
@@ -55,14 +45,6 @@ class IpMatchOperator(Operator):
 
 
 @register_operator("ipmatchfromfile")
-class IpMatchFromFileOperatorFactory(OperatorFactory):
-    """Factory for IpMatchFromFile operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> IpMatchFromFileOperator:
-        return IpMatchFromFileOperator(options.arguments)
-
-
 class IpMatchFromFileOperator(Operator):
     """IP address matching from file operator."""
 
@@ -135,14 +117,6 @@ class IpMatchFromFileOperator(Operator):
 
 
 @register_operator("ipmatchfromdataset")
-class IpMatchFromDatasetOperatorFactory(OperatorFactory):
-    """Factory for IpMatchFromDataset operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> IpMatchFromDatasetOperator:
-        return IpMatchFromDatasetOperator(options.arguments)
-
-
 class IpMatchFromDatasetOperator(Operator):
     """IP address matching from dataset operator."""
 
@@ -188,14 +162,6 @@ class IpMatchFromDatasetOperator(Operator):
 
 
 @register_operator("geolookup")
-class GeoLookupOperatorFactory(OperatorFactory):
-    """Factory for GeoLookup operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> GeoLookupOperator:
-        return GeoLookupOperator(options.arguments)
-
-
 class GeoLookupOperator(Operator):
     """
     Geographic IP lookup operator for threat assessment.
@@ -310,14 +276,6 @@ class GeoLookupOperator(Operator):
 
 
 @register_operator("rbl")
-class RblOperatorFactory(OperatorFactory):
-    """Factory for Real-time Blacklist (RBL) operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> RblOperator:
-        return RblOperator(options.arguments)
-
-
 class RblOperator(Operator):
     """
     Real-time Blacklist (RBL) operator for threat intelligence integration.

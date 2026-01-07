@@ -8,22 +8,12 @@ from lewaf.core import compile_regex
 
 from ._base import (
     Operator,
-    OperatorFactory,
-    OperatorOptions,
     TransactionProtocol,
     register_operator,
 )
 
 
 @register_operator("detectsqli")
-class DetectSQLiOperatorFactory(OperatorFactory):
-    """Factory for SQL injection detection operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> DetectSQLiOperator:
-        return DetectSQLiOperator(options.arguments)
-
-
 class DetectSQLiOperator(Operator):
     """SQL injection detection operator."""
 
@@ -49,14 +39,6 @@ class DetectSQLiOperator(Operator):
 
 
 @register_operator("detectxss")
-class DetectXSSOperatorFactory(OperatorFactory):
-    """Factory for XSS detection operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> DetectXSSOperator:
-        return DetectXSSOperator(options.arguments)
-
-
 class DetectXSSOperator(Operator):
     """XSS detection operator."""
 
