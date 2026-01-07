@@ -55,7 +55,7 @@ Test security rules in staging before production deployment. Catch configuration
 
 LeWAF is a Python implementation of the ModSecurity/Coraza Web Application Firewall specification. It runs as middleware in your web application, inspecting HTTP requests and responses against security rules before they reach your application code.
 
-The system uses the OWASP Core Rule Set (CRS) - 594 security rules maintained by security researchers and updated as new threats emerge. LeWAF is compatible with ASGI (async) and WSGI (sync) frameworks: FastAPI, Flask, Django, and Starlette.
+The system uses the OWASP Core Rule Set (CRS) - 681 security rules maintained by security researchers and updated as new threats emerge. LeWAF is compatible with ASGI (async) and WSGI (sync) frameworks: FastAPI, Flask, Django, and Starlette.
 
 **Key capabilities:**
 - Blocks SQL injection, XSS, command injection, path traversal attacks
@@ -190,7 +190,7 @@ The rule engine uses the ModSecurity SecLang specification, the same rule langua
 ## Compatibility
 
 LeWAF implements the ModSecurity/Coraza WAF specification and is compatible with:
-- **OWASP Core Rule Set**: 594 of ~650 rules (92% compatibility)
+- **OWASP Core Rule Set**: 681 rules loaded (100% file compatibility)
 - **ModSecurity rules**: Standard SecLang syntax
 - **Python frameworks**: FastAPI, Flask, Django, Starlette
 - **Deployment platforms**: Docker, Kubernetes, traditional servers
