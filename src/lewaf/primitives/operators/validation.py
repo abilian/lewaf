@@ -10,22 +10,12 @@ from lewaf.core import compile_regex
 
 from ._base import (
     Operator,
-    OperatorFactory,
-    OperatorOptions,
     TransactionProtocol,
     register_operator,
 )
 
 
 @register_operator("validatebyterange")
-class ValidateByteRangeOperatorFactory(OperatorFactory):
-    """Factory for byte range validation operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> ValidateByteRangeOperator:
-        return ValidateByteRangeOperator(options.arguments)
-
-
 class ValidateByteRangeOperator(Operator):
     """Validate byte range operator."""
 
@@ -51,14 +41,6 @@ class ValidateByteRangeOperator(Operator):
 
 
 @register_operator("validateutf8encoding")
-class ValidateUtf8EncodingOperatorFactory(OperatorFactory):
-    """Factory for UTF-8 validation operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> ValidateUtf8EncodingOperator:
-        return ValidateUtf8EncodingOperator(options.arguments)
-
-
 class ValidateUtf8EncodingOperator(Operator):
     """UTF-8 encoding validation operator."""
 
@@ -73,14 +55,6 @@ class ValidateUtf8EncodingOperator(Operator):
 
 
 @register_operator("validateurlencoding")
-class ValidateUrlEncodingOperatorFactory(OperatorFactory):
-    """Factory for ValidateUrlEncoding operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> ValidateUrlEncodingOperator:
-        return ValidateUrlEncodingOperator(options.arguments)
-
-
 class ValidateUrlEncodingOperator(Operator):
     """Validates URL-encoded characters in input."""
 
@@ -104,14 +78,6 @@ class ValidateUrlEncodingOperator(Operator):
 
 
 @register_operator("validateschema")
-class ValidateSchemaOperatorFactory(OperatorFactory):
-    """Factory for ValidateSchema operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> ValidateSchemaOperator:
-        return ValidateSchemaOperator(options.arguments)
-
-
 class ValidateSchemaOperator(Operator):
     """Validates JSON/XML schema."""
 
@@ -136,14 +102,6 @@ class ValidateSchemaOperator(Operator):
 
 
 @register_operator("validatenid")
-class ValidateNidOperatorFactory(OperatorFactory):
-    """Factory for ValidateNid operators."""
-
-    @staticmethod
-    def create(options: OperatorOptions) -> ValidateNidOperator:
-        return ValidateNidOperator(options.arguments)
-
-
 class ValidateNidOperator(Operator):
     """Validates National ID numbers for different countries.
 
@@ -166,16 +124,17 @@ class ValidateNidOperator(Operator):
         self._regex = compile_regex(self._regex_pattern)
 
         # Select validation function based on country code
-        if self._country_code == "cl":
-            self._validator = self._validate_cl
-        elif self._country_code == "us":
-            self._validator = self._validate_us
-        else:
-            msg = (
-                f"Unsupported country code '{self._country_code}'. "
-                "Supported: cl (Chile), us (USA)"
-            )
-            raise ValueError(msg)
+        match self._country_code:
+            case "cl":
+                self._validator = self._validate_cl
+            case "us":
+                self._validator = self._validate_us
+            case _:
+                msg = (
+                    f"Unsupported country code '{self._country_code}'. "
+                    "Supported: cl (Chile), us (USA)"
+                )
+                raise ValueError(msg)
 
     def evaluate(self, tx: TransactionProtocol, value: str) -> bool:
         """Find and validate National IDs in the input value."""

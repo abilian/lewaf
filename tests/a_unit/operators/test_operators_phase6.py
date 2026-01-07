@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from lewaf.primitives.operators import OPERATORS, OperatorOptions
+from lewaf.primitives.operators import OPERATORS, OperatorOptions, get_operator
 from tests.utils import StubOperatorTransaction
 
 
@@ -12,15 +12,13 @@ def test_unconditionalmatch_alias_registered():
     """Test that 'unconditionalmatch' alias is registered."""
     assert "unconditionalmatch" in OPERATORS
     assert "unconditional" in OPERATORS
-    # Both should point to the same factory
+    # Both should point to the same class
     assert OPERATORS["unconditionalmatch"] == OPERATORS["unconditional"]
 
 
 def test_unconditionalmatch_behavior():
     """Test that unconditionalmatch always returns True."""
-    factory = OPERATORS["unconditionalmatch"]
-    options = OperatorOptions("")
-    operator = factory.create(options)
+    operator = get_operator("unconditionalmatch", OperatorOptions(""))
 
     tx = StubOperatorTransaction()
 
@@ -36,9 +34,9 @@ def test_validatenid_registered():
 
 def test_validatenid_chilean_valid():
     """Test Chilean RUT validation with valid RUTs."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
-    operator = factory.create(options)
+    operator = get_operator(
+        "validatenid", OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
+    )
 
     tx = StubOperatorTransaction()
 
@@ -54,9 +52,9 @@ def test_validatenid_chilean_valid():
 
 def test_validatenid_chilean_invalid():
     """Test Chilean RUT validation with invalid RUTs."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
-    operator = factory.create(options)
+    operator = get_operator(
+        "validatenid", OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
+    )
 
     tx = StubOperatorTransaction()
 
@@ -68,9 +66,7 @@ def test_validatenid_chilean_invalid():
 
 def test_validatenid_chilean_too_short():
     """Test Chilean RUT validation rejects too-short values."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"cl \d{1,7}")
-    operator = factory.create(options)
+    operator = get_operator("validatenid", OperatorOptions(r"cl \d{1,7}"))
 
     tx = StubOperatorTransaction()
 
@@ -81,9 +77,7 @@ def test_validatenid_chilean_too_short():
 
 def test_validatenid_us_valid():
     """Test US SSN validation with valid SSNs."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
-    operator = factory.create(options)
+    operator = get_operator("validatenid", OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}"))
 
     tx = StubOperatorTransaction()
 
@@ -96,9 +90,7 @@ def test_validatenid_us_valid():
 
 def test_validatenid_us_invalid_area():
     """Test US SSN validation rejects invalid area codes."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
-    operator = factory.create(options)
+    operator = get_operator("validatenid", OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}"))
 
     tx = StubOperatorTransaction()
 
@@ -111,9 +103,7 @@ def test_validatenid_us_invalid_area():
 
 def test_validatenid_us_invalid_group_serial():
     """Test US SSN validation rejects invalid group/serial."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
-    operator = factory.create(options)
+    operator = get_operator("validatenid", OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}"))
 
     tx = StubOperatorTransaction()
 
@@ -126,9 +116,7 @@ def test_validatenid_us_invalid_group_serial():
 
 def test_validatenid_us_invalid_patterns():
     """Test US SSN validation rejects repeating and sequential digits."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}")
-    operator = factory.create(options)
+    operator = get_operator("validatenid", OperatorOptions(r"us \d{3}-?\d{2}-?\d{4}"))
 
     tx = StubOperatorTransaction()
 
@@ -142,9 +130,7 @@ def test_validatenid_us_invalid_patterns():
 
 def test_validatenid_us_too_short():
     """Test US SSN validation rejects too-short values."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"us \d{1,8}")
-    operator = factory.create(options)
+    operator = get_operator("validatenid", OperatorOptions(r"us \d{1,8}"))
 
     tx = StubOperatorTransaction()
 
@@ -155,9 +141,9 @@ def test_validatenid_us_too_short():
 
 def test_validatenid_capture():
     """Test that validatenid captures valid NIDs."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
-    operator = factory.create(options)
+    operator = get_operator(
+        "validatenid", OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
+    )
 
     tx = StubOperatorTransaction()
 
@@ -172,9 +158,9 @@ def test_validatenid_capture():
 
 def test_validatenid_multiple_matches():
     """Test validatenid with multiple NIDs in input."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
-    operator = factory.create(options)
+    operator = get_operator(
+        "validatenid", OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
+    )
 
     tx = StubOperatorTransaction()
 
@@ -188,9 +174,9 @@ def test_validatenid_multiple_matches():
 
 def test_validatenid_max_matches():
     """Test that validatenid limits matches to 10."""
-    factory = OPERATORS["validatenid"]
-    options = OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
-    operator = factory.create(options)
+    operator = get_operator(
+        "validatenid", OperatorOptions(r"cl \d{1,2}\.?\d{3}\.?\d{3}-?[\dkK]")
+    )
 
     tx = StubOperatorTransaction()
 
@@ -207,17 +193,11 @@ def test_validatenid_max_matches():
 
 def test_validatenid_unsupported_country():
     """Test that unsupported country code raises ValueError."""
-    factory = OPERATORS["validatenid"]
-
     with pytest.raises(ValueError):
-        options = OperatorOptions(r"xx \d+")
-        _operator = factory.create(options)
+        get_operator("validatenid", OperatorOptions(r"xx \d+"))
 
 
 def test_validatenid_invalid_format():
     """Test that invalid argument format raises ValueError."""
-    factory = OPERATORS["validatenid"]
-
     with pytest.raises(ValueError):
-        options = OperatorOptions("cl")  # Missing regex
-        _operator = factory.create(options)
+        get_operator("validatenid", OperatorOptions("cl"))  # Missing regex
