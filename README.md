@@ -123,10 +123,10 @@ See [docs/guides/quickstart.md](docs/guides/quickstart.md) for detailed setup in
 
 ## Project Status
 
-**Version**: 0.7.0
-**Status**: Beta
-**Test Coverage**: 1258 automated tests
-**Code Quality**: Zero linting/type errors
+**Version**: 0.7.0\
+**Status**: Beta\
+**Test Coverage**: 1258 automated tests\
+**Code Quality**: Zero linting/type errors\
 **Documentation**: 15000+ lines of documentation
 
 ### Test Coverage
@@ -242,16 +242,15 @@ Apache Software License 2.0 (matching OWASP CRS and Coraza)
 
 ## Credits
 
-- **Architecture**: Based on [Go Coraza](https://coraza.io/) project
+- **Standards**: ModSecurity/Coraza SecLang/OWASP Core Rule Set specification
 - **Rules**: [OWASP Core Rule Set](https://coreruleset.org/)
-- **Standards**: ModSecurity/Coraza SecLang specification
+- **Architecture**: Inspired by the [Go Coraza](https://coraza.io/) project
 
 ## Support
 
 - **Issues**: [GitHub Issues](https://github.com/abilian/lewaf/issues)
 - **Documentation**: See docs above
 - **CRS Documentation**: https://coreruleset.org/
-- **Coraza Documentation**: https://coraza.io/
 
 ---
 
